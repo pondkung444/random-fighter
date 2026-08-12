@@ -787,22 +787,25 @@ VS
 
 # 24. End-of-Fight Presentation — LOCKED
 
-เมื่อ timer = 0:
+การจบไฟต์มี 2 แบบ:
 
-1. Fighter ทั้งคู่ freeze
-2. แสดง `TIME!`
-3. รอจังหวะสั้น ๆ
-4. Compare HP
-5. Winner ทำ victory pose
-6. Loser เซ / คุกเข่า / lose animation
-7. แสดงชื่อผู้แพ้เด่น
+1. `K.O.!` เกิดได้หลังวินาทีที่ 10 และก่อนครบ 20 วินาที โดยตั้งเป้าประมาณ 7 ใน 10 รอบ
+2. `TIME!` เกิดเมื่อครบ 20 วินาทีและไม่มีใครถูกน็อก
+
+เมื่อจบไฟต์:
+
+1. หยุด combat loop และ timer ทันที
+2. แสดง `K.O.!` หรือ `TIME!` ตามผลจริง
+3. Winner ทำ victory pose
+4. Loser ล้ม / เซ / คุกเข่า / lose animation
+5. แสดงชื่อผู้ชนะและผู้แพ้เด่น โดยผู้แพ้เป็นคนตอบโจทย์
 
 ข้อความแนวทาง:
 
 > **[ชื่อผู้แพ้] แพ้!**  
 > **ถึงเวลาตอบโจทย์**
 
-ไม่ใช้ `KO!` เป็นผลหลัก เพราะผู้แพ้ยังมี HP เหลือ
+หากจบด้วย `TIME!` Fighter ทั้งคู่ต้องยังมี HP เหลือ และผู้แพ้ที่ล็อกไว้ต้องมี HP ต่ำกว่าโดยห้ามเสมอ
 
 ---
 
@@ -1208,6 +1211,9 @@ Mor vs Student
 - projector testing
 - performance
 - repeated-round stability
+- combat banter แบบสุ่มตามอาชีพและเหตุการณ์ attack / block / dodge / hit / knockdown
+- banter cooldown, ไม่พูดซ้ำติดกัน และไม่บังชื่อท่า Signature / Comeback
+- ปิด timer, speech bubble, projectile, particle และ state ค้างเมื่อเปลี่ยนรอบหรือกลับหน้า setup
 
 ### Exit Criteria
 
@@ -1243,7 +1249,7 @@ VS
         ↓
 FIGHT!
         ↓
-Stickman 2D auto fight 20 sec
+Stickman 2D auto fight สูงสุด 20 sec
         ↓
 HP จริง
         ↓
@@ -1253,7 +1259,7 @@ Knockdown / Get-up
         ↓
 Signature / Comeback possibility
         ↓
-TIME!
+K.O. หลัง 10 sec หรือ TIME เมื่อครบ 20 sec
         ↓
 HP ต่ำกว่าแพ้
         ↓

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Random Fighter — Phase 5 Complete Four Professions</title>
+  <title>Random Fighter — Classroom Edition</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -216,6 +216,7 @@
     .hud-side { min-width: 0; }
     .hud-side.right { text-align: right; }
     .hud-name { margin-bottom: 7px; overflow: hidden; text-overflow: ellipsis; font-size: clamp(18px, 3vw, 31px); font-weight: 900; white-space: nowrap; }
+    .hud-job { margin: -3px 0 7px; overflow: hidden; color: var(--gold); font-size: clamp(11px,1.5vw,16px); font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
     .hp-shell { height: clamp(22px, 3.2vw, 34px); overflow: hidden; border: 4px solid #e9e6ff; background: #3f1431; box-shadow: 4px 4px 0 #000; }
     .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #31ed82, #b8ff52); transform-origin: left; transition: width .55s ease; }
     .right .hp-fill { margin-left: auto; transform-origin: right; }
@@ -225,6 +226,10 @@
     .arena::after { position: absolute; inset: 61% 0 0; content: ""; background: repeating-linear-gradient(90deg, transparent 0 86px, rgba(255,201,74,.12) 86px 89px); transform: perspective(240px) rotateX(55deg); transform-origin: top; }
     #fightCanvas { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; }
     .arena-label { position: absolute; inset: 42% 0 auto; z-index: 4; color: #fff; font-size: clamp(42px, 9vw, 100px); text-align: center; text-shadow: 6px 6px 0 #9b1b47, 0 0 28px #ff4fd8; pointer-events: none; }
+    .banter { position: absolute; top: 10%; z-index: 5; max-width: 34%; padding: 9px 14px; border: 3px solid #101425; border-radius: 16px; color: #101425; background: #fff8d8; box-shadow: 4px 4px 0 rgba(0,0,0,.45); font-size: clamp(15px,2vw,24px); font-weight: 900; line-height: 1.15; text-align: center; pointer-events: none; }
+    .banter::after { position: absolute; bottom: -13px; content: ""; border: 8px solid transparent; border-top-color: #101425; }
+    .banter-a { left: 9%; } .banter-a::after { left: 22%; }
+    .banter-b { right: 9%; } .banter-b::after { right: 22%; }
     .battle-note { position: absolute; left: 50%; bottom: 2%; z-index: 4; width: max-content; max-width: 88%; padding: 7px 12px; border: 1px solid rgba(255,255,255,.15); border-radius: 999px; color: var(--muted); background: rgba(8,11,25,.82); font-size: 13px; transform: translateX(-50%); }
     .animation-lab { position: fixed; right: 12px; bottom: 12px; z-index: 20; width: min(360px, calc(100vw - 24px)); padding: 12px; border: 1px solid rgba(76,243,255,.45); border-radius: 14px; background: rgba(8,11,25,.94); box-shadow: 0 12px 40px #000; }
     .lab-title { margin-bottom: 8px; color: var(--cyan); font-size: 10px; }
@@ -234,7 +239,8 @@
 
     .result-kicker { color: var(--danger); font-size: clamp(11px,1.8vw,15px); }
     .result-title { margin: 18px 0 10px; color: #fff; font-size: clamp(38px, 7vw, 78px); line-height: 1.08; text-shadow: 4px 4px 0 #8a173f; }
-    .result-copy { margin: 0 0 26px; color: var(--gold); font-size: clamp(20px,3vw,34px); font-weight: 800; }
+    .result-copy { margin: 0 0 18px; color: var(--gold); font-size: clamp(20px,3vw,34px); font-weight: 800; }
+    .result-loser { margin: 0 0 22px; color: #fff; font-size: clamp(24px,4vw,46px); font-weight: 900; }
     .result-jobs { margin-bottom: 24px; color: var(--muted); }
     .result-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
     .button-next { padding: 14px 24px; color: #251900; background: linear-gradient(#ffd568,#eaa821); box-shadow: 0 5px 0 #865800; }
@@ -268,7 +274,7 @@
     <section class="screen" id="setupScreen">
       <div class="content">
         <header class="brand">
-          <div class="eyebrow pixel">PHASE 5 · RANDOM FIGHTER</div>
+          <div class="eyebrow pixel">CLASSROOM EDITION · RANDOM FIGHTER</div>
           <h1>RANDOM <span>FIGHTER</span></h1>
           <p class="subtitle">สุ่มผู้ท้าชิง 2 คน เพื่อเข้าสู่สังเวียน</p>
         </header>
@@ -358,14 +364,15 @@
     <section class="screen arcade-screen hidden" id="battleScreen" aria-live="assertive">
       <div class="battle-content">
         <div class="hud">
-          <div class="hud-side"><div class="hud-name" id="hudAName"></div><div class="hp-shell"><div class="hp-fill" id="hpA"></div></div></div>
+          <div class="hud-side"><div class="hud-name" id="hudAName"></div><div class="hud-job" id="hudAJob"></div><div class="hp-shell"><div class="hp-fill" id="hpA"></div></div></div>
           <div class="timer-box pixel" id="battleTimer">03</div>
-          <div class="hud-side right"><div class="hud-name" id="hudBName"></div><div class="hp-shell"><div class="hp-fill" id="hpB"></div></div></div>
+          <div class="hud-side right"><div class="hud-name" id="hudBName"></div><div class="hud-job" id="hudBJob"></div><div class="hp-shell"><div class="hp-fill" id="hpB"></div></div></div>
         </div>
         <div class="arena">
           <div class="arena-label pixel" id="arenaLabel">FIGHT!</div>
+          <div class="banter banter-a hidden" id="banterA"></div><div class="banter banter-b hidden" id="banterB"></div>
           <canvas id="fightCanvas" aria-label="สนามแสดงแอนิเมชันนักสู้สองคน"></canvas>
-          <div class="battle-note">Phase 5 · Four Profession Matchups</div>
+          <div class="battle-note">Random Fighter · Classroom Battle</div>
         </div>
       </div>
     </section>
@@ -373,8 +380,9 @@
     <section class="screen arcade-screen hidden" id="resultScreen" aria-live="assertive">
       <div class="result-stage">
         <div class="result-kicker pixel" id="resultKicker">TIME! · ROUND RESULT</div>
-        <h2 class="result-title"><span id="loserName"></span> แพ้!</h2>
+        <h2 class="result-title"><span id="winnerName"></span> ชนะ!</h2>
         <p class="result-copy">ถึงเวลาตอบโจทย์</p>
+        <p class="result-loser"><span id="loserName"></span> แพ้!</p>
         <p class="result-jobs" id="resultSummary"></p>
         <div class="result-actions">
           <button class="button button-secondary" id="resultEditButton" type="button">แก้รายชื่อ</button>
@@ -435,11 +443,11 @@
       enterArenaButton: document.querySelector("#enterArenaButton"),
       vsAName: document.querySelector("#vsAName"), vsBName: document.querySelector("#vsBName"),
       vsAJob: document.querySelector("#vsAJob"), vsBJob: document.querySelector("#vsBJob"),
-      hudAName: document.querySelector("#hudAName"), hudBName: document.querySelector("#hudBName"),
+      hudAName: document.querySelector("#hudAName"), hudBName: document.querySelector("#hudBName"), hudAJob: document.querySelector("#hudAJob"), hudBJob: document.querySelector("#hudBJob"),
       hpA: document.querySelector("#hpA"), hpB: document.querySelector("#hpB"),
-      battleTimer: document.querySelector("#battleTimer"), arenaLabel: document.querySelector("#arenaLabel"),
+      battleTimer: document.querySelector("#battleTimer"), arenaLabel: document.querySelector("#arenaLabel"), banterA: document.querySelector("#banterA"), banterB: document.querySelector("#banterB"),
       fightCanvas: document.querySelector("#fightCanvas"),
-      loserName: document.querySelector("#loserName"), resultKicker: document.querySelector("#resultKicker"), resultSummary: document.querySelector("#resultSummary"),
+      winnerName: document.querySelector("#winnerName"), loserName: document.querySelector("#loserName"), resultKicker: document.querySelector("#resultKicker"), resultSummary: document.querySelector("#resultSummary"),
       nextRoundButton: document.querySelector("#nextRoundButton"), resultEditButton: document.querySelector("#resultEditButton")
     };
 
@@ -448,8 +456,10 @@
       studentPool: [],
       round: null,
       lastRosterText: "",
-      battleRunId: 0
-      ,combatEngine: null
+      battleRunId: 0,
+      combatEngine: null,
+      battleTimerId: null,
+      roundBusy: false
     };
 
     const wait = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
@@ -783,6 +793,19 @@
       summary(){return Object.freeze({template:this.template.id,narrativeKind:this.template.kind,closingStyle:this.closingStyle.id,exchangeCount:this.exchangeCount,defenseBudget:this.defenseBudget,defensesUsed:this.defensesUsed,defenseRate:Number((this.defensesUsed/this.exchangeCount).toFixed(3)),signatureUsed:this.signatureUsed,comebackUsed:this.comebackUsed,knockdowns:this.knockdowns});}
     }
 
+    const BANTER_LINES=Object.freeze({
+      takraw:Object.freeze({attack:["รับลูกนี้!","เตะเต็มข้อ!"],block:["เอาอยู่!"],dodge:["ช้าไป!","ไม่ทันหรอก!"],hit:["โอ๊ย...พลาด!"],knockdown:["ยังไหว!"]}),
+      somtam:Object.freeze({attack:["เผ็ดไหมล่ะ!","เอาสากไปกิน!"],block:["ครกนี้แข็งนะ!"],dodge:["ยังไม่โดนจ้า!"],hit:["โอ๊ย ลูกค้า!"],knockdown:["ยังตำต่อได้!"]}),
+      lottery:Object.freeze({attack:["เลขนี้มาแน่!","จัดไปสามตัว!"],block:["เจ้าที่คุ้มครอง!"],dodge:["ดวงยังดี!"],hit:["เลขเคลื่อนหมด!"],knockdown:["ขอแก้มืออีกใบ!"]}),
+      student:Object.freeze({attack:["ส่งการบ้าน!","รับสมุดไป!"],block:["กระเป๋าช่วยด้วย!"],dodge:["เกือบโดนครูจับ!"],hit:["ลืมหลบ!"],knockdown:["ยังไม่หมดคาบ!"]})
+    });
+    class BanterDirector{
+      constructor(){this.lastAt=-Infinity;this.lastLine="";this.hideTimer=null;}
+      reset(){window.clearTimeout(this.hideTimer);this.lastAt=-Infinity;this.lastLine="";elements.banterA.classList.add("hidden");elements.banterB.classList.add("hidden");}
+      say(side,event,force=false){const now=performance.now();if(appState.phase!=="battle"||(!force&&(now-this.lastAt<2200||Math.random()>.34)))return;const profession=(side==="a"?stickmanStage.a:stickmanStage.b).profession,lines=BANTER_LINES[profession]?.[event];if(!lines?.length)return;const choices=lines.filter(line=>line!==this.lastLine),line=pick(choices.length?choices:lines),bubble=side==="a"?elements.banterA:elements.banterB,other=side==="a"?elements.banterB:elements.banterA;window.clearTimeout(this.hideTimer);other.classList.add("hidden");bubble.textContent=line;bubble.classList.remove("hidden");this.lastAt=now;this.lastLine=line;this.hideTimer=window.setTimeout(()=>bubble.classList.add("hidden"),950);}
+    }
+    const banterDirector=new BanterDirector();
+    function resetBattlePresentation(){if(appState.battleTimerId){window.clearInterval(appState.battleTimerId);appState.battleTimerId=null;}banterDirector.reset();stickmanStage.particles.length=0;stickmanStage.projectiles.length=0;stickmanStage.impact=null;elements.arenaLabel.classList.add("hidden");}
     function updateCombatHud(engine){elements.hpA.style.width=`${engine.fighter("a").hp}%`;elements.hpB.style.width=`${engine.fighter("b").hp}%`;}
 
     async function presentCombatExchange(engine,exchange,runId) {
@@ -791,7 +814,7 @@
       attackFighter.transition("approach");engine.emit("state_changed",{fighter:attacker,state:"approach"});
       await stickmanStage.approach(attacker);if(runId!==appState.battleRunId)return;
       attackFighter.transition("windup");stickmanStage.contactState="WINDUP";
-      if(attackId==="signature"||attackId==="comeback"){const profession=PROFESSION_PRESENTATION[(attacker==="a"?stickmanStage.a:stickmanStage.b).profession];elements.arenaLabel.textContent=attackId==="signature"?(profession.signatureName||"SIGNATURE!"):(profession.comebackName||"COMEBACK!");elements.arenaLabel.classList.remove("hidden");window.setTimeout(()=>{if(appState.phase==="battle")elements.arenaLabel.classList.add("hidden");},900);stickmanStage.spawnBurst(attacker);stickmanStage.spawnProfessionProjectile(attacker,attackId);}
+      if(attackId==="signature"||attackId==="comeback"){banterDirector.reset();const profession=PROFESSION_PRESENTATION[(attacker==="a"?stickmanStage.a:stickmanStage.b).profession];elements.arenaLabel.textContent=attackId==="signature"?(profession.signatureName||"SIGNATURE!"):(profession.comebackName||"COMEBACK!");elements.arenaLabel.classList.remove("hidden");window.setTimeout(()=>{if(appState.phase==="battle")elements.arenaLabel.classList.add("hidden");},900);stickmanStage.spawnBurst(attacker);stickmanStage.spawnProfessionProjectile(attacker,attackId);}else banterDirector.say(attacker,"attack");
       const defensiveClip=defense==="counter"?"lean":defense;
       if(defense!=="hit"){defendFighter.transition(defense==="block"?"block":"dodge");stickmanStage.play(defender,defensiveClip);}
       stickmanStage.play(attacker,attackId);await wait(attack.startupMs);
@@ -800,9 +823,9 @@
       if(defense==="hit"&&!contacted){const facing=attacker==="a"?1:-1;for(let step=0;step<7&&!contacted;step++){const proposed=stickmanStage.positions[attacker]+facing*stickmanStage.scale()*.045,minimumGap=stickmanStage.scale()*.38,target=attacker==="a"?Math.min(proposed,stickmanStage.positions[defender]-minimumGap):Math.max(proposed,stickmanStage.positions[defender]+minimumGap);await stickmanStage.move(attacker,target,38);contacted=stickmanStage.testContact(attacker,defender,false,attack.knockdown,attackId);}}
       if(["lean","crouch","jump","counter"].includes(defense))contacted=false;
       const result=engine.resolveAttack({attacker,defense,attackId,contact:contacted});
-      if(result.outcome==="block"){defendFighter.transition("block");stickmanStage.play(defender,"blockHit");stickmanStage.spawnImpact(defender,true,false);stickmanStage.contactState="CHIP DAMAGE";}
-      else if(result.outcome==="hit"||result.outcome==="knockdown"||result.outcome==="knockout"){defendFighter.transition(result.outcome==="knockout"?"knockdown":result.outcome);stickmanStage.play(defender,result.outcome==="knockdown"||result.outcome==="knockout"?"knockdown":"hit");stickmanStage.spawnImpact(defender,false,true);stickmanStage.contactState=result.outcome.toUpperCase();const direction=attacker==="a"?1:-1;stickmanStage.positions[defender]+=direction*stickmanStage.scale()*attack.knockback;}
-      else stickmanStage.contactState=defense==="counter"?"DODGE → COUNTER":"CLEAN MISS";
+      if(result.outcome==="block"){defendFighter.transition("block");stickmanStage.play(defender,"blockHit");stickmanStage.spawnImpact(defender,true,false);stickmanStage.contactState="CHIP DAMAGE";banterDirector.say(defender,"block");}
+      else if(result.outcome==="hit"||result.outcome==="knockdown"||result.outcome==="knockout"){defendFighter.transition(result.outcome==="knockout"?"knockdown":result.outcome);stickmanStage.play(defender,result.outcome==="knockdown"||result.outcome==="knockout"?"knockdown":"hit");stickmanStage.spawnImpact(defender,false,true);stickmanStage.contactState=result.outcome.toUpperCase();const direction=attacker==="a"?1:-1;stickmanStage.positions[defender]+=direction*stickmanStage.scale()*attack.knockback;banterDirector.say(defender,result.outcome==="knockdown"?"knockdown":"hit");}
+      else{stickmanStage.contactState=defense==="counter"?"DODGE → COUNTER":"CLEAN MISS";banterDirector.say(defender,"dodge");}
       updateCombatHud(engine);await wait(result.outcome==="knockdown"?650:attack.activeMs+180);
       attackFighter.transition("recovery");await stickmanStage.retreat(attacker);stickmanStage.play(attacker,"idle",true);attackFighter.transition("idle");
       if(result.outcome==="knockdown"){defendFighter.transition("grounded");await wait(100);defendFighter.transition("getup");stickmanStage.contactState="GET UP";stickmanStage.play(defender,"getup");await wait(650);}
@@ -831,12 +854,15 @@
 
       elements.hudAName.textContent = fighterA.name;
       elements.hudBName.textContent = fighterB.name;
+      elements.hudAJob.textContent = `${jobA.icon} ${jobA.name}`;
+      elements.hudBJob.textContent = `${jobB.icon} ${jobB.name}`;
       elements.hpA.style.width = "100%";
       elements.hpB.style.width = "100%";
       elements.battleTimer.textContent = "20";
       elements.arenaLabel.textContent = "FIGHT!";
       elements.arenaLabel.classList.remove("hidden");
       setScreen("battle");
+      resetBattlePresentation();elements.arenaLabel.textContent="FIGHT!";elements.arenaLabel.classList.remove("hidden");
       stickmanStage.a.play("idle", true);
       stickmanStage.b.play("idle", true);
       stickmanStage.setProfession("a",jobA.id);
@@ -859,7 +885,7 @@
       const guaranteeSignature=Math.random()<.85;
       const director=new CombatDirector({lockedLoserSide,guaranteeSignature,knockoutEnabled});
       const battleDeadline = performance.now() + FIGHT_DURATION_MS;
-      const timerId = window.setInterval(() => {
+      const timerId = appState.battleTimerId = window.setInterval(() => {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return window.clearInterval(timerId);
         const remaining = Math.max(0, Math.ceil((battleDeadline-performance.now())/1000));
         elements.battleTimer.textContent = String(remaining).padStart(2, "0");
@@ -867,6 +893,7 @@
       let knockout=false;
       for (let index = 0; index < director.exchangeCount; index += 1) {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return;
+        if(performance.now()>=battleDeadline-950)break;
         const exchange = director.ensureClosingOutcome(engine,index);
         const untilExchange=battleDeadline-FIGHT_DURATION_MS+exchange.at-performance.now();if(untilExchange>0)await wait(untilExchange);
         const result=await presentCombatExchange(engine,exchange,runId);
@@ -874,7 +901,7 @@
       }
       const remainingBattleTime = battleDeadline-performance.now();
       if (!knockout&&remainingBattleTime > 0) await wait(remainingBattleTime);
-      window.clearInterval(timerId);
+      window.clearInterval(timerId);appState.battleTimerId=null;
       if (runId !== appState.battleRunId || appState.phase !== "battle") return;
       elements.battleTimer.textContent = "00";
       let finalEvent;
@@ -885,6 +912,7 @@
       document.documentElement.dataset.fightDiagnostics=JSON.stringify(window.__randomFighterDiagnostics);
       elements.arenaLabel.textContent = knockout?"K.O.!":"TIME!";
       elements.arenaLabel.classList.remove("hidden");
+      banterDirector.reset();
       stickmanStage.play(loserIsA ? "a" : "b", "lose");
       stickmanStage.play(loserIsA ? "b" : "a", "victory");
       await wait(1200);
@@ -895,24 +923,31 @@
     function showResult(reason="time") {
       if (!appState.round) return;
       const loser = appState.round.fighters.find(fighter => fighter.id === appState.round.lockedLoserId);
+      const winner = appState.round.fighters.find(fighter => fighter.id !== appState.round.lockedLoserId);
       const jobA = professionById(appState.round.professions.fighterA);
       const jobB = professionById(appState.round.professions.fighterB);
       elements.resultKicker.textContent=reason==="knockout"?"K.O.! · ROUND RESULT":"TIME! · ROUND RESULT";
+      elements.winnerName.textContent=winner?.name||"ผู้ชนะ";
       elements.loserName.textContent = loser?.name || "ผู้ท้าชิง";
-      elements.resultSummary.textContent = `${appState.round.fighters[0].name} ${jobA?.icon || ""}  VS  ${appState.round.fighters[1].name} ${jobB?.icon || ""}`;
+      elements.resultSummary.textContent = `${appState.round.fighters[0].name} · ${jobA?.icon || ""} ${jobA?.name || ""}  VS  ${appState.round.fighters[1].name} · ${jobB?.icon || ""} ${jobB?.name || ""}`;
       stickmanStage.stop();
       setScreen("result");
     }
 
     async function startNextRound() {
-      if (!appState.studentPool.length) returnToSetup();
+      if (appState.roundBusy) return;
+      if (!appState.studentPool.length) return returnToSetup();
+      appState.roundBusy=true;
+      const runId=++appState.battleRunId;
+      resetBattlePresentation();stickmanStage.stop();
       appState.round = createLockedRound(appState.studentPool);
       elements.selectionPanel.classList.add("hidden");
       elements.drawStatus.textContent = "กำลังเตรียมไพ่...";
       renderCardGrid(appState.studentPool);
       setScreen("draw");
       await wait(350);
-      await revealFighters(appState.round);
+      await revealFighters(appState.round,runId);
+      if (runId===appState.battleRunId) appState.roundBusy=false;
     }
 
     function updateRosterValidation() {
@@ -953,25 +988,28 @@
       elements.drawGrid.replaceChildren(...students.map(createCard));
     }
 
-    async function revealFighters(round) {
+    async function revealFighters(round,runId=appState.battleRunId) {
       const selectedIds = new Set(round.fighters.map(fighter => fighter.id));
 
       for (let index = 0; index < round.fighters.length; index += 1) {
         const fighter = round.fighters[index];
         elements.drawStatus.textContent = `เปิดไพ่ใบที่ ${index + 1} จาก 2...`;
         await wait(700);
+        if (runId!==appState.battleRunId || appState.phase!=="draw") return;
         const card = elements.drawGrid.querySelector(`[data-student-id="${fighter.id}"]`);
         card?.classList.add("flipped");
       }
 
       elements.drawStatus.textContent = "ได้ผู้ท้าชิงครบ 2 คนแล้ว!";
       await wait(700);
+      if (runId!==appState.battleRunId || appState.phase!=="draw") return;
 
       elements.drawGrid.querySelectorAll(".draw-card").forEach(card => {
         if (!selectedIds.has(card.dataset.studentId)) card.classList.add("dim");
       });
 
       await wait(500);
+      if (runId!==appState.battleRunId || appState.phase!=="draw") return;
       elements.fighterAName.textContent = round.fighters[0].name;
       elements.fighterBName.textContent = round.fighters[1].name;
       elements.selectionPanel.classList.remove("hidden");
@@ -986,17 +1024,20 @@
       elements.startButton.disabled = true;
       appState.studentPool = makeStudentPool(names);
       appState.round = createLockedRound(appState.studentPool);
+      const runId=++appState.battleRunId;
 
       elements.selectionPanel.classList.add("hidden");
       elements.drawStatus.textContent = "กำลังเตรียมไพ่...";
       renderCardGrid(appState.studentPool);
       setScreen("draw");
       await wait(350);
-      await revealFighters(appState.round);
+      await revealFighters(appState.round,runId);
     }
 
     function returnToSetup() {
       appState.battleRunId += 1;
+      appState.roundBusy=false;
+      resetBattlePresentation();
       stickmanStage.stop();
       appState.studentPool = [];
       appState.round = null;
@@ -1066,6 +1107,18 @@
     runPhaseFourInvariants();
     function runPhaseFiveInvariants(){const roster=PROFESSIONS.map(job=>PROFESSION_PRESENTATION[job.id]),required=["idle","light","heavy","signature","comeback","block","hit","victory"],matchups=[];for(let left=0;left<roster.length;left++)for(let right=left+1;right<roster.length;right++)matchups.push(`${roster[left].id}-vs-${roster[right].id}`);const passed=roster.length===4&&matchups.length===6&&roster.every(def=>def&&def.signatureName&&def.comebackName&&required.every(key=>CLIPS[def.clips[key]])&&["light","heavy","signature","comeback"].every(key=>def.anchors[key]));document.documentElement.dataset.phase5Invariants=JSON.stringify({passed,professions:roster.map(def=>def.id),matchups});console.info("Phase 5 invariant check",{passed,matchups});return passed;}
     runPhaseFiveInvariants();
+    function runPhaseSixInvariants(){
+      const banterEvents=["attack","block","dodge","hit","knockdown"];
+      const banterComplete=PROFESSIONS.every(job=>banterEvents.every(event=>BANTER_LINES[job.id]?.[event]?.length));
+      const resultComplete=[elements.winnerName,elements.loserName,elements.resultKicker,elements.resultSummary].every(Boolean);
+      const hudComplete=[elements.hudAName,elements.hudAJob,elements.hudBName,elements.hudBJob,elements.battleTimer].every(Boolean);
+      const passed=Boolean(banterComplete&&resultComplete&&hudComplete&&FIGHT_DURATION_MS===20000);
+      const report=Object.freeze({passed,banterComplete,resultComplete,hudComplete,fightDurationMs:FIGHT_DURATION_MS});
+      document.documentElement.dataset.phase6Invariants=JSON.stringify(report);
+      console.info("Phase 6 invariant check",report);
+      return passed;
+    }
+    runPhaseSixInvariants();
 
     if (new URLSearchParams(location.search).get("lab") === "1") {
       const lab = document.createElement("aside");
