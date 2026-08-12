@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Random Fighter — Phase 1 Stickman Foundation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080b19;
+      --panel: #151a36;
+      --panel-2: #1d2348;
+      --ink: #f4f2ff;
+      --muted: #a4a9cf;
+      --cyan: #4cf3ff;
+      --pink: #ff4fd8;
+      --gold: #ffc94a;
+      --mint: #52ffb8;
+      --danger: #ff5d78;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--ink);
+      font-family: "Kanit", sans-serif;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(76, 243, 255, .13), transparent 35%),
+        radial-gradient(circle at 90% 8%, rgba(255, 79, 216, .12), transparent 38%),
+        var(--bg);
+    }
+
+    button, textarea { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    .hidden { display: none !important; }
+    .pixel { font-family: "Press Start 2P", monospace; }
+
+    .stars, .stars::before {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      content: "";
+      background-image: radial-gradient(rgba(76, 243, 255, .48) 1px, transparent 1px);
+      background-size: 58px 58px;
+      opacity: .28;
+      animation: drift 36s linear infinite;
+    }
+    .stars::before {
+      background-image: radial-gradient(rgba(255, 79, 216, .44) 1px, transparent 1px);
+      background-size: 91px 91px;
+      animation-duration: 52s;
+      animation-direction: reverse;
+    }
+    @keyframes drift { to { transform: translate(-58px, 58px); } }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 28px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .content { width: min(100%, 820px); }
+    .brand { margin-bottom: 22px; text-align: center; }
+    .eyebrow {
+      margin-bottom: 10px;
+      color: var(--cyan);
+      font-size: clamp(8px, 1.5vw, 11px);
+      line-height: 1.6;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 6vw, 54px);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: .5px;
+    }
+    h1 span { color: var(--gold); text-shadow: 0 0 24px rgba(255, 201, 74, .45); }
+    .subtitle { margin: 10px auto 0; color: var(--muted); font-size: clamp(14px, 2vw, 17px); }
+
+    .panel {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      padding: 22px;
+      border: 2px solid rgba(76, 243, 255, .22);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(29, 35, 72, .97), rgba(21, 26, 54, .97));
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .42), inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    label { display: block; margin-bottom: 9px; color: var(--muted); font-size: 14px; font-weight: 600; }
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 250px;
+      padding: 14px;
+      resize: vertical;
+      outline: 0;
+      border: 2px solid rgba(76, 243, 255, .18);
+      border-radius: 13px;
+      color: var(--ink);
+      background: #0c1026;
+      line-height: 1.65;
+    }
+    textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(76, 243, 255, .08); }
+
+    .count-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; color: var(--muted); font-size: 13px; }
+    .pill { padding: 5px 11px; border: 1px solid rgba(82, 255, 184, .4); border-radius: 999px; color: var(--mint); background: rgba(82, 255, 184, .1); font-weight: 700; }
+    .pill.warn { border-color: rgba(255, 93, 120, .45); color: var(--danger); background: rgba(255, 93, 120, .1); }
+
+    .button {
+      border: 0;
+      border-radius: 13px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform .13s ease, filter .13s ease, opacity .13s ease;
+    }
+    .button:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+    .button:active:not(:disabled) { transform: translateY(2px); }
+    .button:disabled { cursor: not-allowed; opacity: .4; }
+    .button-primary {
+      width: 100%;
+      margin-top: 18px;
+      padding: 15px 18px;
+      color: #251900;
+      background: linear-gradient(#ffd568, #eaa821);
+      box-shadow: 0 6px 0 #865800, 0 14px 28px rgba(0, 0, 0, .36);
+      font-size: 18px;
+    }
+    .button-secondary { padding: 11px 16px; color: var(--ink); background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); }
+
+    .draw-head { margin-bottom: 18px; text-align: center; }
+    .draw-head h2 { margin: 0 0 6px; font-size: clamp(23px, 4vw, 34px); }
+    .draw-status { min-height: 27px; margin: 0; color: var(--muted); font-size: 15px; }
+    .draw-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); gap: 9px; }
+
+    .draw-card { aspect-ratio: 2 / 3; perspective: 700px; }
+    .card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .58s cubic-bezier(.25,.72,.3,1.25), opacity .35s ease, filter .35s ease; }
+    .draw-card.flipped .card-inner { transform: rotateY(180deg); }
+    .draw-card.dim .card-inner { opacity: .18; filter: grayscale(.85); }
+    .card-face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 9px;
+      backface-visibility: hidden;
+    }
+    .card-back {
+      border: 2px solid rgba(76, 243, 255, .36);
+      background: repeating-linear-gradient(45deg, rgba(76,243,255,.08) 0 6px, transparent 6px 12px), linear-gradient(145deg, #202753, #0c1026);
+      box-shadow: 0 5px 13px rgba(0,0,0,.38);
+    }
+    .card-back::after { content: "?"; color: rgba(76,243,255,.55); font: 14px "Press Start 2P", monospace; }
+    .card-front { flex-direction: column; gap: 6px; padding: 5px; border: 2px solid var(--gold); background: linear-gradient(145deg, #34266e, #181337); transform: rotateY(180deg); box-shadow: 0 0 20px rgba(255,201,74,.45); }
+    .card-front .star { font-size: 17px; }
+    .card-name { width: 100%; overflow-wrap: anywhere; text-align: center; font-size: clamp(9px, 1.6vw, 12px); font-weight: 700; line-height: 1.2; }
+
+    .selection-panel { margin-top: 22px; text-align: center; animation: rise .45s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+    .selection-label { color: var(--cyan); font-size: 10px; line-height: 1.6; }
+    .fighter-pair { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin: 15px 0 18px; }
+    .fighter-chip { min-width: 0; padding: 15px 10px; border: 2px solid rgba(255,255,255,.14); border-radius: 14px; background: rgba(255,255,255,.055); }
+    .fighter-chip:first-child { border-color: rgba(76,243,255,.45); }
+    .fighter-chip:last-child { border-color: rgba(255,79,216,.45); }
+    .fighter-side { margin-bottom: 4px; color: var(--muted); font-size: 12px; }
+    .fighter-name { overflow: hidden; text-overflow: ellipsis; font-size: clamp(18px, 3vw, 25px); font-weight: 800; white-space: nowrap; }
+    .versus { color: var(--gold); font-size: clamp(18px, 3vw, 25px); text-shadow: 0 0 14px rgba(255,201,74,.5); }
+    .checkpoint-note { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+    .selection-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .button-continue { padding: 12px 18px; color: #251900; background: linear-gradient(#ffd568, #eaa821); box-shadow: 0 4px 0 #865800; }
+    .profession-content { width: min(100%, 1100px); }
+    .profession-head { margin-bottom: 22px; text-align: center; }
+    .profession-head h2 { margin: 0 0 6px; font-size: clamp(25px, 4vw, 38px); }
+    .profession-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 18px; }
+    .fighter-select { min-width: 0; padding: 20px; border: 2px solid rgba(76,243,255,.35); border-radius: 20px; background: linear-gradient(180deg, rgba(29,35,72,.97), rgba(21,26,54,.97)); box-shadow: 0 20px 45px rgba(0,0,0,.34); }
+    .fighter-select.side-b { border-color: rgba(255,79,216,.35); }
+    .select-side { color: var(--muted); font-size: 11px; }
+    .select-name { margin: 5px 0 15px; overflow-wrap: anywhere; font-size: clamp(23px,3.5vw,34px); font-weight: 900; }
+    .profession-options { display: grid; gap: 9px; }
+    .profession-button { display: grid; grid-template-columns: 38px 1fr 24px; align-items: center; gap: 9px; width: 100%; padding: 11px 12px; border: 2px solid rgba(255,255,255,.12); border-radius: 13px; color: var(--ink); background: rgba(255,255,255,.055); cursor: pointer; text-align: left; transition: border-color .15s ease, background .15s ease, transform .15s ease, opacity .15s ease; }
+    .profession-button:hover:not(:disabled) { border-color: var(--cyan); transform: translateY(-1px); }
+    .side-b .profession-button:hover:not(:disabled) { border-color: var(--pink); }
+    .profession-button.selected { border-color: var(--gold); background: rgba(255,201,74,.14); box-shadow: inset 0 0 0 1px rgba(255,201,74,.2); }
+    .profession-button:disabled { cursor: not-allowed; opacity: .27; filter: grayscale(.8); }
+    .profession-button .job-icon { font-size: 27px; text-align: center; }
+    .profession-button .job-name { font-size: clamp(13px,1.8vw,16px); font-weight: 700; line-height: 1.25; }
+    .profession-button .job-check { color: var(--gold); font-size: 17px; text-align: center; }
+    .select-versus { align-self: center; color: var(--gold); font-size: clamp(22px,3vw,34px); text-shadow: 0 0 18px rgba(255,201,74,.48); }
+    .profession-footer { margin-top: 20px; text-align: center; }
+    .profession-status { min-height: 27px; margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+
+    .arcade-screen { overflow: hidden; padding: 0; background: #050713; }
+    .vs-stage, .result-stage { width: min(100%, 1180px); text-align: center; }
+    .vs-stage { animation: vsEnter .45s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes vsEnter { from { opacity: 0; transform: scale(1.12); } }
+    .vs-title { margin: 0 0 26px; color: var(--gold); font-size: clamp(42px, 9vw, 100px); text-shadow: 5px 5px 0 #8a173f, 0 0 35px rgba(255,201,74,.48); }
+    .vs-grid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; }
+    .vs-fighter { min-width: 0; padding: 28px 20px; border: 3px solid var(--cyan); border-radius: 22px; background: linear-gradient(145deg, rgba(76,243,255,.13), rgba(21,26,54,.96)); transform: skewY(-2deg); }
+    .vs-fighter.side-b { border-color: var(--pink); background: linear-gradient(215deg, rgba(255,79,216,.13), rgba(21,26,54,.96)); transform: skewY(2deg); }
+    .vs-name { overflow-wrap: anywhere; font-size: clamp(30px, 5vw, 58px); font-weight: 900; line-height: 1.05; }
+    .vs-job { margin-top: 12px; color: var(--gold); font-size: clamp(15px, 2.3vw, 24px); font-weight: 700; }
+    .vs-mark { color: #fff; font-size: clamp(40px, 7vw, 78px); text-shadow: 0 0 22px var(--pink); }
+
+    .battle-content { width: min(100%, 1280px); }
+    .hud { display: grid; grid-template-columns: 1fr 100px 1fr; align-items: start; gap: 16px; margin-bottom: 16px; }
+    .hud-side { min-width: 0; }
+    .hud-side.right { text-align: right; }
+    .hud-name { margin-bottom: 7px; overflow: hidden; text-overflow: ellipsis; font-size: clamp(18px, 3vw, 31px); font-weight: 900; white-space: nowrap; }
+    .hp-shell { height: clamp(22px, 3.2vw, 34px); overflow: hidden; border: 4px solid #e9e6ff; background: #3f1431; box-shadow: 4px 4px 0 #000; }
+    .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #31ed82, #b8ff52); transform-origin: left; transition: width .55s ease; }
+    .right .hp-fill { margin-left: auto; transform-origin: right; }
+    .timer-box { padding: 10px 4px; border: 4px solid var(--gold); color: var(--gold); background: #151a36; box-shadow: 4px 4px 0 #000; font-size: clamp(23px, 4vw, 36px); text-align: center; }
+    .arena { position: relative; height: min(62vh, 570px); min-height: 330px; overflow: hidden; border: 4px solid #424a7c; background: linear-gradient(#172852 0 58%, #663b67 58% 61%, #1a1832 61%); box-shadow: 0 22px 60px #000; }
+    .arena::before { position: absolute; inset: 0 0 39%; content: ""; background: repeating-linear-gradient(90deg, transparent 0 70px, rgba(255,255,255,.035) 70px 72px), linear-gradient(180deg, transparent, rgba(255,79,216,.15)); }
+    .arena::after { position: absolute; inset: 61% 0 0; content: ""; background: repeating-linear-gradient(90deg, transparent 0 86px, rgba(255,201,74,.12) 86px 89px); transform: perspective(240px) rotateX(55deg); transform-origin: top; }
+    #fightCanvas { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; }
+    .arena-label { position: absolute; inset: 42% 0 auto; z-index: 4; color: #fff; font-size: clamp(42px, 9vw, 100px); text-align: center; text-shadow: 6px 6px 0 #9b1b47, 0 0 28px #ff4fd8; pointer-events: none; }
+    .battle-note { position: absolute; left: 50%; bottom: 2%; z-index: 4; width: max-content; max-width: 88%; padding: 7px 12px; border: 1px solid rgba(255,255,255,.15); border-radius: 999px; color: var(--muted); background: rgba(8,11,25,.82); font-size: 13px; transform: translateX(-50%); }
+    .animation-lab { position: fixed; right: 12px; bottom: 12px; z-index: 20; width: min(360px, calc(100vw - 24px)); padding: 12px; border: 1px solid rgba(76,243,255,.45); border-radius: 14px; background: rgba(8,11,25,.94); box-shadow: 0 12px 40px #000; }
+    .lab-title { margin-bottom: 8px; color: var(--cyan); font-size: 10px; }
+    .lab-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+    .lab-controls button { padding: 6px 9px; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; color: var(--ink); background: rgba(255,255,255,.08); cursor: pointer; }
+    .lab-status { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+
+    .result-kicker { color: var(--danger); font-size: clamp(11px,1.8vw,15px); }
+    .result-title { margin: 18px 0 10px; color: #fff; font-size: clamp(38px, 7vw, 78px); line-height: 1.08; text-shadow: 4px 4px 0 #8a173f; }
+    .result-copy { margin: 0 0 26px; color: var(--gold); font-size: clamp(20px,3vw,34px); font-weight: 800; }
+    .result-jobs { margin-bottom: 24px; color: var(--muted); }
+    .result-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .button-next { padding: 14px 24px; color: #251900; background: linear-gradient(#ffd568,#eaa821); box-shadow: 0 5px 0 #865800; }
+
+    @media (max-width: 560px) {
+      .screen { align-items: flex-start; padding-top: 22px; }
+      .panel { padding: 17px; }
+      .draw-grid { grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); gap: 6px; }
+      .fighter-pair { gap: 8px; }
+      .fighter-chip { padding: 12px 7px; }
+      .profession-grid { grid-template-columns: 1fr; }
+      .select-versus { padding: 0; text-align: center; }
+      .fighter-select { padding: 16px; }
+      .vs-grid { grid-template-columns: 1fr; gap: 12px; }
+      .vs-fighter { padding: 18px 14px; }
+      .vs-mark { font-size: 28px; }
+      .hud { grid-template-columns: 1fr 62px 1fr; gap: 7px; }
+      .timer-box { border-width: 3px; }
+      .arena { min-height: 390px; }
+      .battle-note { font-size: 11px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+
+  <main>
+    <section class="screen" id="setupScreen">
+      <div class="content">
+        <header class="brand">
+          <div class="eyebrow pixel">PHASE 1 · RANDOM FIGHTER</div>
+          <h1>RANDOM <span>FIGHTER</span></h1>
+          <p class="subtitle">สุ่มผู้ท้าชิง 2 คน เพื่อเข้าสู่สังเวียน</p>
+        </header>
+
+        <div class="panel">
+          <label for="nameInput">รายชื่อนักเรียน — 1 บรรทัดต่อ 1 คน</label>
+          <textarea id="nameInput" spellcheck="false" aria-describedby="countText"></textarea>
+          <div class="count-row">
+            <span id="countText">0 คน</span>
+            <span class="pill warn" id="countPill">ต้องมีอย่างน้อย 2 คน</span>
+          </div>
+          <button class="button button-primary" id="startButton" type="button" disabled>🎴 เริ่มสุ่มนักสู้</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen hidden" id="drawScreen" aria-live="polite">
+      <div class="content">
+        <header class="draw-head">
+          <div class="eyebrow pixel">CARD DRAW</div>
+          <h2>ใครจะได้เข้าสังเวียน?</h2>
+          <p class="draw-status" id="drawStatus">กำลังเตรียมไพ่...</p>
+        </header>
+        <div class="draw-grid" id="drawGrid"></div>
+
+        <div class="panel selection-panel hidden" id="selectionPanel">
+          <div class="selection-label pixel">FIGHTERS SELECTED</div>
+          <div class="fighter-pair">
+            <div class="fighter-chip">
+              <div class="fighter-side">FIGHTER A</div>
+              <div class="fighter-name" id="fighterAName"></div>
+            </div>
+            <div class="versus pixel">VS</div>
+            <div class="fighter-chip">
+              <div class="fighter-side">FIGHTER B</div>
+              <div class="fighter-name" id="fighterBName"></div>
+            </div>
+          </div>
+          <p class="checkpoint-note">ผู้ท้าชิงพร้อมแล้ว — ขั้นต่อไปเลือกอาชีพให้ทั้งสองคน</p>
+          <div class="selection-actions">
+            <button class="button button-secondary" id="editNamesButton" type="button">← กลับไปแก้รายชื่อ</button>
+            <button class="button button-continue" id="chooseProfessionsButton" type="button">เลือกอาชีพ →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="screen hidden" id="professionScreen" aria-live="polite">
+      <div class="profession-content">
+        <header class="profession-head">
+          <div class="eyebrow pixel">CHARACTER SELECT</div>
+          <h2>เลือกอาชีพนักสู้</h2>
+          <p class="draw-status">เลือกฝั่งไหนก่อนก็ได้ · อาชีพห้ามซ้ำกัน</p>
+        </header>
+        <div class="profession-grid">
+          <article class="fighter-select side-a">
+            <div class="select-side pixel">FIGHTER A</div>
+            <div class="select-name" id="professionAName"></div>
+            <div class="profession-options" id="professionAOptions"></div>
+          </article>
+          <div class="select-versus pixel">VS</div>
+          <article class="fighter-select side-b">
+            <div class="select-side pixel">FIGHTER B</div>
+            <div class="select-name" id="professionBName"></div>
+            <div class="profession-options" id="professionBOptions"></div>
+          </article>
+        </div>
+        <footer class="profession-footer">
+          <p class="profession-status" id="professionStatus">เลือกอาชีพให้ Fighter A และ Fighter B</p>
+          <p class="checkpoint-note hidden" id="professionComplete">อาชีพพร้อมแล้ว — เข้าสู่สังเวียนได้เลย</p>
+          <button class="button button-secondary" id="backToDrawButton" type="button">← กลับไปหน้าผู้ท้าชิง</button>
+          <button class="button button-continue" id="enterArenaButton" type="button" disabled>เข้าสู่สังเวียน →</button>
+        </footer>
+      </div>
+    </section>
+
+    <section class="screen arcade-screen hidden" id="vsScreen" aria-live="assertive">
+      <div class="vs-stage">
+        <div class="vs-title pixel">BATTLE</div>
+        <div class="vs-grid">
+          <article class="vs-fighter"><div class="vs-name" id="vsAName"></div><div class="vs-job" id="vsAJob"></div></article>
+          <div class="vs-mark pixel">VS</div>
+          <article class="vs-fighter side-b"><div class="vs-name" id="vsBName"></div><div class="vs-job" id="vsBJob"></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen arcade-screen hidden" id="battleScreen" aria-live="assertive">
+      <div class="battle-content">
+        <div class="hud">
+          <div class="hud-side"><div class="hud-name" id="hudAName"></div><div class="hp-shell"><div class="hp-fill" id="hpA"></div></div></div>
+          <div class="timer-box pixel" id="battleTimer">03</div>
+          <div class="hud-side right"><div class="hud-name" id="hudBName"></div><div class="hp-shell"><div class="hp-fill" id="hpB"></div></div></div>
+        </div>
+        <div class="arena">
+          <div class="arena-label pixel" id="arenaLabel">FIGHT!</div>
+          <canvas id="fightCanvas" aria-label="สนามแสดงแอนิเมชันนักสู้สองคน"></canvas>
+          <div class="battle-note">Phase 1 · Procedural Stickman Animation Foundation</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen arcade-screen hidden" id="resultScreen" aria-live="assertive">
+      <div class="result-stage">
+        <div class="result-kicker pixel">TIME! · ROUND RESULT</div>
+        <h2 class="result-title"><span id="loserName"></span> แพ้!</h2>
+        <p class="result-copy">ถึงเวลาตอบโจทย์</p>
+        <p class="result-jobs" id="resultSummary"></p>
+        <div class="result-actions">
+          <button class="button button-secondary" id="resultEditButton" type="button">แก้รายชื่อ</button>
+          <button class="button button-next" id="nextRoundButton" type="button">สุ่มรอบใหม่ →</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const DEFAULT_NAMES = [
+      "เนส", "แพรว", "เทรนเลอร์", "น้ำหอม", "ฟ้าใหม่", "เกรซ", "ข้าวปุ้น",
+      "ชาช่า", "ไข่มุก", "กัปตัน", "ปอร์โต้", "ปาล์ม", "นาวา", "หมอก",
+      "ชีตาร์", "โฟโต้", "น้ำมนต์", "ชิวชิว", "ไม้", "บิงโก", "วิน",
+      "คาร์ริค", "โฟกัส", "จัก", "ดราก้อน", "ออฟ"
+    ];
+    const PROFESSIONS = Object.freeze([
+      Object.freeze({ id: "takraw", icon: "🥋", name: "นักเตะตะกร้อสายฟ้า" }),
+      Object.freeze({ id: "somtam", icon: "🌶️", name: "แม่ค้าส้มตำมือเพชฌฆาต" }),
+      Object.freeze({ id: "lottery", icon: "🎰", name: "ป้าใบ้หวยสายมู" }),
+      Object.freeze({ id: "student", icon: "📚", name: "นักเรียนสายลืมการบ้าน" })
+    ]);
+
+    const elements = {
+      setupScreen: document.querySelector("#setupScreen"),
+      drawScreen: document.querySelector("#drawScreen"),
+      professionScreen: document.querySelector("#professionScreen"),
+      vsScreen: document.querySelector("#vsScreen"),
+      battleScreen: document.querySelector("#battleScreen"),
+      resultScreen: document.querySelector("#resultScreen"),
+      nameInput: document.querySelector("#nameInput"),
+      countText: document.querySelector("#countText"),
+      countPill: document.querySelector("#countPill"),
+      startButton: document.querySelector("#startButton"),
+      drawStatus: document.querySelector("#drawStatus"),
+      drawGrid: document.querySelector("#drawGrid"),
+      selectionPanel: document.querySelector("#selectionPanel"),
+      fighterAName: document.querySelector("#fighterAName"),
+      fighterBName: document.querySelector("#fighterBName"),
+      editNamesButton: document.querySelector("#editNamesButton"),
+      chooseProfessionsButton: document.querySelector("#chooseProfessionsButton"),
+      professionAName: document.querySelector("#professionAName"),
+      professionBName: document.querySelector("#professionBName"),
+      professionAOptions: document.querySelector("#professionAOptions"),
+      professionBOptions: document.querySelector("#professionBOptions"),
+      professionStatus: document.querySelector("#professionStatus"),
+      professionComplete: document.querySelector("#professionComplete"),
+      backToDrawButton: document.querySelector("#backToDrawButton"),
+      enterArenaButton: document.querySelector("#enterArenaButton"),
+      vsAName: document.querySelector("#vsAName"), vsBName: document.querySelector("#vsBName"),
+      vsAJob: document.querySelector("#vsAJob"), vsBJob: document.querySelector("#vsBJob"),
+      hudAName: document.querySelector("#hudAName"), hudBName: document.querySelector("#hudBName"),
+      hpA: document.querySelector("#hpA"), hpB: document.querySelector("#hpB"),
+      battleTimer: document.querySelector("#battleTimer"), arenaLabel: document.querySelector("#arenaLabel"),
+      fightCanvas: document.querySelector("#fightCanvas"),
+      loserName: document.querySelector("#loserName"), resultSummary: document.querySelector("#resultSummary"),
+      nextRoundButton: document.querySelector("#nextRoundButton"), resultEditButton: document.querySelector("#resultEditButton")
+    };
+
+    const appState = {
+      phase: "setup",
+      studentPool: [],
+      round: null,
+      lastRosterText: "",
+      battleRunId: 0
+    };
+
+    const wait = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
+
+    // Phase 1 animation is presentation-only. It never reads or writes lockedLoserId.
+    const RAD = Math.PI / 180;
+    const POSES = Object.freeze({
+      idleA: { rootX:0, rootY:0, torso:-4, head:2, shoulderL:220, elbowL:250, shoulderR:135, elbowR:105, hipL:192, kneeL:174, hipR:168, kneeR:186 },
+      idleB: { rootX:0, rootY:-.012, torso:3, head:-2, shoulderL:225, elbowL:255, shoulderR:128, elbowR:98, hipL:190, kneeL:172, hipR:166, kneeR:188 },
+      brace: { rootX:-.01, rootY:.035, torso:-9, head:5, shoulderL:232, elbowL:272, shoulderR:118, elbowR:78, hipL:202, kneeL:170, hipR:160, kneeR:190 },
+      block: { rootX:-.035, rootY:.02, torso:-14, head:-3, shoulderL:145, elbowL:105, shoulderR:112, elbowR:72, hipL:200, kneeL:168, hipR:158, kneeR:193 },
+      hit: { rootX:-.075, rootY:.025, torso:-25, head:-18, shoulderL:245, elbowL:268, shoulderR:70, elbowR:48, hipL:210, kneeL:175, hipR:154, kneeR:196 },
+      lean: { rootX:-.025, rootY:.01, torso:-34, head:-12, shoulderL:220, elbowL:250, shoulderR:142, elbowR:112, hipL:204, kneeL:176, hipR:158, kneeR:192 },
+      crouch: { rootX:-.02, rootY:.15, torso:8, head:-3, shoulderL:228, elbowL:258, shoulderR:132, elbowR:102, hipL:232, kneeL:145, hipR:128, kneeR:215 },
+      jumpPrep: { rootX:0, rootY:.13, torso:5, head:0, shoulderL:205, elbowL:236, shoulderR:155, elbowR:124, hipL:225, kneeL:142, hipR:135, kneeR:218 },
+      jump: { rootX:0, rootY:-.24, torso:-2, head:2, shoulderL:250, elbowL:280, shoulderR:110, elbowR:80, hipL:238, kneeL:150, hipR:122, kneeR:210 },
+      fall: { rootX:-.09, rootY:.12, torso:-67, head:-22, shoulderL:250, elbowL:285, shoulderR:82, elbowR:45, hipL:238, kneeL:170, hipR:112, kneeR:205 },
+      down: { rootX:-.12, rootY:.58, torso:-88, head:-8, shoulderL:265, elbowL:300, shoulderR:92, elbowR:55, hipL:255, kneeL:184, hipR:104, kneeR:196 },
+      rise: { rootX:-.04, rootY:.18, torso:-25, head:8, shoulderL:188, elbowL:155, shoulderR:118, elbowR:82, hipL:232, kneeL:152, hipR:138, kneeR:205 },
+      victory: { rootX:0, rootY:-.01, torso:0, head:0, shoulderL:220, elbowL:255, shoulderR:42, elbowR:18, hipL:194, kneeL:174, hipR:166, kneeR:188 },
+      lose: { rootX:-.02, rootY:.14, torso:17, head:18, shoulderL:252, elbowL:278, shoulderR:108, elbowR:82, hipL:225, kneeL:150, hipR:135, kneeR:212 }
+    });
+    const copyPose = pose => ({ ...pose });
+    const mixPose = (a, b, t) => Object.fromEntries(Object.keys(a).map(key => [key, a[key] + (b[key] - a[key]) * t]));
+    const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+    const CLIPS = Object.freeze({
+      idle: [{p:"idleA",d:700},{p:"idleB",d:700},{p:"idleA",d:700}],
+      hit: [{p:"hit",d:150},{p:"brace",d:260},{p:"idleA",d:360}],
+      block: [{p:"block",d:210},{p:"block",d:260},{p:"brace",d:180},{p:"idleA",d:320}],
+      lean: [{p:"lean",d:230},{p:"lean",d:250},{p:"idleA",d:360}],
+      crouch: [{p:"crouch",d:210},{p:"crouch",d:270},{p:"idleA",d:360}],
+      jump: [{p:"jumpPrep",d:220},{p:"jump",d:310},{p:"jump",d:170},{p:"jumpPrep",d:260},{p:"idleA",d:300}],
+      knockdown: [{p:"hit",d:130},{p:"fall",d:330},{p:"down",d:300},{p:"down",d:450}],
+      getup: [{p:"rise",d:430},{p:"crouch",d:340},{p:"brace",d:300},{p:"idleA",d:350}],
+      victory: [{p:"brace",d:250},{p:"victory",d:380},{p:"victory",d:900}],
+      lose: [{p:"hit",d:180},{p:"lose",d:520},{p:"lose",d:900}]
+    });
+
+    class FighterAnimator {
+      constructor(side) { this.side=side; this.pose=copyPose(POSES.idleA); this.from=copyPose(this.pose); this.clip="idle"; this.frame=0; this.elapsed=0; this.loop=true; }
+      play(name, loop=false) { this.clip=name; this.frame=0; this.elapsed=0; this.from=copyPose(this.pose); this.loop=loop; }
+      update(dt) {
+        const frames=CLIPS[this.clip]; if(!frames) return;
+        let frame=frames[this.frame]; this.elapsed+=dt;
+        while(this.elapsed>=frame.d){ this.pose=copyPose(POSES[frame.p]); this.elapsed-=frame.d; this.from=copyPose(this.pose); this.frame++;
+          if(this.frame>=frames.length){ if(this.loop){this.frame=0;} else {this.play("idle",true); return;} } frame=frames[this.frame]; }
+        this.pose=mixPose(this.from,POSES[frame.p],ease(Math.min(1,this.elapsed/frame.d)));
+      }
+    }
+
+    class StickmanStage {
+      constructor(canvas){ this.canvas=canvas; this.ctx=canvas.getContext("2d"); this.a=new FighterAnimator("a"); this.b=new FighterAnimator("b"); this.running=false; this.guides=false; this.last=0; this.resize=()=>this.fit(); window.addEventListener("resize",this.resize); }
+      fit(){ const r=this.canvas.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1); this.canvas.width=Math.max(1,Math.round(r.width*d)); this.canvas.height=Math.max(1,Math.round(r.height*d)); this.ctx.setTransform(d,0,0,d,0,0); this.w=r.width; this.h=r.height; }
+      start(){ if(this.running)return; this.running=true; this.fit(); this.last=performance.now(); requestAnimationFrame(t=>this.tick(t)); }
+      stop(){this.running=false;}
+      tick(now){ if(!this.running)return; const dt=Math.min(50,now-this.last); this.last=now; this.a.update(dt); this.b.update(dt); this.draw(); requestAnimationFrame(t=>this.tick(t)); }
+      play(side,name,loop=false){(side==="a"?this.a:this.b).play(name,loop);}
+      point(origin,len,angle,facing){ const a=(facing===1?angle:-angle)*RAD; return{x:origin.x+Math.sin(a)*len,y:origin.y-Math.cos(a)*len}; }
+      fighter(anim,x,ground,facing,color){
+        const c=this.ctx,p=anim.pose,s=Math.min(this.w/4.5,this.h/2.65), root={x:x+p.rootX*s*facing,y:ground-.72*s+p.rootY*s};
+        const neck=this.point(root,.48*s,p.torso,facing), head=this.point(neck,.17*s,p.head+p.torso,facing), shoulder={x:neck.x,y:neck.y+.08*s}, hipL={x:root.x-.08*s*facing,y:root.y},hipR={x:root.x+.08*s*facing,y:root.y};
+        const elbowL=this.point(shoulder,.3*s,p.shoulderL,facing),handL=this.point(elbowL,.28*s,p.elbowL,facing),elbowR=this.point(shoulder,.3*s,p.shoulderR,facing),handR=this.point(elbowR,.28*s,p.elbowR,facing);
+        const kneeL=this.point(hipL,.38*s,p.hipL,facing),footL=this.point(kneeL,.38*s,p.kneeL,facing),kneeR=this.point(hipR,.38*s,p.hipR,facing),footR=this.point(kneeR,.38*s,p.kneeR,facing);
+        c.save(); c.lineCap="round"; c.lineJoin="round"; c.strokeStyle="rgba(0,0,0,.35)"; c.lineWidth=.19*s; c.beginPath(); c.ellipse(root.x,ground+.02*s,.42*s,.09*s,0,0,Math.PI*2); c.stroke();
+        const limb=(a,b,w=.105)=>{c.strokeStyle="#101425";c.lineWidth=w*s+.07*s;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();c.strokeStyle=color;c.lineWidth=w*s;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();};
+        limb(hipL,kneeL,.13);limb(kneeL,footL,.115);limb(hipR,kneeR,.13);limb(kneeR,footR,.115); limb(root,neck,.2); limb(shoulder,elbowL,.12);limb(elbowL,handL,.105);limb(shoulder,elbowR,.12);limb(elbowR,handR,.105);
+        c.fillStyle="#f4e3c1";c.strokeStyle="#101425";c.lineWidth=.055*s;c.beginPath();c.arc(head.x,head.y,.16*s,0,Math.PI*2);c.fill();c.stroke();
+        [handL,handR].forEach(q=>{c.fillStyle=color;c.beginPath();c.arc(q.x,q.y,.07*s,0,Math.PI*2);c.fill();});
+        [footL,footR].forEach(q=>{c.strokeStyle="#101425";c.lineWidth=.11*s;c.beginPath();c.moveTo(q.x-.03*s*facing,q.y);c.lineTo(q.x+.15*s*facing,q.y);c.stroke();});
+        if(this.guides){c.fillStyle="#fff";[root,neck,head,elbowL,handL,elbowR,handR,kneeL,footL,kneeR,footR].forEach(q=>{c.beginPath();c.arc(q.x,q.y,3,0,Math.PI*2);c.fill();});}
+        c.restore();
+      }
+      draw(){ const c=this.ctx;c.clearRect(0,0,this.w,this.h);const ground=this.h*.78;if(this.guides){c.strokeStyle="rgba(255,255,255,.25)";c.setLineDash([8,8]);c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();c.setLineDash([]);} this.fighter(this.a,this.w*.29,ground,1,"#4cf3ff");this.fighter(this.b,this.w*.71,ground,-1,"#ff4fd8"); }
+    }
+    const stickmanStage = new StickmanStage(elements.fightCanvas);
+
+    function parseStudentNames(rawText) {
+      return rawText.split("\n").map(name => name.trim()).filter(Boolean);
+    }
+
+    function makeStudentPool(names) {
+      return names.map((name, index) => Object.freeze({ id: `student-${index}`, name }));
+    }
+
+    function sampleTwoDistinct(students) {
+      const firstIndex = Math.floor(Math.random() * students.length);
+      let secondIndex = Math.floor(Math.random() * (students.length - 1));
+      if (secondIndex >= firstIndex) secondIndex += 1;
+      return [students[firstIndex], students[secondIndex]];
+    }
+
+    function createLockedRound(students) {
+      const fighters = sampleTwoDistinct(students);
+      const loserIndex = Math.random() < .5 ? 0 : 1;
+
+      return Object.freeze({
+        fighters: Object.freeze([...fighters]),
+        lockedLoserId: fighters[loserIndex].id,
+        professions: { fighterA: null, fighterB: null }
+      });
+    }
+
+    function setScreen(screenName) {
+      elements.setupScreen.classList.toggle("hidden", screenName !== "setup");
+      elements.drawScreen.classList.toggle("hidden", screenName !== "draw");
+      elements.professionScreen.classList.toggle("hidden", screenName !== "profession");
+      elements.vsScreen.classList.toggle("hidden", screenName !== "vs");
+      elements.battleScreen.classList.toggle("hidden", screenName !== "battle");
+      elements.resultScreen.classList.toggle("hidden", screenName !== "result");
+      appState.phase = screenName;
+    }
+    function professionById(professionId) {
+      return PROFESSIONS.find(profession => profession.id === professionId) || null;
+    }
+    function createProfessionButton(profession, side) {
+      const selectedHere = appState.round?.professions[side] === profession.id;
+      const otherSide = side === "fighterA" ? "fighterB" : "fighterA";
+      const selectedByOpponent = appState.round?.professions[otherSide] === profession.id;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `profession-button${selectedHere ? " selected" : ""}`;
+      button.disabled = selectedByOpponent;
+      button.dataset.professionId = profession.id;
+      button.setAttribute("aria-pressed", String(selectedHere));
+      const icon = document.createElement("span");
+      icon.className = "job-icon";
+      icon.textContent = profession.icon;
+      const name = document.createElement("span");
+      name.className = "job-name";
+      name.textContent = profession.name;
+      const check = document.createElement("span");
+      check.className = "job-check";
+      check.textContent = selectedHere ? "✓" : selectedByOpponent ? "×" : "";
+      button.append(icon, name, check);
+      button.addEventListener("click", () => selectProfession(side, profession.id));
+      return button;
+    }
+    function renderProfessionSelection() {
+      if (!appState.round) return;
+      elements.professionAName.textContent = appState.round.fighters[0].name;
+      elements.professionBName.textContent = appState.round.fighters[1].name;
+      elements.professionAOptions.replaceChildren(...PROFESSIONS.map(job => createProfessionButton(job, "fighterA")));
+      elements.professionBOptions.replaceChildren(...PROFESSIONS.map(job => createProfessionButton(job, "fighterB")));
+      const chosenA = professionById(appState.round.professions.fighterA);
+      const chosenB = professionById(appState.round.professions.fighterB);
+      const complete = Boolean(chosenA && chosenB);
+      elements.professionStatus.textContent = complete
+        ? `${appState.round.fighters[0].name}: ${chosenA.icon} ${chosenA.name} · ${appState.round.fighters[1].name}: ${chosenB.icon} ${chosenB.name}`
+        : chosenA || chosenB ? "เลือกอาชีพให้อีกฝั่งเพื่อเข้าสู่สังเวียน" : "เลือกอาชีพให้ Fighter A และ Fighter B";
+      elements.professionComplete.classList.toggle("hidden", !complete);
+      elements.enterArenaButton.disabled = !complete;
+    }
+    function selectProfession(side, professionId) {
+      if (appState.phase !== "profession" || !appState.round) return;
+      const otherSide = side === "fighterA" ? "fighterB" : "fighterA";
+      if (appState.round.professions[otherSide] === professionId) return;
+      appState.round.professions[side] = professionId;
+      renderProfessionSelection();
+    }
+    function openProfessionSelection() {
+      if (!appState.round) return;
+      renderProfessionSelection();
+      setScreen("profession");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function returnToDraw() {
+      if (!appState.round) return;
+      setScreen("draw");
+      elements.selectionPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    async function playPhaseOneBattle() {
+      if (!appState.round) return;
+      const runId = ++appState.battleRunId;
+      const [fighterA, fighterB] = appState.round.fighters;
+      const jobA = professionById(appState.round.professions.fighterA);
+      const jobB = professionById(appState.round.professions.fighterB);
+      if (!jobA || !jobB) return;
+
+      elements.vsAName.textContent = fighterA.name;
+      elements.vsBName.textContent = fighterB.name;
+      elements.vsAJob.textContent = `${jobA.icon} ${jobA.name}`;
+      elements.vsBJob.textContent = `${jobB.icon} ${jobB.name}`;
+      setScreen("vs");
+      await wait(1800);
+      if (appState.phase !== "vs") return;
+
+      elements.hudAName.textContent = fighterA.name;
+      elements.hudBName.textContent = fighterB.name;
+      elements.hpA.style.width = "100%";
+      elements.hpB.style.width = "100%";
+      elements.battleTimer.textContent = "10";
+      elements.arenaLabel.textContent = "FIGHT!";
+      elements.arenaLabel.classList.remove("hidden");
+      setScreen("battle");
+      stickmanStage.a.play("idle", true);
+      stickmanStage.b.play("idle", true);
+      stickmanStage.start();
+      await wait(700);
+      if (runId !== appState.battleRunId || appState.phase !== "battle") return;
+      elements.arenaLabel.classList.add("hidden");
+
+      const loserIsA = appState.round.lockedLoserId === fighterA.id;
+      const hpAEnd = loserIsA ? 44 : 56;
+      const hpBEnd = loserIsA ? 56 : 44;
+      const showcase = [
+        ["block","hit"], ["lean","idle"], ["crouch","hit"], ["jump","block"],
+        ["hit","lean"], ["block","crouch"], ["knockdown","victory"], ["getup","idle"],
+        ["hit","block"], ["idle","idle"]
+      ];
+      for (let second = 10; second > 0; second -= 1) {
+        if (runId !== appState.battleRunId || appState.phase !== "battle") return;
+        elements.battleTimer.textContent = String(second).padStart(2, "0");
+        const [actionA, actionB] = showcase[10-second];
+        stickmanStage.play("a", actionA, actionA === "idle");
+        stickmanStage.play("b", actionB, actionB === "idle");
+        const progress = (11 - second) / 10;
+        elements.hpA.style.width = `${100 - (100 - hpAEnd) * progress}%`;
+        elements.hpB.style.width = `${100 - (100 - hpBEnd) * progress}%`;
+        await wait(1000);
+      }
+      if (runId !== appState.battleRunId || appState.phase !== "battle") return;
+      elements.battleTimer.textContent = "00";
+      elements.arenaLabel.textContent = "TIME!";
+      elements.arenaLabel.classList.remove("hidden");
+      stickmanStage.play(loserIsA ? "a" : "b", "lose");
+      stickmanStage.play(loserIsA ? "b" : "a", "victory");
+      await wait(1700);
+      if (runId !== appState.battleRunId || appState.phase !== "battle") return;
+      showResult();
+    }
+
+    function showResult() {
+      if (!appState.round) return;
+      const loser = appState.round.fighters.find(fighter => fighter.id === appState.round.lockedLoserId);
+      const jobA = professionById(appState.round.professions.fighterA);
+      const jobB = professionById(appState.round.professions.fighterB);
+      elements.loserName.textContent = loser?.name || "ผู้ท้าชิง";
+      elements.resultSummary.textContent = `${appState.round.fighters[0].name} ${jobA?.icon || ""}  VS  ${appState.round.fighters[1].name} ${jobB?.icon || ""}`;
+      stickmanStage.stop();
+      setScreen("result");
+    }
+
+    async function startNextRound() {
+      if (!appState.studentPool.length) returnToSetup();
+      appState.round = createLockedRound(appState.studentPool);
+      elements.selectionPanel.classList.add("hidden");
+      elements.drawStatus.textContent = "กำลังเตรียมไพ่...";
+      renderCardGrid(appState.studentPool);
+      setScreen("draw");
+      await wait(350);
+      await revealFighters(appState.round);
+    }
+
+    function updateRosterValidation() {
+      appState.lastRosterText = elements.nameInput.value;
+      const count = parseStudentNames(elements.nameInput.value).length;
+      const isReady = count >= 2;
+      elements.countText.textContent = `${count} คน`;
+      elements.countPill.textContent = isReady ? "พร้อมสุ่ม!" : "ต้องมีอย่างน้อย 2 คน";
+      elements.countPill.classList.toggle("warn", !isReady);
+      elements.startButton.disabled = !isReady || appState.phase !== "setup";
+    }
+
+    function createCard(student) {
+      const card = document.createElement("div");
+      card.className = "draw-card";
+      card.dataset.studentId = student.id;
+
+      const inner = document.createElement("div");
+      inner.className = "card-inner";
+      const back = document.createElement("div");
+      back.className = "card-face card-back";
+      const front = document.createElement("div");
+      front.className = "card-face card-front";
+      const star = document.createElement("div");
+      star.className = "star";
+      star.textContent = "⭐";
+      const name = document.createElement("div");
+      name.className = "card-name";
+      name.textContent = student.name;
+
+      front.append(star, name);
+      inner.append(back, front);
+      card.append(inner);
+      return card;
+    }
+
+    function renderCardGrid(students) {
+      elements.drawGrid.replaceChildren(...students.map(createCard));
+    }
+
+    async function revealFighters(round) {
+      const selectedIds = new Set(round.fighters.map(fighter => fighter.id));
+
+      for (let index = 0; index < round.fighters.length; index += 1) {
+        const fighter = round.fighters[index];
+        elements.drawStatus.textContent = `เปิดไพ่ใบที่ ${index + 1} จาก 2...`;
+        await wait(700);
+        const card = elements.drawGrid.querySelector(`[data-student-id="${fighter.id}"]`);
+        card?.classList.add("flipped");
+      }
+
+      elements.drawStatus.textContent = "ได้ผู้ท้าชิงครบ 2 คนแล้ว!";
+      await wait(700);
+
+      elements.drawGrid.querySelectorAll(".draw-card").forEach(card => {
+        if (!selectedIds.has(card.dataset.studentId)) card.classList.add("dim");
+      });
+
+      await wait(500);
+      elements.fighterAName.textContent = round.fighters[0].name;
+      elements.fighterBName.textContent = round.fighters[1].name;
+      elements.selectionPanel.classList.remove("hidden");
+      elements.selectionPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    async function startRound() {
+      if (appState.phase !== "setup") return;
+      const names = parseStudentNames(elements.nameInput.value);
+      if (names.length < 2) return;
+
+      elements.startButton.disabled = true;
+      appState.studentPool = makeStudentPool(names);
+      appState.round = createLockedRound(appState.studentPool);
+
+      elements.selectionPanel.classList.add("hidden");
+      elements.drawStatus.textContent = "กำลังเตรียมไพ่...";
+      renderCardGrid(appState.studentPool);
+      setScreen("draw");
+      await wait(350);
+      await revealFighters(appState.round);
+    }
+
+    function returnToSetup() {
+      appState.battleRunId += 1;
+      stickmanStage.stop();
+      appState.studentPool = [];
+      appState.round = null;
+      elements.drawGrid.replaceChildren();
+      elements.selectionPanel.classList.add("hidden");
+      setScreen("setup");
+      updateRosterValidation();
+    }
+
+    elements.nameInput.value = DEFAULT_NAMES.join("\n");
+    elements.nameInput.addEventListener("input", updateRosterValidation);
+    elements.nameInput.addEventListener("change", updateRosterValidation);
+    elements.nameInput.addEventListener("blur", updateRosterValidation);
+    elements.nameInput.addEventListener("paste", () => {
+      window.setTimeout(updateRosterValidation, 0);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && appState.phase === "setup") updateRosterValidation();
+    });
+    elements.startButton.addEventListener("click", startRound);
+    elements.editNamesButton.addEventListener("click", returnToSetup);
+    elements.chooseProfessionsButton.addEventListener("click", openProfessionSelection);
+    elements.backToDrawButton.addEventListener("click", returnToDraw);
+    elements.enterArenaButton.addEventListener("click", playPhaseOneBattle);
+    elements.nextRoundButton.addEventListener("click", startNextRound);
+    elements.resultEditButton.addEventListener("click", returnToSetup);
+    updateRosterValidation();
+
+    function runPhaseOneInvariants() {
+      const required = ["idle","hit","block","lean","crouch","jump","knockdown","getup","victory","lose"];
+      const missingClips = required.filter(name => !CLIPS[name]);
+      const missingPoses = Object.values(CLIPS).flat().map(frame => frame.p).filter(name => !POSES[name]);
+      const numericPoses = Object.entries(POSES).every(([,pose]) => Object.values(pose).every(Number.isFinite));
+      const outcomeFields = Object.keys(CLIPS).some(name => /loser|winner|damage|hp|hitbox/i.test(name));
+      const passed = !missingClips.length && !missingPoses.length && numericPoses && !outcomeFields;
+      console.info("Phase 1 invariant check", { passed, missingClips, missingPoses, numericPoses, outcomeIsolated: !outcomeFields });
+      return passed;
+    }
+    runPhaseOneInvariants();
+
+    if (new URLSearchParams(location.search).get("lab") === "1") {
+      const lab = document.createElement("aside");
+      lab.className = "animation-lab";
+      lab.innerHTML = '<div class="lab-title pixel">ANIMATION LAB</div><div class="lab-controls"></div><p class="lab-status">เลือกท่าเพื่อทดสอบ Fighter A · กด G เพื่อเปิด joints</p>';
+      const controls = lab.querySelector(".lab-controls");
+      Object.keys(CLIPS).forEach(name => {
+        const button=document.createElement("button"); button.type="button"; button.textContent=name;
+        button.addEventListener("click",()=>{stickmanStage.play("a",name,name==="idle");lab.querySelector(".lab-status").textContent=`Fighter A: ${name} · joints ${stickmanStage.guides?"ON":"OFF"}`;}); controls.append(button);
+      });
+      const guide=document.createElement("button");guide.type="button";guide.textContent="joints";guide.addEventListener("click",()=>{stickmanStage.guides=!stickmanStage.guides;});controls.append(guide);
+      document.body.append(lab);
+      document.addEventListener("keydown",event=>{if(event.key.toLowerCase()==="g")stickmanStage.guides=!stickmanStage.guides;});
+    }
+
+    // Some iOS file previews update a textarea after Paste without dispatching
+    // the usual input event. Keep the setup UI synced with the actual value.
+    window.setInterval(() => {
+      if (appState.phase === "setup" && elements.nameInput.value !== appState.lastRosterText) {
+        updateRosterValidation();
+      }
+    }, 250);
+  </script>
+</body>
+</html>
