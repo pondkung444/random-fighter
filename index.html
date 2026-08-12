@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Random Fighter — Phase 3 Combat Director</title>
+  <title>Random Fighter — Phase 4 Profession Vertical Slice</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -268,7 +268,7 @@
     <section class="screen" id="setupScreen">
       <div class="content">
         <header class="brand">
-          <div class="eyebrow pixel">PHASE 3 · RANDOM FIGHTER</div>
+          <div class="eyebrow pixel">PHASE 4 · RANDOM FIGHTER</div>
           <h1>RANDOM <span>FIGHTER</span></h1>
           <p class="subtitle">สุ่มผู้ท้าชิง 2 คน เพื่อเข้าสู่สังเวียน</p>
         </header>
@@ -365,7 +365,7 @@
         <div class="arena">
           <div class="arena-label pixel" id="arenaLabel">FIGHT!</div>
           <canvas id="fightCanvas" aria-label="สนามแสดงแอนิเมชันนักสู้สองคน"></canvas>
-          <div class="battle-note">Phase 3 · Adaptive Combat Director</div>
+          <div class="battle-note">Phase 4 · Takraw vs Somtam Vertical Slice</div>
         </div>
       </div>
     </section>
@@ -399,6 +399,11 @@
       Object.freeze({ id: "lottery", icon: "🎰", name: "ป้าใบ้หวยสายมู" }),
       Object.freeze({ id: "student", icon: "📚", name: "นักเรียนสายลืมการบ้าน" })
     ]);
+    const PROFESSION_PRESENTATION = Object.freeze({
+      generic: Object.freeze({id:"generic",primary:"#4cf3ff",secondary:"#ff4fd8",clips:{},anchors:{light:"handR",heavy:"handR",signature:"handR",comeback:"handR",counter:"handR"}}),
+      takraw: Object.freeze({id:"takraw",primary:"#1687ff",secondary:"#ffd34e",clips:{idle:"takrawIdle",light:"takrawLight",heavy:"takrawHeavy",signature:"takrawSignature",comeback:"takrawComeback",block:"takrawBlock",hit:"takrawHit",victory:"takrawVictory"},anchors:{light:"footR",heavy:"footR",signature:"ball",comeback:"footR",counter:"footR"}}),
+      somtam: Object.freeze({id:"somtam",primary:"#e94b35",secondary:"#78d64b",clips:{idle:"somtamIdle",light:"somtamLight",heavy:"somtamHeavy",signature:"somtamSignature",comeback:"somtamComeback",block:"somtamBlock",hit:"somtamHit",victory:"somtamVictory"},anchors:{light:"pestleTip",heavy:"pestleTip",signature:"mortar",comeback:"pestleTip",counter:"pestleTip"}})
+    });
 
     const elements = {
       setupScreen: document.querySelector("#setupScreen"),
@@ -472,6 +477,12 @@
       ,blockRecoil: { rootX:-.11, rootY:.035, torso:-24, head:-8, shoulderL:138, elbowL:98, shoulderR:108, elbowR:68, hipL:207, kneeL:168, hipR:153, kneeR:195 }
       ,counterWindup: { rootX:-.16, rootY:.02, torso:-28, head:-8, shoulderL:215, elbowL:250, shoulderR:246, elbowR:278, hipL:205, kneeL:170, hipR:156, kneeR:192 }
       ,counterActive: { rootX:.13, rootY:-.01, torso:19, head:5, shoulderL:160, elbowL:122, shoulderR:88, elbowR:88, hipL:200, kneeL:174, hipR:158, kneeR:188 }
+      ,takrawReady: { rootX:0, rootY:-.02, torso:-7, head:2, shoulderL:205, elbowL:240, shoulderR:138, elbowR:105, hipL:205, kneeL:158, hipR:145, kneeR:205 }
+      ,takrawKick: { rootX:.08, rootY:-.04, torso:-18, head:6, shoulderL:238, elbowL:268, shoulderR:116, elbowR:82, hipL:205, kneeL:168, hipR:72, kneeR:88 }
+      ,takrawBicycle: { rootX:.02, rootY:-.38, torso:-70, head:-8, shoulderL:250, elbowL:280, shoulderR:95, elbowR:58, hipL:245, kneeL:160, hipR:65, kneeR:82 }
+      ,somtamReady: { rootX:0, rootY:.035, torso:4, head:-2, shoulderL:230, elbowL:265, shoulderR:125, elbowR:92, hipL:215, kneeL:166, hipR:145, kneeR:198 }
+      ,somtamJab: { rootX:.08, rootY:.025, torso:17, head:2, shoulderL:220, elbowL:255, shoulderR:88, elbowR:88, hipL:208, kneeL:168, hipR:150, kneeR:195 }
+      ,somtamSmash: { rootX:.09, rootY:.04, torso:20, head:7, shoulderL:150, elbowL:105, shoulderR:48, elbowR:32, hipL:215, kneeL:164, hipR:145, kneeR:200 }
     });
     const copyPose = pose => ({ ...pose });
     const mixPose = (a, b, t) => Object.fromEntries(Object.keys(a).map(key => [key, a[key] + (b[key] - a[key]) * t]));
@@ -491,11 +502,28 @@
       ,heavy: [{p:"heavyWindup",d:300},{p:"heavyActive",d:135},{p:"punchRecover",d:240},{p:"idleA",d:260}]
       ,blockHit: [{p:"block",d:90},{p:"blockRecoil",d:150},{p:"block",d:170},{p:"brace",d:180},{p:"idleA",d:250}]
       ,counter: [{p:"counterWindup",d:150},{p:"counterActive",d:105},{p:"punchRecover",d:180},{p:"idleA",d:220}]
+      ,takrawIdle: [{p:"takrawReady",d:520},{p:"idleA",d:420},{p:"takrawReady",d:520}]
+      ,takrawLight: [{p:"jumpPrep",d:130},{p:"takrawKick",d:150},{p:"takrawReady",d:220}]
+      ,takrawHeavy: [{p:"takrawReady",d:180},{p:"takrawKick",d:180},{p:"takrawReady",d:250}]
+      ,takrawSignature: [{p:"jumpPrep",d:170},{p:"takrawKick",d:180},{p:"takrawReady",d:260}]
+      ,takrawComeback: [{p:"jumpPrep",d:170},{p:"takrawBicycle",d:240},{p:"takrawReady",d:300}]
+      ,takrawBlock: [{p:"takrawReady",d:120},{p:"blockRecoil",d:160},{p:"takrawReady",d:220}]
+      ,takrawHit: [{p:"hit",d:130},{p:"takrawReady",d:260}]
+      ,takrawVictory: [{p:"takrawKick",d:300},{p:"victory",d:900}]
+      ,somtamIdle: [{p:"somtamReady",d:650},{p:"brace",d:450},{p:"somtamReady",d:650}]
+      ,somtamLight: [{p:"somtamReady",d:150},{p:"somtamJab",d:150},{p:"somtamReady",d:250}]
+      ,somtamHeavy: [{p:"heavyWindup",d:250},{p:"somtamSmash",d:190},{p:"somtamReady",d:280}]
+      ,somtamSignature: [{p:"crouch",d:180},{p:"somtamSmash",d:220},{p:"somtamReady",d:300}]
+      ,somtamComeback: [{p:"heavyWindup",d:220},{p:"somtamSmash",d:180},{p:"somtamJab",d:150},{p:"somtamReady",d:300}]
+      ,somtamBlock: [{p:"somtamReady",d:120},{p:"blockRecoil",d:180},{p:"somtamReady",d:260}]
+      ,somtamHit: [{p:"hit",d:180},{p:"somtamReady",d:320}]
+      ,somtamVictory: [{p:"somtamSmash",d:320},{p:"victory",d:900}]
     });
 
     class FighterAnimator {
-      constructor(side) { this.side=side; this.pose=copyPose(POSES.idleA); this.from=copyPose(this.pose); this.clip="idle"; this.frame=0; this.elapsed=0; this.loop=true; }
-      play(name, loop=false) { this.clip=name; this.frame=0; this.elapsed=0; this.from=copyPose(this.pose); this.loop=loop; }
+      constructor(side) { this.side=side; this.profession="generic"; this.pose=copyPose(POSES.idleA); this.from=copyPose(this.pose); this.clip="idle"; this.frame=0; this.elapsed=0; this.loop=true; }
+      setProfession(id){this.profession=PROFESSION_PRESENTATION[id]?id:"generic";}
+      play(name, loop=false) { this.clip=PROFESSION_PRESENTATION[this.profession]?.clips[name]||name; this.frame=0; this.elapsed=0; this.from=copyPose(this.pose); this.loop=loop; }
       update(dt) {
         const frames=CLIPS[this.clip]; if(!frames) return;
         let frame=frames[this.frame]; this.elapsed+=dt;
@@ -513,13 +541,14 @@
       stop(){this.running=false;}
       tick(now){ if(!this.running)return; const dt=Math.min(50,now-this.last); this.last=now; this.a.update(dt); this.b.update(dt); this.updateParticles(dt); this.draw(); requestAnimationFrame(t=>this.tick(t)); }
       play(side,name,loop=false){(side==="a"?this.a:this.b).play(name,loop);}
+      setProfession(side,id){(side==="a"?this.a:this.b).setProfession(id);}
       scale(){return Math.min(this.w/4.5,this.h/2.65);}
       async move(side,to,duration=220){const from=this.positions[side],started=performance.now();return new Promise(resolve=>{const step=now=>{const t=Math.min(1,(now-started)/duration),e=ease(t);this.positions[side]=from+(to-from)*e;if(t<1)requestAnimationFrame(step);else resolve();};requestAnimationFrame(step);});}
       async approach(attacker){const defender=attacker==="a"?"b":"a",facing=attacker==="a"?1:-1,target=this.positions[defender]-facing*this.scale()*.88;this.contactState="APPROACH";await this.move(attacker,target,260);}
       async retreat(side){this.contactState="RECOVERY";await this.move(side,this.w*(side==="a"?.29:.71),260);this.contactState="IDLE";}
       point(origin,len,angle,facing){ const a=(facing===1?angle:-angle)*RAD; return{x:origin.x+Math.sin(a)*len,y:origin.y-Math.cos(a)*len}; }
       fighter(anim,x,ground,facing,color){
-        const c=this.ctx,p=anim.pose,s=Math.min(this.w/4.5,this.h/2.65), root={x:x+p.rootX*s*facing,y:ground-.72*s+p.rootY*s};
+        const c=this.ctx,p=anim.pose,s=Math.min(this.w/4.5,this.h/2.65);color=(PROFESSION_PRESENTATION[anim.profession]||PROFESSION_PRESENTATION.generic).primary;const root={x:x+p.rootX*s*facing,y:ground-.72*s+p.rootY*s};
         const neck=this.point(root,.48*s,p.torso,facing), head=this.point(neck,.17*s,p.head+p.torso,facing), shoulder={x:neck.x,y:neck.y+.08*s}, hipL={x:root.x-.08*s*facing,y:root.y},hipR={x:root.x+.08*s*facing,y:root.y};
         const elbowL=this.point(shoulder,.3*s,p.shoulderL,facing),handL=this.point(elbowL,.28*s,p.elbowL,facing),elbowR=this.point(shoulder,.3*s,p.shoulderR,facing),handR=this.point(elbowR,.28*s,p.elbowR,facing);
         const kneeL=this.point(hipL,.38*s,p.hipL,facing),footL=this.point(kneeL,.38*s,p.kneeL,facing),kneeR=this.point(hipR,.38*s,p.hipR,facing),footR=this.point(kneeR,.38*s,p.kneeR,facing);
@@ -530,11 +559,14 @@
         c.fillStyle="#f4e3c1";c.strokeStyle="#101425";c.lineWidth=.055*s;c.beginPath();c.arc(head.x,head.y,.16*s,0,Math.PI*2);c.fill();c.stroke();
         [handL,handR].forEach(q=>{c.fillStyle=color;c.beginPath();c.arc(q.x,q.y,.07*s,0,Math.PI*2);c.fill();});
         [footL,footR].forEach(q=>{c.strokeStyle="#101425";c.lineWidth=.11*s;c.beginPath();c.moveTo(q.x-.03*s*facing,q.y);c.lineTo(q.x+.15*s*facing,q.y);c.stroke();});
+        const style=PROFESSION_PRESENTATION[anim.profession]||PROFESSION_PRESENTATION.generic,pestleTip={x:handR.x+.26*s*facing,y:handR.y-.04*s},mortar={x:root.x+.18*s*facing,y:root.y-.08*s},ball={x:footR.x+.1*s*facing,y:footR.y-.08*s};
+        if(anim.profession==="takraw"){c.fillStyle=style.secondary;c.fillRect(root.x-.17*s,root.y-.4*s,.34*s,.23*s);c.fillStyle="#d8b44a";c.beginPath();c.arc(ball.x,ball.y,.085*s,0,Math.PI*2);c.fill();c.strokeStyle=style.secondary;c.lineWidth=.045*s;c.beginPath();c.moveTo(head.x-.16*s*facing,head.y-.06*s);c.lineTo(head.x+.2*s*facing,head.y-.06*s);c.stroke();}
+        if(anim.profession==="somtam"){c.fillStyle="#f2dfb7";c.beginPath();c.moveTo(neck.x-.2*s,neck.y+.05*s);c.lineTo(root.x-.22*s,root.y+.05*s);c.lineTo(root.x+.22*s,root.y+.05*s);c.lineTo(neck.x+.2*s,neck.y+.05*s);c.closePath();c.fill();c.strokeStyle="#78d64b";c.lineWidth=.04*s;c.stroke();c.strokeStyle="#8b5a2b";c.lineWidth=.075*s;c.beginPath();c.moveTo(handR.x,handR.y);c.lineTo(pestleTip.x,pestleTip.y);c.stroke();c.fillStyle="#79513a";c.beginPath();c.ellipse(mortar.x,mortar.y,.17*s,.11*s,0,0,Math.PI*2);c.fill();}
         if(this.guides){c.fillStyle="#fff";[root,neck,head,elbowL,handL,elbowR,handR,kneeL,footL,kneeR,footR].forEach(q=>{c.beginPath();c.arc(q.x,q.y,3,0,Math.PI*2);c.fill();});}
         c.restore();
-        return {root,neck,head,shoulder,handL,handR,footL,footR,scale:s,headBox:{x:head.x,y:head.y,r:.17*s},torsoBox:{x:(root.x+neck.x)/2,y:(root.y+neck.y)/2,r:.25*s},guardBox:{x:(handL.x+handR.x)/2,y:(handL.y+handR.y)/2,r:.22*s}};
+        return {root,neck,head,shoulder,handL,handR,footL,footR,pestleTip,mortar,ball,scale:s,headBox:{x:head.x,y:head.y,r:.17*s},torsoBox:{x:(root.x+neck.x)/2,y:(root.y+neck.y)/2,r:.25*s},guardBox:{x:(handL.x+handR.x)/2,y:(handL.y+handR.y)/2,r:.22*s}};
       }
-      testContact(attacker,defender,guard=false,heavy=false){const attack=this.rigs[attacker]?.handR,targetRig=this.rigs[defender];if(!attack||!targetRig)return false;const attackRadius=targetRig.scale*(heavy?.11:.08),boxes=guard?[targetRig.guardBox]:[targetRig.headBox,targetRig.torsoBox];let best=null;for(const box of boxes){const distance=Math.hypot(attack.x-box.x,attack.y-box.y),limit=attackRadius+box.r;if(!best||distance<best.distance)best={box,distance,limit};}const hit=best.distance<=best.limit;this.events.push({attacker,defender,guard,heavy,hit,distance:Math.round(best.distance),limit:Math.round(best.limit)});this.impact={x:(attack.x+best.box.x)/2,y:(attack.y+best.box.y)/2,hit,until:performance.now()+190};return hit;}
+      testContact(attacker,defender,guard=false,heavy=false,attackId="light"){const anim=attacker==="a"?this.a:this.b,anchor=PROFESSION_PRESENTATION[anim.profession]?.anchors[attackId]||"handR",attack=this.rigs[attacker]?.[anchor],targetRig=this.rigs[defender];if(!attack||!targetRig)return false;const attackRadius=targetRig.scale*(heavy?.11:.08),boxes=guard?[targetRig.guardBox]:[targetRig.headBox,targetRig.torsoBox];let best=null;for(const box of boxes){const distance=Math.hypot(attack.x-box.x,attack.y-box.y),limit=attackRadius+box.r;if(!best||distance<best.distance)best={box,distance,limit};}const hit=best.distance<=best.limit;this.events.push({attacker,defender,guard,heavy,attackId,anchor,hit,distance:Math.round(best.distance),limit:Math.round(best.limit)});this.impact={x:(attack.x+best.box.x)/2,y:(attack.y+best.box.y)/2,hit,until:performance.now()+190};return hit;}
       spawnImpact(side,blocked=false,blood=true){const rig=this.rigs[side];if(!rig)return;const origin=blocked?rig.guardBox:rig.torsoBox;this.impact={x:origin.x,y:origin.y,hit:true,until:performance.now()+190};for(let i=0;i<10;i++){const angle=Math.random()*Math.PI*2,speed=blocked?0.07:0.13+Math.random()*.1;this.particles.push({x:origin.x,y:origin.y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-.05,life:blocked?260:420,maxLife:blocked?260:420,color:blocked?"#fff36a":(blood&&i<4?"#d92d48":"#fff36a"),r:blocked?2.5:2+Math.random()*3});}}
       updateParticles(dt){for(const p of this.particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.00045*dt;}this.particles=this.particles.filter(p=>p.life>0);}
       draw(){ const c=this.ctx;c.clearRect(0,0,this.w,this.h);const ground=this.h*.78;if(this.guides){c.strokeStyle="rgba(255,255,255,.25)";c.setLineDash([8,8]);c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();c.setLineDash([]);} this.rigs.a=this.fighter(this.a,this.positions.a,ground,1,"#4cf3ff");this.rigs.b=this.fighter(this.b,this.positions.b,ground,-1,"#ff4fd8");if(this.impact&&performance.now()<this.impact.until){c.save();c.strokeStyle="#fff36a";c.lineWidth=5;c.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?11:25;c.lineTo(this.impact.x+Math.cos(a)*r,this.impact.y+Math.sin(a)*r);}c.closePath();c.stroke();c.restore();}for(const p of this.particles){c.globalAlpha=Math.max(0,p.life/p.maxLife);c.fillStyle=p.color;c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();}c.globalAlpha=1;if(this.guides){c.save();for(const rig of Object.values(this.rigs)){c.strokeStyle="rgba(255,79,216,.7)";for(const box of [rig.headBox,rig.torsoBox]){c.beginPath();c.arc(box.x,box.y,box.r,0,Math.PI*2);c.stroke();}c.strokeStyle="rgba(76,243,255,.8)";c.beginPath();c.arc(rig.guardBox.x,rig.guardBox.y,rig.guardBox.r,0,Math.PI*2);c.stroke();c.strokeStyle="rgba(255,201,74,.9)";c.beginPath();c.arc(rig.handR.x,rig.handR.y,rig.scale*.08,0,Math.PI*2);c.stroke();}c.fillStyle="#fff";c.font="12px Kanit";c.fillText(this.contactState,12,22);c.restore();} }
@@ -729,10 +761,10 @@
       attackFighter.transition("windup");stickmanStage.contactState="WINDUP";
       const defensiveClip=defense==="counter"?"lean":defense;
       if(defense!=="hit"){defendFighter.transition(defense==="block"?"block":"dodge");stickmanStage.play(defender,defensiveClip);}
-      stickmanStage.play(attacker,attack.clip);await wait(attack.startupMs);
+      stickmanStage.play(attacker,attackId);await wait(attack.startupMs);
       attackFighter.transition("active");stickmanStage.contactState="ACTIVE";
-      let contacted=stickmanStage.testContact(attacker,defender,defense==="block",attack.knockdown);
-      if(defense==="hit"&&!contacted){const facing=attacker==="a"?1:-1;for(let step=0;step<3&&!contacted;step++){await stickmanStage.move(attacker,stickmanStage.positions[attacker]+facing*stickmanStage.scale()*.06,45);contacted=stickmanStage.testContact(attacker,defender,false,attack.knockdown);}}
+      let contacted=stickmanStage.testContact(attacker,defender,defense==="block",attack.knockdown,attackId);
+      if(defense==="hit"&&!contacted){const facing=attacker==="a"?1:-1;for(let step=0;step<7&&!contacted;step++){const proposed=stickmanStage.positions[attacker]+facing*stickmanStage.scale()*.045,minimumGap=stickmanStage.scale()*.38,target=attacker==="a"?Math.min(proposed,stickmanStage.positions[defender]-minimumGap):Math.max(proposed,stickmanStage.positions[defender]+minimumGap);await stickmanStage.move(attacker,target,38);contacted=stickmanStage.testContact(attacker,defender,false,attack.knockdown,attackId);}}
       if(["lean","crouch","jump","counter"].includes(defense))contacted=false;
       const result=engine.resolveAttack({attacker,defense,attackId,contact:contacted});
       if(result.outcome==="block"){defendFighter.transition("block");stickmanStage.play(defender,"blockHit");stickmanStage.spawnImpact(defender,true,false);stickmanStage.contactState="CHIP DAMAGE";}
@@ -773,6 +805,10 @@
       setScreen("battle");
       stickmanStage.a.play("idle", true);
       stickmanStage.b.play("idle", true);
+      stickmanStage.setProfession("a",jobA.id);
+      stickmanStage.setProfession("b",jobB.id);
+      stickmanStage.play("a","idle",true);
+      stickmanStage.play("b","idle",true);
       stickmanStage.events.length = 0;
       stickmanStage.resetPositions();
       stickmanStage.start();
@@ -982,6 +1018,9 @@
     }
     runPhaseThreeInvariants();
 
+    function runPhaseFourInvariants(){const slice=[PROFESSION_PRESENTATION.takraw,PROFESSION_PRESENTATION.somtam],required=["idle","light","heavy","signature","comeback","block","hit","victory"],passed=slice.every(def=>required.every(key=>CLIPS[def.clips[key]])&&["light","heavy","signature","comeback"].every(key=>def.anchors[key]));document.documentElement.dataset.phase4Invariants=JSON.stringify({passed,professions:slice.map(def=>def.id)});console.info("Phase 4 invariant check",{passed});return passed;}
+    runPhaseFourInvariants();
+
     if (new URLSearchParams(location.search).get("lab") === "1") {
       const lab = document.createElement("aside");
       lab.className = "animation-lab";
@@ -992,6 +1031,7 @@
         button.addEventListener("click",()=>{stickmanStage.play("a",name,name==="idle");lab.querySelector(".lab-status").textContent=`Fighter A: ${name} · joints ${stickmanStage.guides?"ON":"OFF"}`;}); controls.append(button);
       });
       const guide=document.createElement("button");guide.type="button";guide.textContent="joints";guide.addEventListener("click",()=>{stickmanStage.guides=!stickmanStage.guides;});controls.append(guide);
+      ["generic","takraw","somtam"].forEach(id=>{const button=document.createElement("button");button.type="button";button.textContent=`profession: ${id}`;button.addEventListener("click",()=>{stickmanStage.setProfession("a",id);stickmanStage.play("a","idle",true);lab.querySelector(".lab-status").textContent=`Fighter A: ${id} · anchors ${JSON.stringify(PROFESSION_PRESENTATION[id].anchors)}`;});controls.append(button);});
       document.body.append(lab);
       document.addEventListener("keydown",event=>{if(event.key.toLowerCase()==="g")stickmanStage.guides=!stickmanStage.guides;});
     }
