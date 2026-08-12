@@ -96,7 +96,7 @@ Random Fighter คือ:
 ชื่อ + อาชีพ + presentation แบบ arcade
         ↓
 [FIGHT!]
-Auto Fighting 20 วินาที
+Auto Fighting 30 วินาที
         ↓
 [TIME!]
 หยุดการต่อสู้
@@ -157,7 +157,7 @@ Auto Fighting 20 วินาที
 ใครจะเป็นผู้แพ้จริง
 
 ### Performance
-การต่อสู้ 20 วินาทีถูกเล่าออกมาอย่างไร
+การต่อสู้ 30 วินาทีถูกเล่าออกมาอย่างไร
 
 ---
 
@@ -411,7 +411,7 @@ MVP ใช้ movement เฉพาะแกน X
 
 Fight duration:
 
-> **20 seconds fixed**
+> **30 seconds fixed**
 
 Timer นับถอยหลังจนถึง 0
 
@@ -449,9 +449,9 @@ Combat Director ต้องควบคุม damage เพื่อรัก�
 
 # 13. Combat Pace — LOCKED
 
-ใน 20 วินาที:
+ใน 30 วินาที:
 
-> ประมาณ **10–16 attack attempts**
+> ประมาณ **15–20 attack attempts**
 
 ไม่ต้องตีกันถี่แบบ machine gun
 
@@ -593,8 +593,8 @@ Combat Director คือระบบสำคัญที่สุดรอง�
 
 1. รับ Fighter A / Fighter B
 2. รับ locked loser
-3. สร้าง fight plan 20 วินาที
-4. วาง 10–16 exchanges
+3. สร้าง fight plan 30 วินาที
+4. วาง 15–20 exchanges
 5. ตัดสินผลของแต่ละ exchange
 6. กระจาย hit/block/dodge/counter/knockdown
 7. จัดจังหวะ HP ให้สูสีและพลิกไปมา
@@ -1036,7 +1036,7 @@ stickman 2 ตัวบน arena:
 
 ### Exit Criteria
 
-รัน generic fighter 2 ตัว 20 วินาทีได้
+รัน generic fighter 2 ตัว 30 วินาทีได้
 
 และ:
 
@@ -1053,7 +1053,7 @@ stickman 2 ตัวบน arena:
 ### Work
 
 - lock loser
-- generate 10–16 exchanges
+- generate 15–20 exchanges
 - control HP trajectory
 - alternate advantage
 - choose hit/block/dodge/counter
@@ -1414,7 +1414,7 @@ Milestone สำคัญที่สุดหลัง Phase 0:
 
 Random Fighter MVP ต้องรักษาหลักต่อไปนี้เสมอ:
 
-> **สุ่มนักเรียน 2 คนอย่างยุติธรรม → ล็อกผู้แพ้ 50/50 → ครูเลือกอาชีพที่ไม่ซ้ำ → ตัวละคร Stickman 2D สู้กันจริง 20 วินาที → HP ลดจาก hit จริง → fight มี block/dodge/counter/knockdown และการพลิกนำ → ไม่มีใครตายก่อนเวลา → ไม่มี tie → เมื่อ TIME คน HP ต่ำกว่าตาม locked outcome เป็นผู้แพ้ → แสดงชื่อผู้แพ้ให้ตอบโจทย์**
+> **สุ่มนักเรียน 2 คนอย่างยุติธรรม → ล็อกผู้แพ้ 50/50 → ครูเลือกอาชีพที่ไม่ซ้ำ → ตัวละคร Stickman 2D สู้กันจริง 30 วินาที → HP ลดจาก hit จริง → fight มี block/dodge/counter/knockdown และการพลิกนำ → ไม่มีใครตายก่อนเวลา → ไม่มี tie → เมื่อ TIME คน HP ต่ำกว่าตาม locked outcome เป็นผู้แพ้ → แสดงชื่อผู้แพ้ให้ตอบโจทย์**
 
 หัวใจของ product ไม่ใช่ simulation ที่แม่นยำที่สุด
 

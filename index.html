@@ -671,7 +671,7 @@
       elements.hudBName.textContent = fighterB.name;
       elements.hpA.style.width = "100%";
       elements.hpB.style.width = "100%";
-      elements.battleTimer.textContent = "10";
+      elements.battleTimer.textContent = "30";
       elements.arenaLabel.textContent = "FIGHT!";
       elements.arenaLabel.classList.remove("hidden");
       setScreen("battle");
@@ -685,18 +685,36 @@
       elements.arenaLabel.classList.add("hidden");
 
       const loserIsA = appState.round.lockedLoserId === fighterA.id;
+      const winnerSide = loserIsA ? "b" : "a";
       let hpA = 100, hpB = 100;
       const showcase = [
+        {attacker:"a",defense:"hit"},
+        {attacker:"b",defense:"hit"},
         {attacker:"a",defense:"block"},
         {attacker:"b",defense:"lean"},
+        {attacker:"a",defense:"hit"},
+        {attacker:"b",defense:"crouch"},
+        {attacker:"b",defense:"hit"},
+        {attacker:"a",defense:"jump"},
+        {attacker:"a",defense:"hit",heavy:true},
+        {attacker:"b",defense:"block"},
+        {attacker:"b",defense:"hit"},
+        {attacker:"a",defense:"lean"},
+        {attacker:"a",defense:"hit"},
+        {attacker:"b",defense:"block"},
+        {attacker:"b",defense:"hit",heavy:true},
         {attacker:"a",defense:"crouch"},
-        {attacker:"b",defense:"jump"},
-        {attacker:loserIsA?"b":"a",defense:"hit"},
-        {attacker:loserIsA?"b":"a",defense:"hit",heavy:true}
+        {attacker:winnerSide,defense:"hit"},
+        {attacker:winnerSide,defense:"hit",heavy:true}
       ];
+      const battleDeadline = performance.now() + 30000;
+      const timerId = window.setInterval(() => {
+        if (runId !== appState.battleRunId || appState.phase !== "battle") return window.clearInterval(timerId);
+        const remaining = Math.max(0, Math.ceil((battleDeadline-performance.now())/1000));
+        elements.battleTimer.textContent = String(remaining).padStart(2, "0");
+      }, 200);
       for (let index = 0; index < showcase.length; index += 1) {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return;
-        elements.battleTimer.textContent = String(Math.max(1,10-index*2)).padStart(2, "0");
         const exchange = showcase[index];
         const result = await performContactExchange(exchange.attacker, exchange.defense, exchange.heavy);
         if (result.damage > 0) {
@@ -705,7 +723,11 @@
           elements.hpA.style.width = `${hpA}%`;
           elements.hpB.style.width = `${hpB}%`;
         }
+        if (index < showcase.length-1) await wait(250);
       }
+      const remainingBattleTime = battleDeadline-performance.now();
+      if (remainingBattleTime > 0) await wait(remainingBattleTime);
+      window.clearInterval(timerId);
       if (runId !== appState.battleRunId || appState.phase !== "battle") return;
       elements.battleTimer.textContent = "00";
       elements.arenaLabel.textContent = "TIME!";
