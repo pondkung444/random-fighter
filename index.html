@@ -466,6 +466,11 @@
       ,punchWindup: { rootX:-.04, rootY:.015, torso:-10, head:4, shoulderL:145, elbowL:104, shoulderR:238, elbowR:270, hipL:200, kneeL:172, hipR:160, kneeR:190 }
       ,punchActive: { rootX:.09, rootY:0, torso:13, head:4, shoulderL:154, elbowL:118, shoulderR:90, elbowR:90, hipL:198, kneeL:174, hipR:158, kneeR:188 }
       ,punchRecover: { rootX:.025, rootY:.01, torso:2, head:2, shoulderL:166, elbowL:126, shoulderR:132, elbowR:102, hipL:195, kneeL:174, hipR:164, kneeR:188 }
+      ,heavyWindup: { rootX:-.1, rootY:.06, torso:-24, head:8, shoulderL:152, elbowL:112, shoulderR:255, elbowR:292, hipL:208, kneeL:168, hipR:154, kneeR:195 }
+      ,heavyActive: { rootX:.16, rootY:-.015, torso:24, head:8, shoulderL:160, elbowL:122, shoulderR:82, elbowR:88, hipL:204, kneeL:172, hipR:156, kneeR:190 }
+      ,blockRecoil: { rootX:-.11, rootY:.035, torso:-24, head:-8, shoulderL:138, elbowL:98, shoulderR:108, elbowR:68, hipL:207, kneeL:168, hipR:153, kneeR:195 }
+      ,counterWindup: { rootX:-.16, rootY:.02, torso:-28, head:-8, shoulderL:215, elbowL:250, shoulderR:246, elbowR:278, hipL:205, kneeL:170, hipR:156, kneeR:192 }
+      ,counterActive: { rootX:.13, rootY:-.01, torso:19, head:5, shoulderL:160, elbowL:122, shoulderR:88, elbowR:88, hipL:200, kneeL:174, hipR:158, kneeR:188 }
     });
     const copyPose = pose => ({ ...pose });
     const mixPose = (a, b, t) => Object.fromEntries(Object.keys(a).map(key => [key, a[key] + (b[key] - a[key]) * t]));
@@ -482,6 +487,9 @@
       victory: [{p:"brace",d:250},{p:"victory",d:380},{p:"victory",d:900}],
       lose: [{p:"hit",d:180},{p:"lose",d:520},{p:"lose",d:900}]
       ,punch: [{p:"punchWindup",d:180},{p:"punchActive",d:105},{p:"punchRecover",d:190},{p:"idleA",d:220}]
+      ,heavy: [{p:"heavyWindup",d:300},{p:"heavyActive",d:135},{p:"punchRecover",d:240},{p:"idleA",d:260}]
+      ,blockHit: [{p:"block",d:90},{p:"blockRecoil",d:150},{p:"block",d:170},{p:"brace",d:180},{p:"idleA",d:250}]
+      ,counter: [{p:"counterWindup",d:150},{p:"counterActive",d:105},{p:"punchRecover",d:180},{p:"idleA",d:220}]
     });
 
     class FighterAnimator {
@@ -514,6 +522,7 @@
         const neck=this.point(root,.48*s,p.torso,facing), head=this.point(neck,.17*s,p.head+p.torso,facing), shoulder={x:neck.x,y:neck.y+.08*s}, hipL={x:root.x-.08*s*facing,y:root.y},hipR={x:root.x+.08*s*facing,y:root.y};
         const elbowL=this.point(shoulder,.3*s,p.shoulderL,facing),handL=this.point(elbowL,.28*s,p.elbowL,facing),elbowR=this.point(shoulder,.3*s,p.shoulderR,facing),handR=this.point(elbowR,.28*s,p.elbowR,facing);
         const kneeL=this.point(hipL,.38*s,p.hipL,facing),footL=this.point(kneeL,.38*s,p.kneeL,facing),kneeR=this.point(hipR,.38*s,p.hipR,facing),footR=this.point(kneeR,.38*s,p.kneeR,facing);
+        if(!["jump","knockdown","getup","lose"].includes(anim.clip)){const lowest=Math.max(footL.y,footR.y),lift=ground-lowest;[root,neck,head,shoulder,hipL,hipR,elbowL,handL,elbowR,handR,kneeL,footL,kneeR,footR].forEach(q=>q.y+=lift);}
         c.save(); c.lineCap="round"; c.lineJoin="round"; c.strokeStyle="rgba(0,0,0,.35)"; c.lineWidth=.19*s; c.beginPath(); c.ellipse(root.x,ground+.02*s,.42*s,.09*s,0,0,Math.PI*2); c.stroke();
         const limb=(a,b,w=.105)=>{c.strokeStyle="#101425";c.lineWidth=w*s+.07*s;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();c.strokeStyle=color;c.lineWidth=w*s;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();};
         limb(hipL,kneeL,.13);limb(kneeL,footL,.115);limb(hipR,kneeR,.13);limb(kneeR,footR,.115); limb(root,neck,.2); limb(shoulder,elbowL,.12);limb(elbowL,handL,.105);limb(shoulder,elbowR,.12);limb(elbowR,handR,.105);
@@ -522,10 +531,10 @@
         [footL,footR].forEach(q=>{c.strokeStyle="#101425";c.lineWidth=.11*s;c.beginPath();c.moveTo(q.x-.03*s*facing,q.y);c.lineTo(q.x+.15*s*facing,q.y);c.stroke();});
         if(this.guides){c.fillStyle="#fff";[root,neck,head,elbowL,handL,elbowR,handR,kneeL,footL,kneeR,footR].forEach(q=>{c.beginPath();c.arc(q.x,q.y,3,0,Math.PI*2);c.fill();});}
         c.restore();
-        return {root,neck,head,shoulder,handL,handR,footL,footR,scale:s,upperBody:{x:(root.x+neck.x)/2,y:(root.y+neck.y)/2}};
+        return {root,neck,head,shoulder,handL,handR,footL,footR,scale:s,headBox:{x:head.x,y:head.y,r:.17*s},torsoBox:{x:(root.x+neck.x)/2,y:(root.y+neck.y)/2,r:.25*s},guardBox:{x:(handL.x+handR.x)/2,y:(handL.y+handR.y)/2,r:.22*s}};
       }
-      testContact(attacker,defender,guard=false){const attack=this.rigs[attacker]?.handR,targetRig=this.rigs[defender];if(!attack||!targetRig)return false;const target=guard?{x:(targetRig.handL.x+targetRig.handR.x)/2,y:(targetRig.handL.y+targetRig.handR.y)/2}:targetRig.upperBody;const limit=targetRig.scale*(guard?.26:.29),distance=Math.hypot(attack.x-target.x,attack.y-target.y),hit=distance<=limit;this.events.push({attacker,defender,guard,hit,distance:Math.round(distance),limit:Math.round(limit)});this.impact={x:(attack.x+target.x)/2,y:(attack.y+target.y)/2,hit,until:performance.now()+180};return hit;}
-      draw(){ const c=this.ctx;c.clearRect(0,0,this.w,this.h);const ground=this.h*.78;if(this.guides){c.strokeStyle="rgba(255,255,255,.25)";c.setLineDash([8,8]);c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();c.setLineDash([]);} this.rigs.a=this.fighter(this.a,this.positions.a,ground,1,"#4cf3ff");this.rigs.b=this.fighter(this.b,this.positions.b,ground,-1,"#ff4fd8");if(this.impact&&performance.now()<this.impact.until){c.save();c.strokeStyle=this.impact.hit?"#fff36a":"#ff4fd8";c.lineWidth=5;c.beginPath();c.arc(this.impact.x,this.impact.y,this.impact.hit?18:11,0,Math.PI*2);c.stroke();c.restore();}if(this.guides){const attacker=this.rigs.a,defender=this.rigs.b;c.save();c.strokeStyle="rgba(255,201,74,.8)";c.lineWidth=2;c.beginPath();c.arc(attacker.handR.x,attacker.handR.y,attacker.scale*.08,0,Math.PI*2);c.stroke();c.strokeStyle="rgba(255,79,216,.7)";c.beginPath();c.arc(defender.upperBody.x,defender.upperBody.y,defender.scale*.24,0,Math.PI*2);c.stroke();c.fillStyle="#fff";c.font="12px Kanit";c.fillText(this.contactState,12,22);c.restore();} }
+      testContact(attacker,defender,guard=false,heavy=false){const attack=this.rigs[attacker]?.handR,targetRig=this.rigs[defender];if(!attack||!targetRig)return false;const attackRadius=targetRig.scale*(heavy?.11:.08),boxes=guard?[targetRig.guardBox]:[targetRig.headBox,targetRig.torsoBox];let best=null;for(const box of boxes){const distance=Math.hypot(attack.x-box.x,attack.y-box.y),limit=attackRadius+box.r;if(!best||distance<best.distance)best={box,distance,limit};}const hit=best.distance<=best.limit;this.events.push({attacker,defender,guard,heavy,hit,distance:Math.round(best.distance),limit:Math.round(best.limit)});this.impact={x:(attack.x+best.box.x)/2,y:(attack.y+best.box.y)/2,hit,until:performance.now()+190};return hit;}
+      draw(){ const c=this.ctx;c.clearRect(0,0,this.w,this.h);const ground=this.h*.78;if(this.guides){c.strokeStyle="rgba(255,255,255,.25)";c.setLineDash([8,8]);c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();c.setLineDash([]);} this.rigs.a=this.fighter(this.a,this.positions.a,ground,1,"#4cf3ff");this.rigs.b=this.fighter(this.b,this.positions.b,ground,-1,"#ff4fd8");if(this.impact&&performance.now()<this.impact.until){c.save();c.strokeStyle=this.impact.hit?"#fff36a":"#ff4fd8";c.lineWidth=5;c.beginPath();c.arc(this.impact.x,this.impact.y,this.impact.hit?18:11,0,Math.PI*2);c.stroke();c.restore();}if(this.guides){c.save();for(const rig of Object.values(this.rigs)){c.strokeStyle="rgba(255,79,216,.7)";for(const box of [rig.headBox,rig.torsoBox]){c.beginPath();c.arc(box.x,box.y,box.r,0,Math.PI*2);c.stroke();}c.strokeStyle="rgba(76,243,255,.8)";c.beginPath();c.arc(rig.guardBox.x,rig.guardBox.y,rig.guardBox.r,0,Math.PI*2);c.stroke();c.strokeStyle="rgba(255,201,74,.9)";c.beginPath();c.arc(rig.handR.x,rig.handR.y,rig.scale*.08,0,Math.PI*2);c.stroke();}c.fillStyle="#fff";c.font="12px Kanit";c.fillText(this.contactState,12,22);c.restore();} }
     }
     const stickmanStage = new StickmanStage(elements.fightCanvas);
 
@@ -628,27 +637,43 @@
       const defender = attacker === "a" ? "b" : "a";
       await stickmanStage.approach(attacker);
       stickmanStage.contactState = "WINDUP";
-      if (defense !== "hit") stickmanStage.play(defender, defense);
+      const defensiveClip = defense === "counter" ? "lean" : defense;
+      if (defense !== "hit") stickmanStage.play(defender, defensiveClip);
       await wait(90);
-      stickmanStage.play(attacker, "punch");
-      await wait(225);
+      stickmanStage.play(attacker, heavy ? "heavy" : "punch");
+      await wait(heavy ? 365 : 225);
       stickmanStage.contactState = "ACTIVE";
-      const contacted = stickmanStage.testContact(attacker, defender, defense === "block");
+      const contacted = stickmanStage.testContact(attacker, defender, defense === "block", heavy);
       let damage = 0;
+      let counterContact = false;
       if (defense === "block" && contacted) {
         damage = 2;
-        stickmanStage.play(defender, "block");
+        stickmanStage.play(defender, "blockHit");
       } else if (defense === "hit" && contacted) {
         damage = heavy ? 10 : 6;
         stickmanStage.play(defender, heavy ? "knockdown" : "hit");
       }
       stickmanStage.contactState = contacted ? (defense === "block" ? "BLOCK CONTACT" : "HIT CONTACT") : "CLEAN DODGE";
-      await wait(420);
+      await wait(heavy && contacted ? 900 : 420);
       await stickmanStage.retreat(attacker);
       stickmanStage.play(attacker, "idle", true);
-      if (!heavy) stickmanStage.play(defender, "idle", true);
+      if (heavy && contacted) {
+        stickmanStage.contactState = "GET UP";
+        stickmanStage.play(defender, "getup");
+        await wait(1200);
+      } else if (defense === "counter") {
+        stickmanStage.contactState = "COUNTER";
+        await stickmanStage.approach(defender);
+        stickmanStage.play(defender, "counter");
+        await wait(205);
+        counterContact = stickmanStage.testContact(defender, attacker, false, false);
+        if (counterContact) { damage = 7; stickmanStage.play(attacker, "hit"); }
+        await wait(380);
+        await stickmanStage.retreat(defender);
+      } else stickmanStage.play(defender, "idle", true);
+      stickmanStage.play(defender, "idle", true);
       await wait(120);
-      return { defender, contacted, damage };
+      return { defender: defense === "counter" ? attacker : defender, contacted: defense === "counter" ? counterContact : contacted, damage };
     }
 
     async function playPhaseOneBattle() {
@@ -691,18 +716,14 @@
         {attacker:"a",defense:"hit"},
         {attacker:"b",defense:"hit"},
         {attacker:"a",defense:"block"},
-        {attacker:"b",defense:"lean"},
+        {attacker:"b",defense:"counter"},
         {attacker:"a",defense:"hit"},
         {attacker:"b",defense:"crouch"},
         {attacker:"b",defense:"hit"},
         {attacker:"a",defense:"jump"},
         {attacker:"a",defense:"hit",heavy:true},
         {attacker:"b",defense:"block"},
-        {attacker:"b",defense:"hit"},
-        {attacker:"a",defense:"lean"},
-        {attacker:"a",defense:"hit"},
-        {attacker:"b",defense:"block"},
-        {attacker:"b",defense:"hit",heavy:true},
+        {attacker:"a",defense:"counter"},
         {attacker:"a",defense:"crouch"},
         {attacker:winnerSide,defense:"hit"},
         {attacker:winnerSide,defense:"hit",heavy:true}
@@ -872,7 +893,7 @@
     updateRosterValidation();
 
     function runPhaseOneInvariants() {
-      const required = ["idle","hit","block","lean","crouch","jump","knockdown","getup","victory","lose"];
+      const required = ["idle","punch","heavy","hit","block","blockHit","lean","crouch","jump","counter","knockdown","getup","victory","lose"];
       const missingClips = required.filter(name => !CLIPS[name]);
       const missingPoses = Object.values(CLIPS).flat().map(frame => frame.p).filter(name => !POSES[name]);
       const numericPoses = Object.entries(POSES).every(([,pose]) => Object.values(pose).every(Number.isFinite));
