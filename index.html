@@ -401,8 +401,8 @@
     ]);
     const PROFESSION_PRESENTATION = Object.freeze({
       generic: Object.freeze({id:"generic",primary:"#4cf3ff",secondary:"#ff4fd8",clips:{},anchors:{light:"handR",heavy:"handR",signature:"handR",comeback:"handR",counter:"handR"}}),
-      takraw: Object.freeze({id:"takraw",primary:"#1687ff",secondary:"#ffd34e",clips:{idle:"takrawIdle",light:"takrawLight",heavy:"takrawHeavy",signature:"takrawSignature",comeback:"takrawComeback",block:"takrawBlock",hit:"takrawHit",victory:"takrawVictory"},anchors:{light:"footR",heavy:"footR",signature:"ball",comeback:"footR",counter:"footR"}}),
-      somtam: Object.freeze({id:"somtam",primary:"#e94b35",secondary:"#78d64b",clips:{idle:"somtamIdle",light:"somtamLight",heavy:"somtamHeavy",signature:"somtamSignature",comeback:"somtamComeback",block:"somtamBlock",hit:"somtamHit",victory:"somtamVictory"},anchors:{light:"pestleTip",heavy:"pestleTip",signature:"pestleTip",comeback:"pestleTip",counter:"pestleTip"}})
+      takraw: Object.freeze({id:"takraw",primary:"#1687ff",secondary:"#ffd34e",signatureName:"สายฟ้าฟาดตะกร้อ!",clips:{idle:"takrawIdle",light:"takrawLight",heavy:"takrawHeavy",signature:"takrawSignature",comeback:"takrawComeback",block:"takrawBlock",hit:"takrawHit",victory:"takrawVictory"},anchors:{light:"footR",heavy:"footR",signature:"footR",comeback:"footR",counter:"footR"}}),
+      somtam: Object.freeze({id:"somtam",primary:"#e94b35",secondary:"#78d64b",signatureName:"ครกเพชฌฆาต!",clips:{idle:"somtamIdle",light:"somtamLight",heavy:"somtamHeavy",signature:"somtamSignature",comeback:"somtamComeback",block:"somtamBlock",hit:"somtamHit",victory:"somtamVictory"},anchors:{light:"pestleTip",heavy:"pestleTip",signature:"pestleTip",comeback:"pestleTip",counter:"pestleTip"}})
     });
 
     const elements = {
@@ -505,7 +505,7 @@
       ,takrawIdle: [{p:"takrawReady",d:520},{p:"idleA",d:420},{p:"takrawReady",d:520}]
       ,takrawLight: [{p:"jumpPrep",d:130},{p:"takrawKick",d:150},{p:"takrawReady",d:220}]
       ,takrawHeavy: [{p:"takrawReady",d:180},{p:"takrawKick",d:180},{p:"takrawReady",d:250}]
-      ,takrawSignature: [{p:"takrawReady",d:120},{p:"jumpPrep",d:170},{p:"takrawBicycle",d:290},{p:"takrawKick",d:160},{p:"takrawReady",d:280}]
+      ,takrawSignature: [{p:"takrawReady",d:60},{p:"jumpPrep",d:90},{p:"takrawBicycle",d:130},{p:"takrawKick",d:210},{p:"takrawReady",d:280}]
       ,takrawComeback: [{p:"jumpPrep",d:170},{p:"takrawBicycle",d:240},{p:"takrawReady",d:300}]
       ,takrawBlock: [{p:"takrawReady",d:120},{p:"blockRecoil",d:160},{p:"takrawReady",d:220}]
       ,takrawHit: [{p:"hit",d:130},{p:"takrawReady",d:260}]
@@ -513,7 +513,7 @@
       ,somtamIdle: [{p:"somtamReady",d:650},{p:"brace",d:450},{p:"somtamReady",d:650}]
       ,somtamLight: [{p:"somtamReady",d:150},{p:"somtamJab",d:150},{p:"somtamReady",d:250}]
       ,somtamHeavy: [{p:"heavyWindup",d:250},{p:"somtamSmash",d:190},{p:"somtamReady",d:280}]
-      ,somtamSignature: [{p:"somtamReady",d:120},{p:"crouch",d:190},{p:"heavyWindup",d:230},{p:"somtamSmash",d:260},{p:"somtamReady",d:320}]
+      ,somtamSignature: [{p:"somtamReady",d:50},{p:"crouch",d:70},{p:"heavyWindup",d:140},{p:"somtamSmash",d:280},{p:"somtamReady",d:320}]
       ,somtamComeback: [{p:"heavyWindup",d:220},{p:"somtamSmash",d:180},{p:"somtamJab",d:150},{p:"somtamReady",d:300}]
       ,somtamBlock: [{p:"somtamReady",d:120},{p:"blockRecoil",d:180},{p:"somtamReady",d:260}]
       ,somtamHit: [{p:"hit",d:180},{p:"somtamReady",d:320}]
@@ -561,7 +561,7 @@
         [footL,footR].forEach(q=>{c.strokeStyle="#101425";c.lineWidth=.11*s;c.beginPath();c.moveTo(q.x-.03*s*facing,q.y);c.lineTo(q.x+.15*s*facing,q.y);c.stroke();});
         const style=PROFESSION_PRESENTATION[anim.profession]||PROFESSION_PRESENTATION.generic,pestleTip={x:handR.x+.26*s*facing,y:handR.y-.04*s},mortar={x:root.x+.18*s*facing,y:root.y-.08*s},ball={x:footR.x+.1*s*facing,y:footR.y-.08*s};
         if(anim.profession==="takraw"){c.save();c.strokeStyle="#101425";c.lineWidth=.045*s;c.fillStyle=style.primary;c.beginPath();c.moveTo(neck.x-.2*s,neck.y+.02*s);c.lineTo(root.x-.17*s,root.y-.02*s);c.lineTo(root.x+.17*s,root.y-.02*s);c.lineTo(neck.x+.2*s,neck.y+.02*s);c.closePath();c.fill();c.stroke();c.fillStyle=style.secondary;c.beginPath();c.moveTo(neck.x-.035*s,neck.y);c.lineTo(root.x-.015*s,root.y);c.lineTo(root.x+.08*s,root.y);c.lineTo(neck.x+.045*s,neck.y);c.closePath();c.fill();c.fillStyle="#fff";c.fillRect(root.x-.19*s,root.y-.06*s,.38*s,.11*s);c.fillStyle=style.primary;c.fillRect(root.x-.19*s,root.y-.06*s,.13*s,.14*s);c.fillRect(root.x+.06*s,root.y-.06*s,.13*s,.14*s);c.fillStyle="#ffd34e";c.beginPath();c.arc(ball.x,ball.y,.09*s,0,Math.PI*2);c.fill();c.stroke();c.strokeStyle="#7d5b12";c.lineWidth=.018*s;c.beginPath();c.arc(ball.x,ball.y,.055*s,0,Math.PI*2);c.moveTo(ball.x-.08*s,ball.y);c.lineTo(ball.x+.08*s,ball.y);c.moveTo(ball.x,ball.y-.08*s);c.lineTo(ball.x,ball.y+.08*s);c.stroke();c.strokeStyle=style.secondary;c.lineWidth=.052*s;c.beginPath();c.moveTo(head.x-.17*s*facing,head.y-.065*s);c.lineTo(head.x+.21*s*facing,head.y-.065*s);c.stroke();c.restore();}
-        if(anim.profession==="somtam"){c.save();c.strokeStyle="#101425";c.lineWidth=.045*s;c.fillStyle="#fff1cf";c.beginPath();c.moveTo(neck.x-.22*s,neck.y+.02*s);c.lineTo(root.x-.25*s,root.y+.08*s);c.lineTo(root.x+.25*s,root.y+.08*s);c.lineTo(neck.x+.22*s,neck.y+.02*s);c.closePath();c.fill();c.stroke();c.strokeStyle="#78d64b";c.lineWidth=.04*s;c.beginPath();c.moveTo(neck.x-.13*s,neck.y);c.lineTo(root.x-.08*s,root.y+.06*s);c.moveTo(neck.x+.13*s,neck.y);c.lineTo(root.x+.08*s,root.y+.06*s);c.stroke();c.fillStyle="#e94b35";c.beginPath();c.arc(root.x,root.y-.18*s,.055*s,0,Math.PI*2);c.fill();c.strokeStyle="#8b5a2b";c.lineWidth=.085*s;c.beginPath();c.moveTo(handR.x,handR.y);c.lineTo(pestleTip.x,pestleTip.y);c.stroke();c.fillStyle="#8d6044";c.strokeStyle="#3d2618";c.lineWidth=.035*s;c.beginPath();c.moveTo(mortar.x-.2*s,mortar.y-.08*s);c.quadraticCurveTo(mortar.x-.17*s,mortar.y+.2*s,mortar.x,mortar.y+.21*s);c.quadraticCurveTo(mortar.x+.17*s,mortar.y+.2*s,mortar.x+.2*s,mortar.y-.08*s);c.closePath();c.fill();c.stroke();c.fillStyle="#51321f";c.beginPath();c.ellipse(mortar.x,mortar.y-.08*s,.2*s,.075*s,0,0,Math.PI*2);c.fill();c.fillStyle="#ff554c";for(let i=-1;i<=1;i++){c.beginPath();c.arc(mortar.x+i*.07*s,mortar.y-.1*s,.025*s,0,Math.PI*2);c.fill();}c.restore();}
+        if(anim.profession==="somtam"){c.save();c.fillStyle="#3f2234";c.beginPath();c.arc(head.x,head.y-.02*s,.18*s,Math.PI,Math.PI*2);c.fill();c.beginPath();c.arc(head.x-.15*s*facing,head.y+.02*s,.07*s,0,Math.PI*2);c.fill();c.beginPath();c.arc(head.x-.23*s*facing,head.y+.01*s,.09*s,0,Math.PI*2);c.fill();c.strokeStyle="#101425";c.lineWidth=.018*s;c.beginPath();c.moveTo(head.x+.035*s*facing,head.y+.015*s);c.lineTo(head.x+.09*s*facing,head.y+.005*s);c.stroke();c.strokeStyle="#101425";c.lineWidth=.045*s;c.fillStyle="#fff1cf";c.beginPath();c.moveTo(neck.x-.22*s,neck.y+.02*s);c.lineTo(root.x-.25*s,root.y+.08*s);c.lineTo(root.x+.25*s,root.y+.08*s);c.lineTo(neck.x+.22*s,neck.y+.02*s);c.closePath();c.fill();c.stroke();c.strokeStyle="#78d64b";c.lineWidth=.04*s;c.beginPath();c.moveTo(neck.x-.13*s,neck.y);c.lineTo(root.x-.08*s,root.y+.06*s);c.moveTo(neck.x+.13*s,neck.y);c.lineTo(root.x+.08*s,root.y+.06*s);c.stroke();c.fillStyle="#e94b35";c.beginPath();c.arc(root.x,root.y-.18*s,.055*s,0,Math.PI*2);c.fill();c.strokeStyle="#8b5a2b";c.lineWidth=.085*s;c.beginPath();c.moveTo(handR.x,handR.y);c.lineTo(pestleTip.x,pestleTip.y);c.stroke();c.fillStyle="#8d6044";c.strokeStyle="#3d2618";c.lineWidth=.035*s;c.beginPath();c.moveTo(mortar.x-.2*s,mortar.y-.08*s);c.quadraticCurveTo(mortar.x-.17*s,mortar.y+.2*s,mortar.x,mortar.y+.21*s);c.quadraticCurveTo(mortar.x+.17*s,mortar.y+.2*s,mortar.x+.2*s,mortar.y-.08*s);c.closePath();c.fill();c.stroke();c.fillStyle="#51321f";c.beginPath();c.ellipse(mortar.x,mortar.y-.08*s,.2*s,.075*s,0,0,Math.PI*2);c.fill();c.fillStyle="#ff554c";for(let i=-1;i<=1;i++){c.beginPath();c.arc(mortar.x+i*.07*s,mortar.y-.1*s,.025*s,0,Math.PI*2);c.fill();}c.restore();}
         if(this.guides){c.fillStyle="#fff";[root,neck,head,elbowL,handL,elbowR,handR,kneeL,footL,kneeR,footR].forEach(q=>{c.beginPath();c.arc(q.x,q.y,3,0,Math.PI*2);c.fill();});}
         c.restore();
         return {root,neck,head,shoulder,handL,handR,footL,footR,pestleTip,mortar,ball,scale:s,headBox:{x:head.x,y:head.y,r:.17*s},torsoBox:{x:(root.x+neck.x)/2,y:(root.y+neck.y)/2,r:.25*s},guardBox:{x:(handL.x+handR.x)/2,y:(handL.y+handR.y)/2,r:.22*s}};
@@ -739,7 +739,7 @@
         else if(!closing&&desiredHp>otherHp+5){attacker=other;defense=pick(["block","lean","crouch","jump"]);}
         else if(!closing&&desiredHp>otherHp&&Math.random()<.38){attacker=other;defense=pick(["block","lean","crouch","jump","counter"]);}
         else if(!closing&&Math.random()<.18){defense=pick(["block","lean","crouch","jump"]);}
-        const requestedDefense=defense;defense=this.reserveDefense(defense);if(requestedDefense!=="hit"&&defense==="hit")attacker=desired;const attackId=this.chooseAttack(index,attacker,engine),exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:desired,closing});this.history.push(exchange);return exchange;
+        const requestedDefense=defense;defense=this.reserveDefense(defense);if(requestedDefense!=="hit"&&defense==="hit")attacker=desired;const attackId=this.chooseAttack(index,attacker,engine);if(this.guaranteeSignature&&attackId==="signature")defense="hit";const exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:desired,closing});this.history.push(exchange);return exchange;
       }
       ensureClosingOutcome(engine,index){
         if(index<this.exchangeCount-5)return this.next(index,engine);
@@ -761,7 +761,7 @@
       attackFighter.transition("approach");engine.emit("state_changed",{fighter:attacker,state:"approach"});
       await stickmanStage.approach(attacker);if(runId!==appState.battleRunId)return;
       attackFighter.transition("windup");stickmanStage.contactState="WINDUP";
-      if(attackId==="signature"||attackId==="comeback"){elements.arenaLabel.textContent=attackId==="signature"?"SIGNATURE MOVE!":"COMEBACK!";elements.arenaLabel.classList.remove("hidden");window.setTimeout(()=>{if(appState.phase==="battle")elements.arenaLabel.classList.add("hidden");},900);stickmanStage.spawnBurst(attacker);}
+      if(attackId==="signature"||attackId==="comeback"){const profession=PROFESSION_PRESENTATION[(attacker==="a"?stickmanStage.a:stickmanStage.b).profession];elements.arenaLabel.textContent=attackId==="signature"?(profession.signatureName||"SIGNATURE!"):"COMEBACK!";elements.arenaLabel.classList.remove("hidden");window.setTimeout(()=>{if(appState.phase==="battle")elements.arenaLabel.classList.add("hidden");},900);stickmanStage.spawnBurst(attacker);}
       const defensiveClip=defense==="counter"?"lean":defense;
       if(defense!=="hit"){defendFighter.transition(defense==="block"?"block":"dodge");stickmanStage.play(defender,defensiveClip);}
       stickmanStage.play(attacker,attackId);await wait(attack.startupMs);
@@ -844,7 +844,8 @@
       elements.battleTimer.textContent = "00";
       let finalEvent;
       try{finalEvent=engine.finish(lockedLoserSide);}catch(error){console.error(error);finalEvent=Object.freeze({type:"fight_finished",lockedLoserSide,hpA:engine.fighter("a").hp,hpB:engine.fighter("b").hp,valid:false,recovered:true});}
-      window.__randomFighterDiagnostics=Object.freeze({finalEvent,director:director.summary(),exchanges:Object.freeze([...director.history]),eventCount:engine.events.length,eventTypes:Object.freeze([...new Set(engine.events.map(event=>event.type))])});
+      const signatureHits=engine.events.filter(event=>(event.type==="hit"||event.type==="knockdown")&&event.attackId==="signature"&&event.damage>0).length;
+      window.__randomFighterDiagnostics=Object.freeze({finalEvent,director:director.summary(),signatureHits,exchanges:Object.freeze([...director.history]),eventCount:engine.events.length,eventTypes:Object.freeze([...new Set(engine.events.map(event=>event.type))])});
       document.documentElement.dataset.fightDiagnostics=JSON.stringify(window.__randomFighterDiagnostics);
       elements.arenaLabel.textContent = "TIME!";
       elements.arenaLabel.classList.remove("hidden");
