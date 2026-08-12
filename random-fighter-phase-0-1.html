@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Random Fighter — Phase 0.1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080b19;
+      --panel: #151a36;
+      --panel-2: #1d2348;
+      --ink: #f4f2ff;
+      --muted: #a4a9cf;
+      --cyan: #4cf3ff;
+      --pink: #ff4fd8;
+      --gold: #ffc94a;
+      --mint: #52ffb8;
+      --danger: #ff5d78;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--ink);
+      font-family: "Kanit", sans-serif;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(76, 243, 255, .13), transparent 35%),
+        radial-gradient(circle at 90% 8%, rgba(255, 79, 216, .12), transparent 38%),
+        var(--bg);
+    }
+
+    button, textarea { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    .hidden { display: none !important; }
+    .pixel { font-family: "Press Start 2P", monospace; }
+
+    .stars, .stars::before {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      content: "";
+      background-image: radial-gradient(rgba(76, 243, 255, .48) 1px, transparent 1px);
+      background-size: 58px 58px;
+      opacity: .28;
+      animation: drift 36s linear infinite;
+    }
+    .stars::before {
+      background-image: radial-gradient(rgba(255, 79, 216, .44) 1px, transparent 1px);
+      background-size: 91px 91px;
+      animation-duration: 52s;
+      animation-direction: reverse;
+    }
+    @keyframes drift { to { transform: translate(-58px, 58px); } }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 28px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .content { width: min(100%, 820px); }
+    .brand { margin-bottom: 22px; text-align: center; }
+    .eyebrow {
+      margin-bottom: 10px;
+      color: var(--cyan);
+      font-size: clamp(8px, 1.5vw, 11px);
+      line-height: 1.6;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 6vw, 54px);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: .5px;
+    }
+    h1 span { color: var(--gold); text-shadow: 0 0 24px rgba(255, 201, 74, .45); }
+    .subtitle { margin: 10px auto 0; color: var(--muted); font-size: clamp(14px, 2vw, 17px); }
+
+    .panel {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      padding: 22px;
+      border: 2px solid rgba(76, 243, 255, .22);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(29, 35, 72, .97), rgba(21, 26, 54, .97));
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .42), inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    label { display: block; margin-bottom: 9px; color: var(--muted); font-size: 14px; font-weight: 600; }
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 250px;
+      padding: 14px;
+      resize: vertical;
+      outline: 0;
+      border: 2px solid rgba(76, 243, 255, .18);
+      border-radius: 13px;
+      color: var(--ink);
+      background: #0c1026;
+      line-height: 1.65;
+    }
+    textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(76, 243, 255, .08); }
+
+    .count-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; color: var(--muted); font-size: 13px; }
+    .pill { padding: 5px 11px; border: 1px solid rgba(82, 255, 184, .4); border-radius: 999px; color: var(--mint); background: rgba(82, 255, 184, .1); font-weight: 700; }
+    .pill.warn { border-color: rgba(255, 93, 120, .45); color: var(--danger); background: rgba(255, 93, 120, .1); }
+
+    .button {
+      border: 0;
+      border-radius: 13px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform .13s ease, filter .13s ease, opacity .13s ease;
+    }
+    .button:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+    .button:active:not(:disabled) { transform: translateY(2px); }
+    .button:disabled { cursor: not-allowed; opacity: .4; }
+    .button-primary {
+      width: 100%;
+      margin-top: 18px;
+      padding: 15px 18px;
+      color: #251900;
+      background: linear-gradient(#ffd568, #eaa821);
+      box-shadow: 0 6px 0 #865800, 0 14px 28px rgba(0, 0, 0, .36);
+      font-size: 18px;
+    }
+    .button-secondary { padding: 11px 16px; color: var(--ink); background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); }
+
+    .draw-head { margin-bottom: 18px; text-align: center; }
+    .draw-head h2 { margin: 0 0 6px; font-size: clamp(23px, 4vw, 34px); }
+    .draw-status { min-height: 27px; margin: 0; color: var(--muted); font-size: 15px; }
+    .draw-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); gap: 9px; }
+
+    .draw-card { aspect-ratio: 2 / 3; perspective: 700px; }
+    .card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .58s cubic-bezier(.25,.72,.3,1.25), opacity .35s ease, filter .35s ease; }
+    .draw-card.flipped .card-inner { transform: rotateY(180deg); }
+    .draw-card.dim .card-inner { opacity: .18; filter: grayscale(.85); }
+    .card-face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 9px;
+      backface-visibility: hidden;
+    }
+    .card-back {
+      border: 2px solid rgba(76, 243, 255, .36);
+      background: repeating-linear-gradient(45deg, rgba(76,243,255,.08) 0 6px, transparent 6px 12px), linear-gradient(145deg, #202753, #0c1026);
+      box-shadow: 0 5px 13px rgba(0,0,0,.38);
+    }
+    .card-back::after { content: "?"; color: rgba(76,243,255,.55); font: 14px "Press Start 2P", monospace; }
+    .card-front { flex-direction: column; gap: 6px; padding: 5px; border: 2px solid var(--gold); background: linear-gradient(145deg, #34266e, #181337); transform: rotateY(180deg); box-shadow: 0 0 20px rgba(255,201,74,.45); }
+    .card-front .star { font-size: 17px; }
+    .card-name { width: 100%; overflow-wrap: anywhere; text-align: center; font-size: clamp(9px, 1.6vw, 12px); font-weight: 700; line-height: 1.2; }
+
+    .selection-panel { margin-top: 22px; text-align: center; animation: rise .45s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+    .selection-label { color: var(--cyan); font-size: 10px; line-height: 1.6; }
+    .fighter-pair { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin: 15px 0 18px; }
+    .fighter-chip { min-width: 0; padding: 15px 10px; border: 2px solid rgba(255,255,255,.14); border-radius: 14px; background: rgba(255,255,255,.055); }
+    .fighter-chip:first-child { border-color: rgba(76,243,255,.45); }
+    .fighter-chip:last-child { border-color: rgba(255,79,216,.45); }
+    .fighter-side { margin-bottom: 4px; color: var(--muted); font-size: 12px; }
+    .fighter-name { overflow: hidden; text-overflow: ellipsis; font-size: clamp(18px, 3vw, 25px); font-weight: 800; white-space: nowrap; }
+    .versus { color: var(--gold); font-size: clamp(18px, 3vw, 25px); text-shadow: 0 0 14px rgba(255,201,74,.5); }
+    .checkpoint-note { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 560px) {
+      .screen { align-items: flex-start; padding-top: 22px; }
+      .panel { padding: 17px; }
+      .draw-grid { grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); gap: 6px; }
+      .fighter-pair { gap: 8px; }
+      .fighter-chip { padding: 12px 7px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+
+  <main>
+    <section class="screen" id="setupScreen">
+      <div class="content">
+        <header class="brand">
+          <div class="eyebrow pixel">PHASE 0.1 · RANDOM FIGHTER</div>
+          <h1>RANDOM <span>FIGHTER</span></h1>
+          <p class="subtitle">สุ่มผู้ท้าชิง 2 คน เพื่อเข้าสู่สังเวียน</p>
+        </header>
+
+        <div class="panel">
+          <label for="nameInput">รายชื่อนักเรียน — 1 บรรทัดต่อ 1 คน</label>
+          <textarea id="nameInput" spellcheck="false" aria-describedby="countText"></textarea>
+          <div class="count-row">
+            <span id="countText">0 คน</span>
+            <span class="pill warn" id="countPill">ต้องมีอย่างน้อย 2 คน</span>
+          </div>
+          <button class="button button-primary" id="startButton" type="button" disabled>🎴 เริ่มสุ่มนักสู้</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen hidden" id="drawScreen" aria-live="polite">
+      <div class="content">
+        <header class="draw-head">
+          <div class="eyebrow pixel">CARD DRAW</div>
+          <h2>ใครจะได้เข้าสังเวียน?</h2>
+          <p class="draw-status" id="drawStatus">กำลังเตรียมไพ่...</p>
+        </header>
+        <div class="draw-grid" id="drawGrid"></div>
+
+        <div class="panel selection-panel hidden" id="selectionPanel">
+          <div class="selection-label pixel">FIGHTERS SELECTED</div>
+          <div class="fighter-pair">
+            <div class="fighter-chip">
+              <div class="fighter-side">FIGHTER A</div>
+              <div class="fighter-name" id="fighterAName"></div>
+            </div>
+            <div class="versus pixel">VS</div>
+            <div class="fighter-chip">
+              <div class="fighter-side">FIGHTER B</div>
+              <div class="fighter-name" id="fighterBName"></div>
+            </div>
+          </div>
+          <p class="checkpoint-note">Checkpoint 0.1 จบที่การสุ่มนักสู้ 2 คน</p>
+          <button class="button button-secondary" id="editNamesButton" type="button">← กลับไปแก้รายชื่อ</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const DEFAULT_NAMES = [
+      "เนส", "แพรว", "เทรนเลอร์", "น้ำหอม", "ฟ้าใหม่", "เกรซ", "ข้าวปุ้น",
+      "ชาช่า", "ไข่มุก", "กัปตัน", "ปอร์โต้", "ปาล์ม", "นาวา", "หมอก",
+      "ชีตาร์", "โฟโต้", "น้ำมนต์", "ชิวชิว", "ไม้", "บิงโก", "วิน",
+      "คาร์ริค", "โฟกัส", "จัก", "ดราก้อน", "ออฟ"
+    ];
+
+    const elements = {
+      setupScreen: document.querySelector("#setupScreen"),
+      drawScreen: document.querySelector("#drawScreen"),
+      nameInput: document.querySelector("#nameInput"),
+      countText: document.querySelector("#countText"),
+      countPill: document.querySelector("#countPill"),
+      startButton: document.querySelector("#startButton"),
+      drawStatus: document.querySelector("#drawStatus"),
+      drawGrid: document.querySelector("#drawGrid"),
+      selectionPanel: document.querySelector("#selectionPanel"),
+      fighterAName: document.querySelector("#fighterAName"),
+      fighterBName: document.querySelector("#fighterBName"),
+      editNamesButton: document.querySelector("#editNamesButton")
+    };
+
+    const appState = {
+      phase: "setup",
+      studentPool: [],
+      round: null,
+      lastRosterText: ""
+    };
+
+    const wait = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
+
+    function parseStudentNames(rawText) {
+      return rawText.split("\n").map(name => name.trim()).filter(Boolean);
+    }
+
+    function makeStudentPool(names) {
+      return names.map((name, index) => Object.freeze({ id: `student-${index}`, name }));
+    }
+
+    function sampleTwoDistinct(students) {
+      const firstIndex = Math.floor(Math.random() * students.length);
+      let secondIndex = Math.floor(Math.random() * (students.length - 1));
+      if (secondIndex >= firstIndex) secondIndex += 1;
+      return [students[firstIndex], students[secondIndex]];
+    }
+
+    function createLockedRound(students) {
+      const fighters = sampleTwoDistinct(students);
+      const loserIndex = Math.random() < .5 ? 0 : 1;
+
+      return Object.freeze({
+        fighters: Object.freeze([...fighters]),
+        lockedLoserId: fighters[loserIndex].id,
+        professions: Object.freeze({ fighterA: null, fighterB: null })
+      });
+    }
+
+    function setScreen(screenName) {
+      elements.setupScreen.classList.toggle("hidden", screenName !== "setup");
+      elements.drawScreen.classList.toggle("hidden", screenName !== "draw");
+      appState.phase = screenName;
+    }
+
+    function updateRosterValidation() {
+      appState.lastRosterText = elements.nameInput.value;
+      const count = parseStudentNames(elements.nameInput.value).length;
+      const isReady = count >= 2;
+      elements.countText.textContent = `${count} คน`;
+      elements.countPill.textContent = isReady ? "พร้อมสุ่ม!" : "ต้องมีอย่างน้อย 2 คน";
+      elements.countPill.classList.toggle("warn", !isReady);
+      elements.startButton.disabled = !isReady || appState.phase !== "setup";
+    }
+
+    function createCard(student) {
+      const card = document.createElement("div");
+      card.className = "draw-card";
+      card.dataset.studentId = student.id;
+
+      const inner = document.createElement("div");
+      inner.className = "card-inner";
+      const back = document.createElement("div");
+      back.className = "card-face card-back";
+      const front = document.createElement("div");
+      front.className = "card-face card-front";
+      const star = document.createElement("div");
+      star.className = "star";
+      star.textContent = "⭐";
+      const name = document.createElement("div");
+      name.className = "card-name";
+      name.textContent = student.name;
+
+      front.append(star, name);
+      inner.append(back, front);
+      card.append(inner);
+      return card;
+    }
+
+    function renderCardGrid(students) {
+      elements.drawGrid.replaceChildren(...students.map(createCard));
+    }
+
+    async function revealFighters(round) {
+      const selectedIds = new Set(round.fighters.map(fighter => fighter.id));
+
+      for (let index = 0; index < round.fighters.length; index += 1) {
+        const fighter = round.fighters[index];
+        elements.drawStatus.textContent = `เปิดไพ่ใบที่ ${index + 1} จาก 2...`;
+        await wait(700);
+        const card = elements.drawGrid.querySelector(`[data-student-id="${fighter.id}"]`);
+        card?.classList.add("flipped");
+      }
+
+      elements.drawStatus.textContent = "ได้ผู้ท้าชิงครบ 2 คนแล้ว!";
+      await wait(700);
+
+      elements.drawGrid.querySelectorAll(".draw-card").forEach(card => {
+        if (!selectedIds.has(card.dataset.studentId)) card.classList.add("dim");
+      });
+
+      await wait(500);
+      elements.fighterAName.textContent = round.fighters[0].name;
+      elements.fighterBName.textContent = round.fighters[1].name;
+      elements.selectionPanel.classList.remove("hidden");
+      elements.selectionPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    async function startRound() {
+      if (appState.phase !== "setup") return;
+      const names = parseStudentNames(elements.nameInput.value);
+      if (names.length < 2) return;
+
+      elements.startButton.disabled = true;
+      appState.studentPool = makeStudentPool(names);
+      appState.round = createLockedRound(appState.studentPool);
+
+      elements.selectionPanel.classList.add("hidden");
+      elements.drawStatus.textContent = "กำลังเตรียมไพ่...";
+      renderCardGrid(appState.studentPool);
+      setScreen("draw");
+      await wait(350);
+      await revealFighters(appState.round);
+    }
+
+    function returnToSetup() {
+      appState.studentPool = [];
+      appState.round = null;
+      elements.drawGrid.replaceChildren();
+      elements.selectionPanel.classList.add("hidden");
+      setScreen("setup");
+      updateRosterValidation();
+    }
+
+    elements.nameInput.value = DEFAULT_NAMES.join("\n");
+    elements.nameInput.addEventListener("input", updateRosterValidation);
+    elements.nameInput.addEventListener("change", updateRosterValidation);
+    elements.nameInput.addEventListener("blur", updateRosterValidation);
+    elements.nameInput.addEventListener("paste", () => {
+      window.setTimeout(updateRosterValidation, 0);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && appState.phase === "setup") updateRosterValidation();
+    });
+    elements.startButton.addEventListener("click", startRound);
+    elements.editNamesButton.addEventListener("click", returnToSetup);
+    updateRosterValidation();
+
+    // Some iOS file previews update a textarea after Paste without dispatching
+    // the usual input event. Keep the setup UI synced with the actual value.
+    window.setInterval(() => {
+      if (appState.phase === "setup" && elements.nameInput.value !== appState.lastRosterText) {
+        updateRosterValidation();
+      }
+    }, 250);
+  </script>
+</body>
+</html>
