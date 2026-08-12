@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Random Fighter — Phase 2 Combat Engine</title>
+  <title>Random Fighter — Phase 3 Combat Director</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -268,7 +268,7 @@
     <section class="screen" id="setupScreen">
       <div class="content">
         <header class="brand">
-          <div class="eyebrow pixel">PHASE 2 · RANDOM FIGHTER</div>
+          <div class="eyebrow pixel">PHASE 3 · RANDOM FIGHTER</div>
           <h1>RANDOM <span>FIGHTER</span></h1>
           <p class="subtitle">สุ่มผู้ท้าชิง 2 คน เพื่อเข้าสู่สังเวียน</p>
         </header>
@@ -365,7 +365,7 @@
         <div class="arena">
           <div class="arena-label pixel" id="arenaLabel">FIGHT!</div>
           <canvas id="fightCanvas" aria-label="สนามแสดงแอนิเมชันนักสู้สองคน"></canvas>
-          <div class="battle-note">Phase 2 · Contact-driven Combat Engine</div>
+          <div class="battle-note">Phase 3 · Adaptive Combat Director</div>
         </div>
       </div>
     </section>
@@ -640,9 +640,11 @@
     const HP_FLOOR = 18;
     const FIGHTER_STATES = Object.freeze(["idle","approach","windup","active","recovery","block","dodge","counter","hit","knockback","knockdown","grounded","getup","victory","lose"]);
     const ATTACKS = Object.freeze({
-      light: Object.freeze({ id:"light", clip:"punch", startupMs:180, activeMs:105, recoveryMs:410, damage:6, chipDamage:2, knockback:.035, knockdown:false }),
-      heavy: Object.freeze({ id:"heavy", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:500, damage:11, chipDamage:3, knockback:.09, knockdown:true }),
-      counter: Object.freeze({ id:"counter", clip:"counter", startupMs:150, activeMs:105, recoveryMs:400, damage:7, chipDamage:0, knockback:.05, knockdown:false })
+      light: Object.freeze({ id:"light", clip:"punch", startupMs:180, activeMs:105, recoveryMs:410, damage:8, chipDamage:2, knockback:.035, knockdown:false }),
+      heavy: Object.freeze({ id:"heavy", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:500, damage:14, chipDamage:3, knockback:.09, knockdown:true }),
+      counter: Object.freeze({ id:"counter", clip:"counter", startupMs:150, activeMs:105, recoveryMs:400, damage:9, chipDamage:0, knockback:.05, knockdown:false }),
+      signature: Object.freeze({ id:"signature", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:15, chipDamage:3, knockback:.1, knockdown:true }),
+      comeback: Object.freeze({ id:"comeback", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:14, chipDamage:3, knockback:.1, knockdown:true })
     });
 
     class CombatFighter {
@@ -664,23 +666,45 @@
       finish(lockedLoserSide){this.finished=true;const loser=this.fighter(lockedLoserSide),winner=this.fighter(lockedLoserSide==="a"?"b":"a");const valid=loser.hp<winner.hp&&loser.hp>0&&winner.hp>0;this.emit("fight_finished",{lockedLoserSide,hpA:this.fighter("a").hp,hpB:this.fighter("b").hp,valid});if(!valid)throw new Error("Combat outcome invariant failed");return this.events.at(-1);}
     }
 
-    function createPhaseTwoPlan(lockedLoserSide){
-      const winner=lockedLoserSide==="a"?"b":"a",loser=lockedLoserSide;
-      return Object.freeze([
-        {at:400,attacker:loser,defense:"hit",attackId:"light"},
-        {at:1700,attacker:winner,defense:"hit",attackId:"light"},
-        {at:3000,attacker:winner,defense:"block",attackId:"light"},
-        {at:4300,attacker:winner,defense:"lean",attackId:"light"},
-        {at:5600,attacker:loser,defense:"counter",attackId:"light"},
-        {at:7800,attacker:winner,defense:"crouch",attackId:"light"},
-        {at:9000,attacker:loser,defense:"hit",attackId:"heavy"},
-        {at:11500,attacker:loser,defense:"jump",attackId:"light"},
-        {at:12800,attacker:loser,defense:"hit",attackId:"light"},
-        {at:14100,attacker:winner,defense:"block",attackId:"heavy"},
-        {at:15300,attacker:winner,defense:"hit",attackId:"light"},
-        {at:16600,attacker:winner,defense:"hit",attackId:"light"},
-        {at:17900,attacker:winner,defense:"hit",attackId:"heavy"}
-      ]);
+    const NARRATIVE_TEMPLATES=Object.freeze([
+      Object.freeze({id:"early_winner_mid_flip",leadPath:["winner","loser","winner"]}),
+      Object.freeze({id:"early_loser_counter",leadPath:["loser","winner","winner"]}),
+      Object.freeze({id:"loser_long_lead",leadPath:["loser","loser","winner"]}),
+      Object.freeze({id:"winner_then_fake_comeback",leadPath:["winner","loser","winner"]}),
+      Object.freeze({id:"trading_advantage",leadPath:["winner","loser","winner","loser","winner"]})
+    ]);
+    const pick=randomItems=>randomItems[Math.floor(Math.random()*randomItems.length)];
+
+    class CombatDirector {
+      constructor({lockedLoserSide,exchangeCount=10+Math.floor(Math.random()*5)}){
+        this.loser=lockedLoserSide;this.winner=lockedLoserSide==="a"?"b":"a";this.exchangeCount=Math.max(10,Math.min(14,exchangeCount));this.template=pick(NARRATIVE_TEMPLATES);this.knockdowns=0;this.signatureUsed=false;this.comebackUsed=false;this.history=[];
+        const interval=16150/(this.exchangeCount-1);this.schedule=Object.freeze(Array.from({length:this.exchangeCount},(_,index)=>Math.round(350+index*interval)));
+      }
+      desiredLeader(index){const progress=index/(this.exchangeCount-1),path=this.template.leadPath,pathIndex=Math.min(path.length-1,Math.floor(progress*path.length));return path[pathIndex]==="winner"?this.winner:this.loser;}
+      chooseAttack(index,attacker,engine){const defender=attacker==="a"?"b":"a",deficit=Math.max(0,engine.fighter(defender).hp-engine.fighter(attacker).hp),late=index>=this.exchangeCount-3;
+        if(late&&attacker===this.winner&&!this.signatureUsed){this.signatureUsed=true;return "signature";}
+        if(index>=Math.floor(this.exchangeCount*.58)&&attacker===this.loser&&deficit>=5&&!this.comebackUsed&&Math.random()<.7){this.comebackUsed=true;return "comeback";}
+        if(deficit>=9&&this.knockdowns<2){this.knockdowns++;return "heavy";}
+        return Math.random()<.22&&this.knockdowns<2?(this.knockdowns++,"heavy"):"light";
+      }
+      next(index,engine){const closing=index>=this.exchangeCount-2,desired=closing?this.winner:this.desiredLeader(index),other=desired==="a"?"b":"a",desiredHp=engine.fighter(desired).hp,otherHp=engine.fighter(other).hp;
+        let attacker=desired,defense="hit";
+        if(!closing&&desiredHp>otherHp+5){attacker=other;defense=pick(["block","lean","crouch","jump"]);}
+        else if(!closing&&desiredHp>otherHp&&Math.random()<.38){attacker=other;defense=pick(["block","lean","crouch","jump","counter"]);}
+        else if(!closing&&Math.random()<.18){defense=pick(["block","lean","crouch","jump"]);}
+        const attackId=this.chooseAttack(index,attacker,engine),exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:desired,closing});this.history.push(exchange);return exchange;
+      }
+      ensureClosingOutcome(engine,index){
+        if(index<this.exchangeCount-2)return this.next(index,engine);
+        const loserHp=engine.fighter(this.loser).hp,winnerHp=engine.fighter(this.winner).hp,gap=winnerHp-loserHp;let attacker,defense,attackId;
+        if(gap<=0){attacker=this.winner;defense="hit";attackId=gap<=-8?"signature":"light";if(attackId==="signature")this.signatureUsed=true;}
+        else if(gap>16){attacker=this.loser;defense="hit";attackId="comeback";this.comebackUsed=true;}
+        else if(gap>10){attacker=this.loser;defense="hit";attackId="light";}
+        else if(gap>4){attacker=this.loser;defense="block";attackId="light";}
+        else{attacker=this.winner;defense=pick(["block","lean","crouch","jump"]);attackId="light";}
+        const exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:this.winner,closing:true});this.history.push(exchange);return exchange;
+      }
+      summary(){return Object.freeze({template:this.template.id,exchangeCount:this.exchangeCount,signatureUsed:this.signatureUsed,comebackUsed:this.comebackUsed,knockdowns:this.knockdowns});}
     }
 
     function updateCombatHud(engine){elements.hpA.style.width=`${engine.fighter("a").hp}%`;elements.hpB.style.width=`${engine.fighter("b").hp}%`;}
@@ -695,8 +719,8 @@
       if(defense!=="hit"){defendFighter.transition(defense==="block"?"block":"dodge");stickmanStage.play(defender,defensiveClip);}
       stickmanStage.play(attacker,attack.clip);await wait(attack.startupMs);
       attackFighter.transition("active");stickmanStage.contactState="ACTIVE";
-      let contacted=stickmanStage.testContact(attacker,defender,defense==="block",attackId==="heavy");
-      if(defense==="hit"&&!contacted){const facing=attacker==="a"?1:-1;await stickmanStage.move(attacker,stickmanStage.positions[attacker]+facing*stickmanStage.scale()*.1,70);contacted=stickmanStage.testContact(attacker,defender,false,attackId==="heavy");}
+      let contacted=stickmanStage.testContact(attacker,defender,defense==="block",attack.knockdown);
+      if(defense==="hit"&&!contacted){const facing=attacker==="a"?1:-1;await stickmanStage.move(attacker,stickmanStage.positions[attacker]+facing*stickmanStage.scale()*.1,70);contacted=stickmanStage.testContact(attacker,defender,false,attack.knockdown);}
       if(["lean","crouch","jump","counter"].includes(defense))contacted=false;
       const result=engine.resolveAttack({attacker,defense,attackId,contact:contacted});
       if(result.outcome==="block"){defendFighter.transition("block");stickmanStage.play(defender,"blockHit");stickmanStage.spawnImpact(defender,true,false);stickmanStage.contactState="CHIP DAMAGE";}
@@ -711,7 +735,7 @@
       defendFighter.transition("idle");stickmanStage.play(defender,"idle",true);stickmanStage.contactState="IDLE";
     }
 
-    async function playPhaseTwoBattle() {
+    async function playPhaseThreeBattle() {
       if (!appState.round) return;
       const runId = ++appState.battleRunId;
       const [fighterA, fighterB] = appState.round.fighters;
@@ -748,16 +772,16 @@
       const lockedLoserSide=loserIsA?"a":"b";
       const engine=new CombatEngine(new CombatFighter(fighterA.id,"a"),new CombatFighter(fighterB.id,"b"));
       appState.combatEngine=engine;engine.start();
-      const showcase=createPhaseTwoPlan(lockedLoserSide);
+      const director=new CombatDirector({lockedLoserSide});
       const battleDeadline = performance.now() + FIGHT_DURATION_MS;
       const timerId = window.setInterval(() => {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return window.clearInterval(timerId);
         const remaining = Math.max(0, Math.ceil((battleDeadline-performance.now())/1000));
         elements.battleTimer.textContent = String(remaining).padStart(2, "0");
       }, 200);
-      for (let index = 0; index < showcase.length; index += 1) {
+      for (let index = 0; index < director.exchangeCount; index += 1) {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return;
-        const exchange = showcase[index];
+        const exchange = director.ensureClosingOutcome(engine,index);
         const untilExchange=battleDeadline-FIGHT_DURATION_MS+exchange.at-performance.now();if(untilExchange>0)await wait(untilExchange);
         await presentCombatExchange(engine,exchange,runId);
       }
@@ -767,7 +791,8 @@
       if (runId !== appState.battleRunId || appState.phase !== "battle") return;
       elements.battleTimer.textContent = "00";
       const finalEvent=engine.finish(lockedLoserSide);
-      window.__randomFighterDiagnostics=Object.freeze({finalEvent,eventCount:engine.events.length,eventTypes:Object.freeze([...new Set(engine.events.map(event=>event.type))])});
+      window.__randomFighterDiagnostics=Object.freeze({finalEvent,director:director.summary(),exchanges:Object.freeze([...director.history]),eventCount:engine.events.length,eventTypes:Object.freeze([...new Set(engine.events.map(event=>event.type))])});
+      document.documentElement.dataset.fightDiagnostics=JSON.stringify(window.__randomFighterDiagnostics);
       elements.arenaLabel.textContent = "TIME!";
       elements.arenaLabel.classList.remove("hidden");
       stickmanStage.play(loserIsA ? "a" : "b", "lose");
@@ -904,7 +929,7 @@
     elements.editNamesButton.addEventListener("click", returnToSetup);
     elements.chooseProfessionsButton.addEventListener("click", openProfessionSelection);
     elements.backToDrawButton.addEventListener("click", returnToDraw);
-    elements.enterArenaButton.addEventListener("click", playPhaseTwoBattle);
+    elements.enterArenaButton.addEventListener("click", playPhaseThreeBattle);
     elements.nextRoundButton.addEventListener("click", startNextRound);
     elements.resultEditButton.addEventListener("click", returnToSetup);
     updateRosterValidation();
@@ -921,25 +946,27 @@
     }
     runPhaseOneInvariants();
 
-    function runPhaseTwoInvariants() {
+    function runPhaseThreeInvariants(simulationCount=1000) {
       const requiredAttackFields=["startupMs","activeMs","recoveryMs","damage","chipDamage","knockback","knockdown"];
       const structuredAttacks=Object.values(ATTACKS).every(attack=>requiredAttackFields.every(field=>field in attack)&&attack.startupMs>0&&attack.activeMs>0&&attack.recoveryMs>0);
-      const allEvents=[];const outcomes=["a","b"].map(lockedLoserSide=>{
-        const engine=new CombatEngine(new CombatFighter("test-a","a"),new CombatFighter("test-b","b"));engine.start();
-        for(const exchange of createPhaseTwoPlan(lockedLoserSide)){
-          const dodged=["lean","crouch","jump","counter"].includes(exchange.defense);
-          engine.resolveAttack({...exchange,contact:!dodged});
-          if(exchange.defense==="counter"){const counterSide=exchange.attacker==="a"?"b":"a";engine.resolveAttack({attacker:counterSide,defense:"hit",attackId:"counter",contact:true});}
-        }
-        const result=engine.finish(lockedLoserSide);allEvents.push(...engine.events);return result;
-      });
+      const allEvents=[],outcomes=[],templates=new Set(),counts=[],failures=[],leadChangeCounts=[],finalGaps=[];
+      for(let run=0;run<simulationCount;run++){
+        const lockedLoserSide=run%2?"a":"b",engine=new CombatEngine(new CombatFighter("test-a","a"),new CombatFighter("test-b","b")),director=new CombatDirector({lockedLoserSide});engine.start();
+        let previousLeader=null,leadChanges=0;
+        try{for(let index=0;index<director.exchangeCount;index++){const exchange=director.ensureClosingOutcome(engine,index),dodged=["lean","crouch","jump","counter"].includes(exchange.defense);engine.resolveAttack({...exchange,contact:!dodged});if(exchange.defense==="counter"){const counterSide=exchange.attacker==="a"?"b":"a";engine.resolveAttack({attacker:counterSide,defense:"hit",attackId:"counter",contact:true});}const hpA=engine.fighter("a").hp,hpB=engine.fighter("b").hp,leader=hpA===hpB?previousLeader:(hpA>hpB?"a":"b");if(previousLeader&&leader&&leader!==previousLeader)leadChanges++;previousLeader=leader;}const outcome=engine.finish(lockedLoserSide);outcomes.push(outcome);finalGaps.push(Math.abs(outcome.hpA-outcome.hpB));leadChangeCounts.push(leadChanges);}
+        catch(error){failures.push({run,lockedLoserSide,hpA:engine.fighter("a").hp,hpB:engine.fighter("b").hp,message:error.message});}
+        templates.add(director.template.id);counts.push(director.exchangeCount);allEvents.push(...engine.events);
+      }
       const eventTypes=new Set(allEvents.map(event=>event.type));
       const requiredEvents=["damage","chip_damage","miss","hit","knockdown","fight_finished"];
-      const passed=structuredAttacks&&outcomes.every(result=>result.valid)&&requiredEvents.every(type=>eventTypes.has(type));
-      console.info("Phase 2 invariant check",{passed,structuredAttacks,outcomes:outcomes.map(({lockedLoserSide,hpA,hpB,valid})=>({lockedLoserSide,hpA,hpB,valid})),eventTypes:[...eventTypes]});
+      const fightsWithLeadChange=leadChangeCounts.filter(count=>count>0).length,leadChangeRate=fightsWithLeadChange/simulationCount;
+      const passed=structuredAttacks&&!failures.length&&outcomes.length===simulationCount&&templates.size===NARRATIVE_TEMPLATES.length&&counts.every(count=>count>=10&&count<=16)&&outcomes.every(result=>result.valid&&result.hpA>0&&result.hpB>0)&&leadChangeRate>=.75&&requiredEvents.every(type=>eventTypes.has(type));
+      window.__phase3Simulation=Object.freeze({passed,simulationCount,failureCount:failures.length,failures:Object.freeze(failures.slice(0,5)),templateCount:templates.size,exchangeRange:Object.freeze([Math.min(...counts),Math.max(...counts)]),leadChangeRate:Number(leadChangeRate.toFixed(3)),averageLeadChanges:Number((leadChangeCounts.reduce((sum,count)=>sum+count,0)/simulationCount).toFixed(2)),finalGapRange:Object.freeze([Math.min(...finalGaps),Math.max(...finalGaps)]),eventTypes:Object.freeze([...eventTypes])});
+      document.documentElement.dataset.phase3Simulation=JSON.stringify(window.__phase3Simulation);
+      console.info("Phase 3 simulation",window.__phase3Simulation);
       return passed;
     }
-    runPhaseTwoInvariants();
+    runPhaseThreeInvariants();
 
     if (new URLSearchParams(location.search).get("lab") === "1") {
       const lab = document.createElement("aside");
