@@ -454,15 +454,18 @@
       brace: { rootX:-.01, rootY:.035, torso:-9, head:5, shoulderL:232, elbowL:272, shoulderR:118, elbowR:78, hipL:202, kneeL:170, hipR:160, kneeR:190 },
       block: { rootX:-.035, rootY:.02, torso:-14, head:-3, shoulderL:145, elbowL:105, shoulderR:112, elbowR:72, hipL:200, kneeL:168, hipR:158, kneeR:193 },
       hit: { rootX:-.075, rootY:.025, torso:-25, head:-18, shoulderL:245, elbowL:268, shoulderR:70, elbowR:48, hipL:210, kneeL:175, hipR:154, kneeR:196 },
-      lean: { rootX:-.025, rootY:.01, torso:-34, head:-12, shoulderL:220, elbowL:250, shoulderR:142, elbowR:112, hipL:204, kneeL:176, hipR:158, kneeR:192 },
-      crouch: { rootX:-.02, rootY:.15, torso:8, head:-3, shoulderL:228, elbowL:258, shoulderR:132, elbowR:102, hipL:232, kneeL:145, hipR:128, kneeR:215 },
+      lean: { rootX:-.24, rootY:.01, torso:-34, head:-12, shoulderL:220, elbowL:250, shoulderR:142, elbowR:112, hipL:204, kneeL:176, hipR:158, kneeR:192 },
+      crouch: { rootX:-.02, rootY:.28, torso:8, head:-3, shoulderL:228, elbowL:258, shoulderR:132, elbowR:102, hipL:232, kneeL:145, hipR:128, kneeR:215 },
       jumpPrep: { rootX:0, rootY:.13, torso:5, head:0, shoulderL:205, elbowL:236, shoulderR:155, elbowR:124, hipL:225, kneeL:142, hipR:135, kneeR:218 },
-      jump: { rootX:0, rootY:-.24, torso:-2, head:2, shoulderL:250, elbowL:280, shoulderR:110, elbowR:80, hipL:238, kneeL:150, hipR:122, kneeR:210 },
+      jump: { rootX:0, rootY:-.4, torso:-2, head:2, shoulderL:250, elbowL:280, shoulderR:110, elbowR:80, hipL:238, kneeL:150, hipR:122, kneeR:210 },
       fall: { rootX:-.09, rootY:.12, torso:-67, head:-22, shoulderL:250, elbowL:285, shoulderR:82, elbowR:45, hipL:238, kneeL:170, hipR:112, kneeR:205 },
       down: { rootX:-.12, rootY:.58, torso:-88, head:-8, shoulderL:265, elbowL:300, shoulderR:92, elbowR:55, hipL:255, kneeL:184, hipR:104, kneeR:196 },
       rise: { rootX:-.04, rootY:.18, torso:-25, head:8, shoulderL:188, elbowL:155, shoulderR:118, elbowR:82, hipL:232, kneeL:152, hipR:138, kneeR:205 },
       victory: { rootX:0, rootY:-.01, torso:0, head:0, shoulderL:220, elbowL:255, shoulderR:42, elbowR:18, hipL:194, kneeL:174, hipR:166, kneeR:188 },
       lose: { rootX:-.02, rootY:.14, torso:17, head:18, shoulderL:252, elbowL:278, shoulderR:108, elbowR:82, hipL:225, kneeL:150, hipR:135, kneeR:212 }
+      ,punchWindup: { rootX:-.04, rootY:.015, torso:-10, head:4, shoulderL:145, elbowL:104, shoulderR:238, elbowR:270, hipL:200, kneeL:172, hipR:160, kneeR:190 }
+      ,punchActive: { rootX:.09, rootY:0, torso:13, head:4, shoulderL:154, elbowL:118, shoulderR:90, elbowR:90, hipL:198, kneeL:174, hipR:158, kneeR:188 }
+      ,punchRecover: { rootX:.025, rootY:.01, torso:2, head:2, shoulderL:166, elbowL:126, shoulderR:132, elbowR:102, hipL:195, kneeL:174, hipR:164, kneeR:188 }
     });
     const copyPose = pose => ({ ...pose });
     const mixPose = (a, b, t) => Object.fromEntries(Object.keys(a).map(key => [key, a[key] + (b[key] - a[key]) * t]));
@@ -478,6 +481,7 @@
       getup: [{p:"rise",d:430},{p:"crouch",d:340},{p:"brace",d:300},{p:"idleA",d:350}],
       victory: [{p:"brace",d:250},{p:"victory",d:380},{p:"victory",d:900}],
       lose: [{p:"hit",d:180},{p:"lose",d:520},{p:"lose",d:900}]
+      ,punch: [{p:"punchWindup",d:180},{p:"punchActive",d:105},{p:"punchRecover",d:190},{p:"idleA",d:220}]
     });
 
     class FighterAnimator {
@@ -493,12 +497,17 @@
     }
 
     class StickmanStage {
-      constructor(canvas){ this.canvas=canvas; this.ctx=canvas.getContext("2d"); this.a=new FighterAnimator("a"); this.b=new FighterAnimator("b"); this.running=false; this.guides=false; this.last=0; this.resize=()=>this.fit(); window.addEventListener("resize",this.resize); }
-      fit(){ const r=this.canvas.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1); this.canvas.width=Math.max(1,Math.round(r.width*d)); this.canvas.height=Math.max(1,Math.round(r.height*d)); this.ctx.setTransform(d,0,0,d,0,0); this.w=r.width; this.h=r.height; }
+      constructor(canvas){ this.canvas=canvas; this.ctx=canvas.getContext("2d"); this.a=new FighterAnimator("a"); this.b=new FighterAnimator("b"); this.running=false; this.guides=false; this.last=0; this.positions={a:0,b:0}; this.rigs={}; this.events=[]; this.contactState="IDLE"; this.impact=null; this.resize=()=>this.fit(); window.addEventListener("resize",this.resize); }
+      fit(){ const r=this.canvas.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),oldW=this.w||r.width; this.canvas.width=Math.max(1,Math.round(r.width*d)); this.canvas.height=Math.max(1,Math.round(r.height*d)); this.ctx.setTransform(d,0,0,d,0,0); this.w=r.width; this.h=r.height; if(!this.positions.a){this.resetPositions();}else if(oldW!==this.w){this.positions.a*=this.w/oldW;this.positions.b*=this.w/oldW;} }
+      resetPositions(){this.positions.a=this.w*.29;this.positions.b=this.w*.71;}
       start(){ if(this.running)return; this.running=true; this.fit(); this.last=performance.now(); requestAnimationFrame(t=>this.tick(t)); }
       stop(){this.running=false;}
       tick(now){ if(!this.running)return; const dt=Math.min(50,now-this.last); this.last=now; this.a.update(dt); this.b.update(dt); this.draw(); requestAnimationFrame(t=>this.tick(t)); }
       play(side,name,loop=false){(side==="a"?this.a:this.b).play(name,loop);}
+      scale(){return Math.min(this.w/4.5,this.h/2.65);}
+      async move(side,to,duration=220){const from=this.positions[side],started=performance.now();return new Promise(resolve=>{const step=now=>{const t=Math.min(1,(now-started)/duration),e=ease(t);this.positions[side]=from+(to-from)*e;if(t<1)requestAnimationFrame(step);else resolve();};requestAnimationFrame(step);});}
+      async approach(attacker){const defender=attacker==="a"?"b":"a",facing=attacker==="a"?1:-1,target=this.positions[defender]-facing*this.scale()*.88;this.contactState="APPROACH";await this.move(attacker,target,260);}
+      async retreat(side){this.contactState="RECOVERY";await this.move(side,this.w*(side==="a"?.29:.71),260);this.contactState="IDLE";}
       point(origin,len,angle,facing){ const a=(facing===1?angle:-angle)*RAD; return{x:origin.x+Math.sin(a)*len,y:origin.y-Math.cos(a)*len}; }
       fighter(anim,x,ground,facing,color){
         const c=this.ctx,p=anim.pose,s=Math.min(this.w/4.5,this.h/2.65), root={x:x+p.rootX*s*facing,y:ground-.72*s+p.rootY*s};
@@ -513,8 +522,10 @@
         [footL,footR].forEach(q=>{c.strokeStyle="#101425";c.lineWidth=.11*s;c.beginPath();c.moveTo(q.x-.03*s*facing,q.y);c.lineTo(q.x+.15*s*facing,q.y);c.stroke();});
         if(this.guides){c.fillStyle="#fff";[root,neck,head,elbowL,handL,elbowR,handR,kneeL,footL,kneeR,footR].forEach(q=>{c.beginPath();c.arc(q.x,q.y,3,0,Math.PI*2);c.fill();});}
         c.restore();
+        return {root,neck,head,shoulder,handL,handR,footL,footR,scale:s,upperBody:{x:(root.x+neck.x)/2,y:(root.y+neck.y)/2}};
       }
-      draw(){ const c=this.ctx;c.clearRect(0,0,this.w,this.h);const ground=this.h*.78;if(this.guides){c.strokeStyle="rgba(255,255,255,.25)";c.setLineDash([8,8]);c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();c.setLineDash([]);} this.fighter(this.a,this.w*.29,ground,1,"#4cf3ff");this.fighter(this.b,this.w*.71,ground,-1,"#ff4fd8"); }
+      testContact(attacker,defender,guard=false){const attack=this.rigs[attacker]?.handR,targetRig=this.rigs[defender];if(!attack||!targetRig)return false;const target=guard?{x:(targetRig.handL.x+targetRig.handR.x)/2,y:(targetRig.handL.y+targetRig.handR.y)/2}:targetRig.upperBody;const limit=targetRig.scale*(guard?.26:.29),distance=Math.hypot(attack.x-target.x,attack.y-target.y),hit=distance<=limit;this.events.push({attacker,defender,guard,hit,distance:Math.round(distance),limit:Math.round(limit)});this.impact={x:(attack.x+target.x)/2,y:(attack.y+target.y)/2,hit,until:performance.now()+180};return hit;}
+      draw(){ const c=this.ctx;c.clearRect(0,0,this.w,this.h);const ground=this.h*.78;if(this.guides){c.strokeStyle="rgba(255,255,255,.25)";c.setLineDash([8,8]);c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();c.setLineDash([]);} this.rigs.a=this.fighter(this.a,this.positions.a,ground,1,"#4cf3ff");this.rigs.b=this.fighter(this.b,this.positions.b,ground,-1,"#ff4fd8");if(this.impact&&performance.now()<this.impact.until){c.save();c.strokeStyle=this.impact.hit?"#fff36a":"#ff4fd8";c.lineWidth=5;c.beginPath();c.arc(this.impact.x,this.impact.y,this.impact.hit?18:11,0,Math.PI*2);c.stroke();c.restore();}if(this.guides){const attacker=this.rigs.a,defender=this.rigs.b;c.save();c.strokeStyle="rgba(255,201,74,.8)";c.lineWidth=2;c.beginPath();c.arc(attacker.handR.x,attacker.handR.y,attacker.scale*.08,0,Math.PI*2);c.stroke();c.strokeStyle="rgba(255,79,216,.7)";c.beginPath();c.arc(defender.upperBody.x,defender.upperBody.y,defender.scale*.24,0,Math.PI*2);c.stroke();c.fillStyle="#fff";c.font="12px Kanit";c.fillText(this.contactState,12,22);c.restore();} }
     }
     const stickmanStage = new StickmanStage(elements.fightCanvas);
 
@@ -613,6 +624,33 @@
       elements.selectionPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
+    async function performContactExchange(attacker, defense="hit", heavy=false) {
+      const defender = attacker === "a" ? "b" : "a";
+      await stickmanStage.approach(attacker);
+      stickmanStage.contactState = "WINDUP";
+      if (defense !== "hit") stickmanStage.play(defender, defense);
+      await wait(90);
+      stickmanStage.play(attacker, "punch");
+      await wait(225);
+      stickmanStage.contactState = "ACTIVE";
+      const contacted = stickmanStage.testContact(attacker, defender, defense === "block");
+      let damage = 0;
+      if (defense === "block" && contacted) {
+        damage = 2;
+        stickmanStage.play(defender, "block");
+      } else if (defense === "hit" && contacted) {
+        damage = heavy ? 10 : 6;
+        stickmanStage.play(defender, heavy ? "knockdown" : "hit");
+      }
+      stickmanStage.contactState = contacted ? (defense === "block" ? "BLOCK CONTACT" : "HIT CONTACT") : "CLEAN DODGE";
+      await wait(420);
+      await stickmanStage.retreat(attacker);
+      stickmanStage.play(attacker, "idle", true);
+      if (!heavy) stickmanStage.play(defender, "idle", true);
+      await wait(120);
+      return { defender, contacted, damage };
+    }
+
     async function playPhaseOneBattle() {
       if (!appState.round) return;
       const runId = ++appState.battleRunId;
@@ -639,29 +677,34 @@
       setScreen("battle");
       stickmanStage.a.play("idle", true);
       stickmanStage.b.play("idle", true);
+      stickmanStage.events.length = 0;
+      stickmanStage.resetPositions();
       stickmanStage.start();
       await wait(700);
       if (runId !== appState.battleRunId || appState.phase !== "battle") return;
       elements.arenaLabel.classList.add("hidden");
 
       const loserIsA = appState.round.lockedLoserId === fighterA.id;
-      const hpAEnd = loserIsA ? 44 : 56;
-      const hpBEnd = loserIsA ? 56 : 44;
+      let hpA = 100, hpB = 100;
       const showcase = [
-        ["block","hit"], ["lean","idle"], ["crouch","hit"], ["jump","block"],
-        ["hit","lean"], ["block","crouch"], ["knockdown","victory"], ["getup","idle"],
-        ["hit","block"], ["idle","idle"]
+        {attacker:"a",defense:"block"},
+        {attacker:"b",defense:"lean"},
+        {attacker:"a",defense:"crouch"},
+        {attacker:"b",defense:"jump"},
+        {attacker:loserIsA?"b":"a",defense:"hit"},
+        {attacker:loserIsA?"b":"a",defense:"hit",heavy:true}
       ];
-      for (let second = 10; second > 0; second -= 1) {
+      for (let index = 0; index < showcase.length; index += 1) {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return;
-        elements.battleTimer.textContent = String(second).padStart(2, "0");
-        const [actionA, actionB] = showcase[10-second];
-        stickmanStage.play("a", actionA, actionA === "idle");
-        stickmanStage.play("b", actionB, actionB === "idle");
-        const progress = (11 - second) / 10;
-        elements.hpA.style.width = `${100 - (100 - hpAEnd) * progress}%`;
-        elements.hpB.style.width = `${100 - (100 - hpBEnd) * progress}%`;
-        await wait(1000);
+        elements.battleTimer.textContent = String(Math.max(1,10-index*2)).padStart(2, "0");
+        const exchange = showcase[index];
+        const result = await performContactExchange(exchange.attacker, exchange.defense, exchange.heavy);
+        if (result.damage > 0) {
+          if (result.defender === "a") hpA = Math.max(1, hpA-result.damage);
+          else hpB = Math.max(1, hpB-result.damage);
+          elements.hpA.style.width = `${hpA}%`;
+          elements.hpB.style.width = `${hpB}%`;
+        }
       }
       if (runId !== appState.battleRunId || appState.phase !== "battle") return;
       elements.battleTimer.textContent = "00";
