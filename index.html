@@ -666,18 +666,28 @@
       finish(lockedLoserSide){this.finished=true;const loser=this.fighter(lockedLoserSide),winner=this.fighter(lockedLoserSide==="a"?"b":"a");const valid=loser.hp<winner.hp&&loser.hp>0&&winner.hp>0;this.emit("fight_finished",{lockedLoserSide,hpA:this.fighter("a").hp,hpB:this.fighter("b").hp,valid});if(!valid)throw new Error("Combat outcome invariant failed");return this.events.at(-1);}
     }
 
-    const NARRATIVE_TEMPLATES=Object.freeze([
-      Object.freeze({id:"early_winner_mid_flip",leadPath:["winner","loser","winner"]}),
-      Object.freeze({id:"early_loser_counter",leadPath:["loser","winner","winner"]}),
-      Object.freeze({id:"loser_long_lead",leadPath:["loser","loser","winner"]}),
-      Object.freeze({id:"winner_then_fake_comeback",leadPath:["winner","loser","winner"]}),
-      Object.freeze({id:"trading_advantage",leadPath:["winner","loser","winner","loser","winner"]})
+    const LEAD_CHANGE_TEMPLATES=Object.freeze([
+      Object.freeze({id:"loser_early_lead",kind:"lead_change",leadPath:["loser","loser","winner","winner"],maxLeadChanges:1}),
+      Object.freeze({id:"mid_fight_swing",kind:"lead_change",leadPath:["winner","winner","loser","loser","winner","winner"],maxLeadChanges:2}),
+      Object.freeze({id:"late_decisive_turn",kind:"lead_change",leadPath:["loser","loser","loser","winner","winner"],maxLeadChanges:1})
+    ]);
+    const STEADY_LEAD_TEMPLATES=Object.freeze([
+      Object.freeze({id:"steady_winner_pressure",kind:"steady",leadPath:["winner"],maxLeadChanges:0}),
+      Object.freeze({id:"steady_close_chase",kind:"steady",leadPath:["winner"],maxLeadChanges:0}),
+      Object.freeze({id:"fake_comeback",kind:"steady",leadPath:["winner"],maxLeadChanges:0})
+    ]);
+    const NARRATIVE_TEMPLATES=Object.freeze([...LEAD_CHANGE_TEMPLATES,...STEADY_LEAD_TEMPLATES]);
+    const CLOSING_STYLES=Object.freeze([
+      Object.freeze({id:"close",min:1,max:5,weight:.35}),
+      Object.freeze({id:"competitive",min:6,max:10,weight:.45}),
+      Object.freeze({id:"clear",min:11,max:18,weight:.2})
     ]);
     const pick=randomItems=>randomItems[Math.floor(Math.random()*randomItems.length)];
+    const weightedClosingStyle=()=>{const roll=Math.random();return roll<CLOSING_STYLES[0].weight?CLOSING_STYLES[0]:roll<CLOSING_STYLES[0].weight+CLOSING_STYLES[1].weight?CLOSING_STYLES[1]:CLOSING_STYLES[2];};
 
     class CombatDirector {
       constructor({lockedLoserSide,exchangeCount=10+Math.floor(Math.random()*5)}){
-        this.loser=lockedLoserSide;this.winner=lockedLoserSide==="a"?"b":"a";this.exchangeCount=Math.max(10,Math.min(14,exchangeCount));this.template=pick(NARRATIVE_TEMPLATES);this.knockdowns=0;this.signatureUsed=false;this.comebackUsed=false;this.history=[];
+        this.loser=lockedLoserSide;this.winner=lockedLoserSide==="a"?"b":"a";this.exchangeCount=Math.max(10,Math.min(14,exchangeCount));this.template=Math.random()<.7?pick(LEAD_CHANGE_TEMPLATES):pick(STEADY_LEAD_TEMPLATES);this.closingStyle=weightedClosingStyle();this.knockdowns=0;this.signatureUsed=false;this.comebackUsed=false;this.history=[];
         const interval=16150/(this.exchangeCount-1);this.schedule=Object.freeze(Array.from({length:this.exchangeCount},(_,index)=>Math.round(350+index*interval)));
       }
       desiredLeader(index){const progress=index/(this.exchangeCount-1),path=this.template.leadPath,pathIndex=Math.min(path.length-1,Math.floor(progress*path.length));return path[pathIndex]==="winner"?this.winner:this.loser;}
@@ -689,22 +699,23 @@
       }
       next(index,engine){const closing=index>=this.exchangeCount-2,desired=closing?this.winner:this.desiredLeader(index),other=desired==="a"?"b":"a",desiredHp=engine.fighter(desired).hp,otherHp=engine.fighter(other).hp;
         let attacker=desired,defense="hit";
-        if(!closing&&desiredHp>otherHp+5){attacker=other;defense=pick(["block","lean","crouch","jump"]);}
+        if(this.template.kind==="steady"&&desiredHp>otherHp+13){attacker=other;defense="hit";}
+        else if(this.template.kind==="steady"&&desiredHp>otherHp+5){attacker=other;defense=pick(["block","lean","crouch","jump","counter"]);}
+        else if(!closing&&desiredHp>otherHp+5){attacker=other;defense=pick(["block","lean","crouch","jump"]);}
         else if(!closing&&desiredHp>otherHp&&Math.random()<.38){attacker=other;defense=pick(["block","lean","crouch","jump","counter"]);}
         else if(!closing&&Math.random()<.18){defense=pick(["block","lean","crouch","jump"]);}
         const attackId=this.chooseAttack(index,attacker,engine),exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:desired,closing});this.history.push(exchange);return exchange;
       }
       ensureClosingOutcome(engine,index){
-        if(index<this.exchangeCount-2)return this.next(index,engine);
-        const loserHp=engine.fighter(this.loser).hp,winnerHp=engine.fighter(this.winner).hp,gap=winnerHp-loserHp;let attacker,defense,attackId;
-        if(gap<=0){attacker=this.winner;defense="hit";attackId=gap<=-8?"signature":"light";if(attackId==="signature")this.signatureUsed=true;}
-        else if(gap>16){attacker=this.loser;defense="hit";attackId="comeback";this.comebackUsed=true;}
-        else if(gap>10){attacker=this.loser;defense="hit";attackId="light";}
-        else if(gap>4){attacker=this.loser;defense="block";attackId="light";}
-        else{attacker=this.winner;defense=pick(["block","lean","crouch","jump"]);attackId="light";}
+        if(index<this.exchangeCount-3)return this.next(index,engine);
+        const loserHp=engine.fighter(this.loser).hp,winnerHp=engine.fighter(this.winner).hp,gap=winnerHp-loserHp,target=this.closingStyle;let attacker,defense,attackId;
+        if(gap<target.min){attacker=this.winner;defense="hit";attackId=gap<=-8?"signature":"light";if(attackId==="signature")this.signatureUsed=true;}
+        else if(gap>target.max+ATTACKS.comeback.damage){attacker=this.loser;defense="hit";attackId="comeback";this.comebackUsed=true;}
+        else if(gap>target.max&&gap>ATTACKS.light.damage){attacker=this.loser;defense="hit";attackId="light";}
+        else{attacker=this.loser;defense=pick(["lean","crouch","jump"]);attackId="light";}
         const exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:this.winner,closing:true});this.history.push(exchange);return exchange;
       }
-      summary(){return Object.freeze({template:this.template.id,exchangeCount:this.exchangeCount,signatureUsed:this.signatureUsed,comebackUsed:this.comebackUsed,knockdowns:this.knockdowns});}
+      summary(){return Object.freeze({template:this.template.id,narrativeKind:this.template.kind,closingStyle:this.closingStyle.id,exchangeCount:this.exchangeCount,signatureUsed:this.signatureUsed,comebackUsed:this.comebackUsed,knockdowns:this.knockdowns});}
     }
 
     function updateCombatHud(engine){elements.hpA.style.width=`${engine.fighter("a").hp}%`;elements.hpB.style.width=`${engine.fighter("b").hp}%`;}
@@ -946,22 +957,23 @@
     }
     runPhaseOneInvariants();
 
-    function runPhaseThreeInvariants(simulationCount=1000) {
+    function runPhaseThreeInvariants(simulationCount=5000) {
       const requiredAttackFields=["startupMs","activeMs","recoveryMs","damage","chipDamage","knockback","knockdown"];
       const structuredAttacks=Object.values(ATTACKS).every(attack=>requiredAttackFields.every(field=>field in attack)&&attack.startupMs>0&&attack.activeMs>0&&attack.recoveryMs>0);
-      const allEvents=[],outcomes=[],templates=new Set(),counts=[],failures=[],leadChangeCounts=[],finalGaps=[];
+      const allEvents=[],outcomes=[],templates=new Set(),narrativeKinds={lead_change:0,steady:0},closingStyles={close:0,competitive:0,clear:0},counts=[],failures=[],leadChangeCounts=[],finalGaps=[];
       for(let run=0;run<simulationCount;run++){
         const lockedLoserSide=run%2?"a":"b",engine=new CombatEngine(new CombatFighter("test-a","a"),new CombatFighter("test-b","b")),director=new CombatDirector({lockedLoserSide});engine.start();
-        let previousLeader=null,leadChanges=0;
-        try{for(let index=0;index<director.exchangeCount;index++){const exchange=director.ensureClosingOutcome(engine,index),dodged=["lean","crouch","jump","counter"].includes(exchange.defense);engine.resolveAttack({...exchange,contact:!dodged});if(exchange.defense==="counter"){const counterSide=exchange.attacker==="a"?"b":"a";engine.resolveAttack({attacker:counterSide,defense:"hit",attackId:"counter",contact:true});}const hpA=engine.fighter("a").hp,hpB=engine.fighter("b").hp,leader=hpA===hpB?previousLeader:(hpA>hpB?"a":"b");if(previousLeader&&leader&&leader!==previousLeader)leadChanges++;previousLeader=leader;}const outcome=engine.finish(lockedLoserSide);outcomes.push(outcome);finalGaps.push(Math.abs(outcome.hpA-outcome.hpB));leadChangeCounts.push(leadChanges);}
+        let previousLeader=null,pendingLeader=null,pendingCount=0,leadChanges=0;
+        try{for(let index=0;index<director.exchangeCount;index++){const exchange=director.ensureClosingOutcome(engine,index),dodged=["lean","crouch","jump","counter"].includes(exchange.defense);engine.resolveAttack({...exchange,contact:!dodged});if(exchange.defense==="counter"){const counterSide=exchange.attacker==="a"?"b":"a";engine.resolveAttack({attacker:counterSide,defense:"hit",attackId:"counter",contact:true});}const hpA=engine.fighter("a").hp,hpB=engine.fighter("b").hp,difference=hpA-hpB,leader=Math.abs(difference)<3?null:(difference>0?"a":"b");if(leader&&leader!==previousLeader){if(leader===pendingLeader)pendingCount++;else{pendingLeader=leader;pendingCount=1;}if(pendingCount>=2){if(previousLeader&&leader!==previousLeader)leadChanges++;previousLeader=leader;pendingLeader=null;pendingCount=0;}}else if(leader===previousLeader){pendingLeader=null;pendingCount=0;}}const outcome=engine.finish(lockedLoserSide);outcomes.push(outcome);finalGaps.push(Math.abs(outcome.hpA-outcome.hpB));leadChangeCounts.push(leadChanges);}
         catch(error){failures.push({run,lockedLoserSide,hpA:engine.fighter("a").hp,hpB:engine.fighter("b").hp,message:error.message});}
-        templates.add(director.template.id);counts.push(director.exchangeCount);allEvents.push(...engine.events);
+        templates.add(director.template.id);narrativeKinds[director.template.kind]++;closingStyles[director.closingStyle.id]++;counts.push(director.exchangeCount);allEvents.push(...engine.events);
       }
       const eventTypes=new Set(allEvents.map(event=>event.type));
       const requiredEvents=["damage","chip_damage","miss","hit","knockdown","fight_finished"];
       const fightsWithLeadChange=leadChangeCounts.filter(count=>count>0).length,leadChangeRate=fightsWithLeadChange/simulationCount;
-      const passed=structuredAttacks&&!failures.length&&outcomes.length===simulationCount&&templates.size===NARRATIVE_TEMPLATES.length&&counts.every(count=>count>=10&&count<=16)&&outcomes.every(result=>result.valid&&result.hpA>0&&result.hpB>0)&&leadChangeRate>=.75&&requiredEvents.every(type=>eventTypes.has(type));
-      window.__phase3Simulation=Object.freeze({passed,simulationCount,failureCount:failures.length,failures:Object.freeze(failures.slice(0,5)),templateCount:templates.size,exchangeRange:Object.freeze([Math.min(...counts),Math.max(...counts)]),leadChangeRate:Number(leadChangeRate.toFixed(3)),averageLeadChanges:Number((leadChangeCounts.reduce((sum,count)=>sum+count,0)/simulationCount).toFixed(2)),finalGapRange:Object.freeze([Math.min(...finalGaps),Math.max(...finalGaps)]),eventTypes:Object.freeze([...eventTypes])});
+      const leadChangeNarrativeRate=narrativeKinds.lead_change/simulationCount;
+      const passed=structuredAttacks&&!failures.length&&outcomes.length===simulationCount&&templates.size===NARRATIVE_TEMPLATES.length&&counts.every(count=>count>=10&&count<=16)&&outcomes.every(result=>result.valid&&result.hpA>0&&result.hpB>0)&&leadChangeRate>=.6&&leadChangeRate<=.7&&leadChangeNarrativeRate>=.67&&leadChangeNarrativeRate<=.73&&requiredEvents.every(type=>eventTypes.has(type));
+      window.__phase3Simulation=Object.freeze({passed,simulationCount,failureCount:failures.length,failures:Object.freeze(failures.slice(0,5)),templateCount:templates.size,narrativeKindRates:Object.freeze({leadChange:Number(leadChangeNarrativeRate.toFixed(3)),steady:Number((narrativeKinds.steady/simulationCount).toFixed(3))}),closingStyleRates:Object.freeze(Object.fromEntries(Object.entries(closingStyles).map(([key,value])=>[key,Number((value/simulationCount).toFixed(3))]))),exchangeRange:Object.freeze([Math.min(...counts),Math.max(...counts)]),meaningfulLeadChangeRate:Number(leadChangeRate.toFixed(3)),averageLeadChanges:Number((leadChangeCounts.reduce((sum,count)=>sum+count,0)/simulationCount).toFixed(2)),finalGapRange:Object.freeze([Math.min(...finalGaps),Math.max(...finalGaps)]),eventTypes:Object.freeze([...eventTypes])});
       document.documentElement.dataset.phase3Simulation=JSON.stringify(window.__phase3Simulation);
       console.info("Phase 3 simulation",window.__phase3Simulation);
       return passed;
