@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Random Fighter — Phase 1 Stickman Foundation</title>
+  <title>Random Fighter — Phase 2 Combat Engine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -268,7 +268,7 @@
     <section class="screen" id="setupScreen">
       <div class="content">
         <header class="brand">
-          <div class="eyebrow pixel">PHASE 1 · RANDOM FIGHTER</div>
+          <div class="eyebrow pixel">PHASE 2 · RANDOM FIGHTER</div>
           <h1>RANDOM <span>FIGHTER</span></h1>
           <p class="subtitle">สุ่มผู้ท้าชิง 2 คน เพื่อเข้าสู่สังเวียน</p>
         </header>
@@ -365,7 +365,7 @@
         <div class="arena">
           <div class="arena-label pixel" id="arenaLabel">FIGHT!</div>
           <canvas id="fightCanvas" aria-label="สนามแสดงแอนิเมชันนักสู้สองคน"></canvas>
-          <div class="battle-note">Phase 1 · Procedural Stickman Animation Foundation</div>
+          <div class="battle-note">Phase 2 · Contact-driven Combat Engine</div>
         </div>
       </div>
     </section>
@@ -442,6 +442,7 @@
       round: null,
       lastRosterText: "",
       battleRunId: 0
+      ,combatEngine: null
     };
 
     const wait = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
@@ -505,12 +506,12 @@
     }
 
     class StickmanStage {
-      constructor(canvas){ this.canvas=canvas; this.ctx=canvas.getContext("2d"); this.a=new FighterAnimator("a"); this.b=new FighterAnimator("b"); this.running=false; this.guides=false; this.last=0; this.positions={a:0,b:0}; this.rigs={}; this.events=[]; this.contactState="IDLE"; this.impact=null; this.resize=()=>this.fit(); window.addEventListener("resize",this.resize); }
+      constructor(canvas){ this.canvas=canvas; this.ctx=canvas.getContext("2d"); this.a=new FighterAnimator("a"); this.b=new FighterAnimator("b"); this.running=false; this.guides=false; this.last=0; this.positions={a:0,b:0}; this.rigs={}; this.events=[]; this.particles=[]; this.contactState="IDLE"; this.impact=null; this.resize=()=>this.fit(); window.addEventListener("resize",this.resize); }
       fit(){ const r=this.canvas.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),oldW=this.w||r.width; this.canvas.width=Math.max(1,Math.round(r.width*d)); this.canvas.height=Math.max(1,Math.round(r.height*d)); this.ctx.setTransform(d,0,0,d,0,0); this.w=r.width; this.h=r.height; if(!this.positions.a){this.resetPositions();}else if(oldW!==this.w){this.positions.a*=this.w/oldW;this.positions.b*=this.w/oldW;} }
       resetPositions(){this.positions.a=this.w*.29;this.positions.b=this.w*.71;}
       start(){ if(this.running)return; this.running=true; this.fit(); this.last=performance.now(); requestAnimationFrame(t=>this.tick(t)); }
       stop(){this.running=false;}
-      tick(now){ if(!this.running)return; const dt=Math.min(50,now-this.last); this.last=now; this.a.update(dt); this.b.update(dt); this.draw(); requestAnimationFrame(t=>this.tick(t)); }
+      tick(now){ if(!this.running)return; const dt=Math.min(50,now-this.last); this.last=now; this.a.update(dt); this.b.update(dt); this.updateParticles(dt); this.draw(); requestAnimationFrame(t=>this.tick(t)); }
       play(side,name,loop=false){(side==="a"?this.a:this.b).play(name,loop);}
       scale(){return Math.min(this.w/4.5,this.h/2.65);}
       async move(side,to,duration=220){const from=this.positions[side],started=performance.now();return new Promise(resolve=>{const step=now=>{const t=Math.min(1,(now-started)/duration),e=ease(t);this.positions[side]=from+(to-from)*e;if(t<1)requestAnimationFrame(step);else resolve();};requestAnimationFrame(step);});}
@@ -534,7 +535,9 @@
         return {root,neck,head,shoulder,handL,handR,footL,footR,scale:s,headBox:{x:head.x,y:head.y,r:.17*s},torsoBox:{x:(root.x+neck.x)/2,y:(root.y+neck.y)/2,r:.25*s},guardBox:{x:(handL.x+handR.x)/2,y:(handL.y+handR.y)/2,r:.22*s}};
       }
       testContact(attacker,defender,guard=false,heavy=false){const attack=this.rigs[attacker]?.handR,targetRig=this.rigs[defender];if(!attack||!targetRig)return false;const attackRadius=targetRig.scale*(heavy?.11:.08),boxes=guard?[targetRig.guardBox]:[targetRig.headBox,targetRig.torsoBox];let best=null;for(const box of boxes){const distance=Math.hypot(attack.x-box.x,attack.y-box.y),limit=attackRadius+box.r;if(!best||distance<best.distance)best={box,distance,limit};}const hit=best.distance<=best.limit;this.events.push({attacker,defender,guard,heavy,hit,distance:Math.round(best.distance),limit:Math.round(best.limit)});this.impact={x:(attack.x+best.box.x)/2,y:(attack.y+best.box.y)/2,hit,until:performance.now()+190};return hit;}
-      draw(){ const c=this.ctx;c.clearRect(0,0,this.w,this.h);const ground=this.h*.78;if(this.guides){c.strokeStyle="rgba(255,255,255,.25)";c.setLineDash([8,8]);c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();c.setLineDash([]);} this.rigs.a=this.fighter(this.a,this.positions.a,ground,1,"#4cf3ff");this.rigs.b=this.fighter(this.b,this.positions.b,ground,-1,"#ff4fd8");if(this.impact&&performance.now()<this.impact.until){c.save();c.strokeStyle=this.impact.hit?"#fff36a":"#ff4fd8";c.lineWidth=5;c.beginPath();c.arc(this.impact.x,this.impact.y,this.impact.hit?18:11,0,Math.PI*2);c.stroke();c.restore();}if(this.guides){c.save();for(const rig of Object.values(this.rigs)){c.strokeStyle="rgba(255,79,216,.7)";for(const box of [rig.headBox,rig.torsoBox]){c.beginPath();c.arc(box.x,box.y,box.r,0,Math.PI*2);c.stroke();}c.strokeStyle="rgba(76,243,255,.8)";c.beginPath();c.arc(rig.guardBox.x,rig.guardBox.y,rig.guardBox.r,0,Math.PI*2);c.stroke();c.strokeStyle="rgba(255,201,74,.9)";c.beginPath();c.arc(rig.handR.x,rig.handR.y,rig.scale*.08,0,Math.PI*2);c.stroke();}c.fillStyle="#fff";c.font="12px Kanit";c.fillText(this.contactState,12,22);c.restore();} }
+      spawnImpact(side,blocked=false,blood=true){const rig=this.rigs[side];if(!rig)return;const origin=blocked?rig.guardBox:rig.torsoBox;this.impact={x:origin.x,y:origin.y,hit:true,until:performance.now()+190};for(let i=0;i<10;i++){const angle=Math.random()*Math.PI*2,speed=blocked?0.07:0.13+Math.random()*.1;this.particles.push({x:origin.x,y:origin.y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-.05,life:blocked?260:420,maxLife:blocked?260:420,color:blocked?"#fff36a":(blood&&i<4?"#d92d48":"#fff36a"),r:blocked?2.5:2+Math.random()*3});}}
+      updateParticles(dt){for(const p of this.particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.00045*dt;}this.particles=this.particles.filter(p=>p.life>0);}
+      draw(){ const c=this.ctx;c.clearRect(0,0,this.w,this.h);const ground=this.h*.78;if(this.guides){c.strokeStyle="rgba(255,255,255,.25)";c.setLineDash([8,8]);c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();c.setLineDash([]);} this.rigs.a=this.fighter(this.a,this.positions.a,ground,1,"#4cf3ff");this.rigs.b=this.fighter(this.b,this.positions.b,ground,-1,"#ff4fd8");if(this.impact&&performance.now()<this.impact.until){c.save();c.strokeStyle="#fff36a";c.lineWidth=5;c.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?11:25;c.lineTo(this.impact.x+Math.cos(a)*r,this.impact.y+Math.sin(a)*r);}c.closePath();c.stroke();c.restore();}for(const p of this.particles){c.globalAlpha=Math.max(0,p.life/p.maxLife);c.fillStyle=p.color;c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();}c.globalAlpha=1;if(this.guides){c.save();for(const rig of Object.values(this.rigs)){c.strokeStyle="rgba(255,79,216,.7)";for(const box of [rig.headBox,rig.torsoBox]){c.beginPath();c.arc(box.x,box.y,box.r,0,Math.PI*2);c.stroke();}c.strokeStyle="rgba(76,243,255,.8)";c.beginPath();c.arc(rig.guardBox.x,rig.guardBox.y,rig.guardBox.r,0,Math.PI*2);c.stroke();c.strokeStyle="rgba(255,201,74,.9)";c.beginPath();c.arc(rig.handR.x,rig.handR.y,rig.scale*.08,0,Math.PI*2);c.stroke();}c.fillStyle="#fff";c.font="12px Kanit";c.fillText(this.contactState,12,22);c.restore();} }
     }
     const stickmanStage = new StickmanStage(elements.fightCanvas);
 
@@ -633,55 +636,82 @@
       elements.selectionPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
-    async function performContactExchange(attacker, defense="hit", heavy=false) {
-      const defender = attacker === "a" ? "b" : "a";
-      await stickmanStage.approach(attacker);
-      stickmanStage.contactState = "WINDUP";
-      const defensiveClip = defense === "counter" ? "lean" : defense;
-      if (defense !== "hit") stickmanStage.play(defender, defensiveClip);
-      await wait(90);
-      stickmanStage.play(attacker, heavy ? "heavy" : "punch");
-      await wait(heavy ? 365 : 225);
-      stickmanStage.contactState = "ACTIVE";
-      let contacted = stickmanStage.testContact(attacker, defender, defense === "block", heavy);
-      if (heavy && defense === "hit" && !contacted) {
-        const facing = attacker === "a" ? 1 : -1;
-        await stickmanStage.move(attacker, stickmanStage.positions[attacker] + facing*stickmanStage.scale()*.09, 90);
-        contacted = stickmanStage.testContact(attacker, defender, false, true);
-      }
-      let damage = 0;
-      let counterContact = false;
-      if (defense === "block" && contacted) {
-        damage = 2;
-        stickmanStage.play(defender, "blockHit");
-      } else if (defense === "hit" && contacted) {
-        damage = heavy ? 10 : 6;
-        stickmanStage.play(defender, heavy ? "knockdown" : "hit");
-      }
-      stickmanStage.contactState = contacted ? (defense === "block" ? "BLOCK CONTACT" : "HIT CONTACT") : "CLEAN DODGE";
-      await wait(heavy && contacted ? 1750 : 420);
-      await stickmanStage.retreat(attacker);
-      stickmanStage.play(attacker, "idle", true);
-      if (heavy && contacted) {
-        stickmanStage.contactState = "GET UP";
-        stickmanStage.play(defender, "getup");
-        await wait(1350);
-      } else if (defense === "counter") {
-        stickmanStage.contactState = "COUNTER";
-        await stickmanStage.approach(defender);
-        stickmanStage.play(defender, "counter");
-        await wait(205);
-        counterContact = stickmanStage.testContact(defender, attacker, false, false);
-        if (counterContact) { damage = 7; stickmanStage.play(attacker, "hit"); }
-        await wait(380);
-        await stickmanStage.retreat(defender);
-      } else stickmanStage.play(defender, "idle", true);
-      stickmanStage.play(defender, "idle", true);
-      await wait(120);
-      return { defender: defense === "counter" ? attacker : defender, contacted: defense === "counter" ? counterContact : contacted, damage };
+    const FIGHT_DURATION_MS = 20000;
+    const HP_FLOOR = 18;
+    const FIGHTER_STATES = Object.freeze(["idle","approach","windup","active","recovery","block","dodge","counter","hit","knockback","knockdown","grounded","getup","victory","lose"]);
+    const ATTACKS = Object.freeze({
+      light: Object.freeze({ id:"light", clip:"punch", startupMs:180, activeMs:105, recoveryMs:410, damage:6, chipDamage:2, knockback:.035, knockdown:false }),
+      heavy: Object.freeze({ id:"heavy", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:500, damage:11, chipDamage:3, knockback:.09, knockdown:true }),
+      counter: Object.freeze({ id:"counter", clip:"counter", startupMs:150, activeMs:105, recoveryMs:400, damage:7, chipDamage:0, knockback:.05, knockdown:false })
+    });
+
+    class CombatFighter {
+      constructor(id, side){this.id=id;this.side=side;this.hp=100;this.state="idle";this.stateSince=0;}
+      transition(next, now=performance.now()){if(!FIGHTER_STATES.includes(next))throw new Error(`Unknown fighter state: ${next}`);this.state=next;this.stateSince=now;}
     }
 
-    async function playPhaseOneBattle() {
+    class CombatEngine {
+      constructor(fighterA,fighterB,{hpFloor=HP_FLOOR}={}){this.fighters={a:fighterA,b:fighterB};this.hpFloor=hpFloor;this.events=[];this.startedAt=0;this.finished=false;}
+      emit(type,data={}){const event=Object.freeze({type,at:Math.max(0,performance.now()-this.startedAt),...data});this.events.push(event);return event;}
+      start(){this.startedAt=performance.now();this.finished=false;this.emit("fight_started",{durationMs:FIGHT_DURATION_MS});}
+      fighter(side){return this.fighters[side];}
+      applyDamage(targetSide,amount,kind,sourceSide){const target=this.fighter(targetSide),before=target.hp,after=Math.max(this.hpFloor,before-amount);target.hp=after;const applied=before-after;this.emit(kind,{source:sourceSide,target:targetSide,requestedDamage:amount,damage:applied,hpBefore:before,hpAfter:after});return applied;}
+      resolveAttack({attacker,defense,attackId,contact}){const defender=attacker==="a"?"b":"a",attack=ATTACKS[attackId];if(!attack)throw new Error(`Unknown attack: ${attackId}`);if(this.finished)return null;
+        if(!contact||["lean","crouch","jump"].includes(defense)){this.emit("miss",{attacker,defender,attackId,defense});return {outcome:"miss",target:defender,damage:0};}
+        if(defense==="block"){const damage=this.applyDamage(defender,attack.chipDamage,"chip_damage",attacker);return {outcome:"block",target:defender,damage};}
+        const damage=this.applyDamage(defender,attack.damage,"damage",attacker);this.emit(attack.knockdown?"knockdown":"hit",{attacker,defender,attackId,damage,knockback:attack.knockback});return {outcome:attack.knockdown?"knockdown":"hit",target:defender,damage};
+      }
+      finish(lockedLoserSide){this.finished=true;const loser=this.fighter(lockedLoserSide),winner=this.fighter(lockedLoserSide==="a"?"b":"a");const valid=loser.hp<winner.hp&&loser.hp>0&&winner.hp>0;this.emit("fight_finished",{lockedLoserSide,hpA:this.fighter("a").hp,hpB:this.fighter("b").hp,valid});if(!valid)throw new Error("Combat outcome invariant failed");return this.events.at(-1);}
+    }
+
+    function createPhaseTwoPlan(lockedLoserSide){
+      const winner=lockedLoserSide==="a"?"b":"a",loser=lockedLoserSide;
+      return Object.freeze([
+        {at:400,attacker:loser,defense:"hit",attackId:"light"},
+        {at:1700,attacker:winner,defense:"hit",attackId:"light"},
+        {at:3000,attacker:winner,defense:"block",attackId:"light"},
+        {at:4300,attacker:winner,defense:"lean",attackId:"light"},
+        {at:5600,attacker:loser,defense:"counter",attackId:"light"},
+        {at:7800,attacker:winner,defense:"crouch",attackId:"light"},
+        {at:9000,attacker:loser,defense:"hit",attackId:"heavy"},
+        {at:11500,attacker:loser,defense:"jump",attackId:"light"},
+        {at:12800,attacker:loser,defense:"hit",attackId:"light"},
+        {at:14100,attacker:winner,defense:"block",attackId:"heavy"},
+        {at:15300,attacker:winner,defense:"hit",attackId:"light"},
+        {at:16600,attacker:winner,defense:"hit",attackId:"light"},
+        {at:17900,attacker:winner,defense:"hit",attackId:"heavy"}
+      ]);
+    }
+
+    function updateCombatHud(engine){elements.hpA.style.width=`${engine.fighter("a").hp}%`;elements.hpB.style.width=`${engine.fighter("b").hp}%`;}
+
+    async function presentCombatExchange(engine,exchange,runId) {
+      const {attacker,defense,attackId}=exchange,defender=attacker==="a"?"b":"a",attack=ATTACKS[attackId];
+      const attackFighter=engine.fighter(attacker),defendFighter=engine.fighter(defender);
+      attackFighter.transition("approach");engine.emit("state_changed",{fighter:attacker,state:"approach"});
+      await stickmanStage.approach(attacker);if(runId!==appState.battleRunId)return;
+      attackFighter.transition("windup");stickmanStage.contactState="WINDUP";
+      const defensiveClip=defense==="counter"?"lean":defense;
+      if(defense!=="hit"){defendFighter.transition(defense==="block"?"block":"dodge");stickmanStage.play(defender,defensiveClip);}
+      stickmanStage.play(attacker,attack.clip);await wait(attack.startupMs);
+      attackFighter.transition("active");stickmanStage.contactState="ACTIVE";
+      let contacted=stickmanStage.testContact(attacker,defender,defense==="block",attackId==="heavy");
+      if(defense==="hit"&&!contacted){const facing=attacker==="a"?1:-1;await stickmanStage.move(attacker,stickmanStage.positions[attacker]+facing*stickmanStage.scale()*.1,70);contacted=stickmanStage.testContact(attacker,defender,false,attackId==="heavy");}
+      if(["lean","crouch","jump","counter"].includes(defense))contacted=false;
+      const result=engine.resolveAttack({attacker,defense,attackId,contact:contacted});
+      if(result.outcome==="block"){defendFighter.transition("block");stickmanStage.play(defender,"blockHit");stickmanStage.spawnImpact(defender,true,false);stickmanStage.contactState="CHIP DAMAGE";}
+      else if(result.outcome==="hit"||result.outcome==="knockdown"){defendFighter.transition(result.outcome);stickmanStage.play(defender,result.outcome==="knockdown"?"knockdown":"hit");stickmanStage.spawnImpact(defender,false,true);stickmanStage.contactState=result.outcome.toUpperCase();const direction=attacker==="a"?1:-1;stickmanStage.positions[defender]+=direction*stickmanStage.scale()*attack.knockback;}
+      else stickmanStage.contactState=defense==="counter"?"DODGE → COUNTER":"CLEAN MISS";
+      updateCombatHud(engine);await wait(result.outcome==="knockdown"?650:attack.activeMs+180);
+      attackFighter.transition("recovery");await stickmanStage.retreat(attacker);stickmanStage.play(attacker,"idle",true);attackFighter.transition("idle");
+      if(result.outcome==="knockdown"){defendFighter.transition("grounded");await wait(100);defendFighter.transition("getup");stickmanStage.contactState="GET UP";stickmanStage.play(defender,"getup");await wait(650);}
+      if(defense==="counter"){
+        defendFighter.transition("counter");await stickmanStage.approach(defender);stickmanStage.play(defender,"counter");await wait(ATTACKS.counter.startupMs);const counterContact=stickmanStage.testContact(defender,attacker,false,false);const counterResult=engine.resolveAttack({attacker:defender,defense:"hit",attackId:"counter",contact:counterContact});if(counterResult.damage){stickmanStage.play(attacker,"hit");stickmanStage.spawnImpact(attacker,false,true);updateCombatHud(engine);}await wait(300);await stickmanStage.retreat(defender);
+      }
+      defendFighter.transition("idle");stickmanStage.play(defender,"idle",true);stickmanStage.contactState="IDLE";
+    }
+
+    async function playPhaseTwoBattle() {
       if (!appState.round) return;
       const runId = ++appState.battleRunId;
       const [fighterA, fighterB] = appState.round.fighters;
@@ -715,21 +745,11 @@
       elements.arenaLabel.classList.add("hidden");
 
       const loserIsA = appState.round.lockedLoserId === fighterA.id;
-      const winnerSide = loserIsA ? "b" : "a";
-      let hpA = 100, hpB = 100;
-      const showcase = [
-        {attacker:"a",defense:"hit"},
-        {attacker:"b",defense:"hit"},
-        {attacker:"a",defense:"block"},
-        {attacker:"b",defense:"counter"},
-        {attacker:"a",defense:"hit"},
-        {attacker:"b",defense:"crouch"},
-        {attacker:"b",defense:"hit"},
-        {attacker:"a",defense:"jump"},
-        {attacker:winnerSide,defense:"hit",heavy:true},
-        {attacker:winnerSide,defense:"hit"}
-      ];
-      const battleDeadline = performance.now() + 20000;
+      const lockedLoserSide=loserIsA?"a":"b";
+      const engine=new CombatEngine(new CombatFighter(fighterA.id,"a"),new CombatFighter(fighterB.id,"b"));
+      appState.combatEngine=engine;engine.start();
+      const showcase=createPhaseTwoPlan(lockedLoserSide);
+      const battleDeadline = performance.now() + FIGHT_DURATION_MS;
       const timerId = window.setInterval(() => {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return window.clearInterval(timerId);
         const remaining = Math.max(0, Math.ceil((battleDeadline-performance.now())/1000));
@@ -738,20 +758,16 @@
       for (let index = 0; index < showcase.length; index += 1) {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return;
         const exchange = showcase[index];
-        const result = await performContactExchange(exchange.attacker, exchange.defense, exchange.heavy);
-        if (result.damage > 0) {
-          if (result.defender === "a") hpA = Math.max(1, hpA-result.damage);
-          else hpB = Math.max(1, hpB-result.damage);
-          elements.hpA.style.width = `${hpA}%`;
-          elements.hpB.style.width = `${hpB}%`;
-        }
-        if (index < showcase.length-1) await wait(250);
+        const untilExchange=battleDeadline-FIGHT_DURATION_MS+exchange.at-performance.now();if(untilExchange>0)await wait(untilExchange);
+        await presentCombatExchange(engine,exchange,runId);
       }
       const remainingBattleTime = battleDeadline-performance.now();
       if (remainingBattleTime > 0) await wait(remainingBattleTime);
       window.clearInterval(timerId);
       if (runId !== appState.battleRunId || appState.phase !== "battle") return;
       elements.battleTimer.textContent = "00";
+      const finalEvent=engine.finish(lockedLoserSide);
+      window.__randomFighterDiagnostics=Object.freeze({finalEvent,eventCount:engine.events.length,eventTypes:Object.freeze([...new Set(engine.events.map(event=>event.type))])});
       elements.arenaLabel.textContent = "TIME!";
       elements.arenaLabel.classList.remove("hidden");
       stickmanStage.play(loserIsA ? "a" : "b", "lose");
@@ -888,7 +904,7 @@
     elements.editNamesButton.addEventListener("click", returnToSetup);
     elements.chooseProfessionsButton.addEventListener("click", openProfessionSelection);
     elements.backToDrawButton.addEventListener("click", returnToDraw);
-    elements.enterArenaButton.addEventListener("click", playPhaseOneBattle);
+    elements.enterArenaButton.addEventListener("click", playPhaseTwoBattle);
     elements.nextRoundButton.addEventListener("click", startNextRound);
     elements.resultEditButton.addEventListener("click", returnToSetup);
     updateRosterValidation();
@@ -904,6 +920,26 @@
       return passed;
     }
     runPhaseOneInvariants();
+
+    function runPhaseTwoInvariants() {
+      const requiredAttackFields=["startupMs","activeMs","recoveryMs","damage","chipDamage","knockback","knockdown"];
+      const structuredAttacks=Object.values(ATTACKS).every(attack=>requiredAttackFields.every(field=>field in attack)&&attack.startupMs>0&&attack.activeMs>0&&attack.recoveryMs>0);
+      const allEvents=[];const outcomes=["a","b"].map(lockedLoserSide=>{
+        const engine=new CombatEngine(new CombatFighter("test-a","a"),new CombatFighter("test-b","b"));engine.start();
+        for(const exchange of createPhaseTwoPlan(lockedLoserSide)){
+          const dodged=["lean","crouch","jump","counter"].includes(exchange.defense);
+          engine.resolveAttack({...exchange,contact:!dodged});
+          if(exchange.defense==="counter"){const counterSide=exchange.attacker==="a"?"b":"a";engine.resolveAttack({attacker:counterSide,defense:"hit",attackId:"counter",contact:true});}
+        }
+        const result=engine.finish(lockedLoserSide);allEvents.push(...engine.events);return result;
+      });
+      const eventTypes=new Set(allEvents.map(event=>event.type));
+      const requiredEvents=["damage","chip_damage","miss","hit","knockdown","fight_finished"];
+      const passed=structuredAttacks&&outcomes.every(result=>result.valid)&&requiredEvents.every(type=>eventTypes.has(type));
+      console.info("Phase 2 invariant check",{passed,structuredAttacks,outcomes:outcomes.map(({lockedLoserSide,hpA,hpB,valid})=>({lockedLoserSide,hpA,hpB,valid})),eventTypes:[...eventTypes]});
+      return passed;
+    }
+    runPhaseTwoInvariants();
 
     if (new URLSearchParams(location.search).get("lab") === "1") {
       const lab = document.createElement("aside");
