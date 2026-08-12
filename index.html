@@ -238,9 +238,9 @@
     .lab-status { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
 
     .result-kicker { color: var(--danger); font-size: clamp(11px,1.8vw,15px); }
-    .result-title { margin: 18px 0 10px; color: #fff; font-size: clamp(38px, 7vw, 78px); line-height: 1.08; text-shadow: 4px 4px 0 #8a173f; }
-    .result-copy { margin: 0 0 18px; color: var(--gold); font-size: clamp(20px,3vw,34px); font-weight: 800; }
-    .result-loser { margin: 0 0 22px; color: #fff; font-size: clamp(24px,4vw,46px); font-weight: 900; }
+    .result-title { margin: 16px 0 8px; color: var(--gold); font-size: clamp(21px,3vw,36px); line-height: 1.1; }
+    .result-loser { margin: 0 0 12px; color: #fff; font-size: clamp(46px,8vw,94px); font-weight: 900; line-height: 1.05; overflow-wrap: anywhere; text-shadow: 5px 5px 0 #8a173f, 0 0 30px rgba(255,79,216,.38); }
+    .result-copy { margin: 0 0 24px; color: var(--gold); font-size: clamp(25px,4vw,48px); font-weight: 900; }
     .result-jobs { margin-bottom: 24px; color: var(--muted); }
     .result-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
     .button-next { padding: 14px 24px; color: #251900; background: linear-gradient(#ffd568,#eaa821); box-shadow: 0 5px 0 #865800; }
@@ -380,9 +380,9 @@
     <section class="screen arcade-screen hidden" id="resultScreen" aria-live="assertive">
       <div class="result-stage">
         <div class="result-kicker pixel" id="resultKicker">TIME! · ROUND RESULT</div>
-        <h2 class="result-title"><span id="winnerName"></span> ชนะ!</h2>
-        <p class="result-copy">ถึงเวลาตอบโจทย์</p>
+        <h2 class="result-title"><span id="winnerName"></span> ชนะ</h2>
         <p class="result-loser"><span id="loserName"></span> แพ้!</p>
+        <p class="result-copy">ออกมาทำโจทย์</p>
         <p class="result-jobs" id="resultSummary"></p>
         <div class="result-actions">
           <button class="button button-secondary" id="resultEditButton" type="button">แก้รายชื่อ</button>
