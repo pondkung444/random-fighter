@@ -372,7 +372,7 @@
 
     <section class="screen arcade-screen hidden" id="resultScreen" aria-live="assertive">
       <div class="result-stage">
-        <div class="result-kicker pixel">TIME! · ROUND RESULT</div>
+        <div class="result-kicker pixel" id="resultKicker">TIME! · ROUND RESULT</div>
         <h2 class="result-title"><span id="loserName"></span> แพ้!</h2>
         <p class="result-copy">ถึงเวลาตอบโจทย์</p>
         <p class="result-jobs" id="resultSummary"></p>
@@ -437,7 +437,7 @@
       hpA: document.querySelector("#hpA"), hpB: document.querySelector("#hpB"),
       battleTimer: document.querySelector("#battleTimer"), arenaLabel: document.querySelector("#arenaLabel"),
       fightCanvas: document.querySelector("#fightCanvas"),
-      loserName: document.querySelector("#loserName"), resultSummary: document.querySelector("#resultSummary"),
+      loserName: document.querySelector("#loserName"), resultKicker: document.querySelector("#resultKicker"), resultSummary: document.querySelector("#resultSummary"),
       nextRoundButton: document.querySelector("#nextRoundButton"), resultEditButton: document.querySelector("#resultEditButton")
     };
 
@@ -673,11 +673,11 @@
     const HP_FLOOR = 18;
     const FIGHTER_STATES = Object.freeze(["idle","approach","windup","active","recovery","block","dodge","counter","hit","knockback","knockdown","grounded","getup","victory","lose"]);
     const ATTACKS = Object.freeze({
-      light: Object.freeze({ id:"light", clip:"punch", startupMs:180, activeMs:105, recoveryMs:410, damage:8, chipDamage:2, knockback:.035, knockdown:false }),
-      heavy: Object.freeze({ id:"heavy", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:500, damage:14, chipDamage:3, knockback:.09, knockdown:true }),
-      counter: Object.freeze({ id:"counter", clip:"counter", startupMs:150, activeMs:105, recoveryMs:400, damage:9, chipDamage:0, knockback:.05, knockdown:false }),
-      signature: Object.freeze({ id:"signature", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:15, chipDamage:3, knockback:.1, knockdown:false }),
-      comeback: Object.freeze({ id:"comeback", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:14, chipDamage:3, knockback:.1, knockdown:false })
+      light: Object.freeze({ id:"light", clip:"punch", startupMs:180, activeMs:105, recoveryMs:410, damage:10, chipDamage:3, knockback:.035, knockdown:false }),
+      heavy: Object.freeze({ id:"heavy", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:500, damage:19, chipDamage:4, knockback:.09, knockdown:true }),
+      counter: Object.freeze({ id:"counter", clip:"counter", startupMs:150, activeMs:105, recoveryMs:400, damage:11, chipDamage:0, knockback:.05, knockdown:false }),
+      signature: Object.freeze({ id:"signature", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:24, chipDamage:5, knockback:.1, knockdown:false }),
+      comeback: Object.freeze({ id:"comeback", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:19, chipDamage:4, knockback:.1, knockdown:false })
     });
 
     class CombatFighter {
@@ -686,17 +686,17 @@
     }
 
     class CombatEngine {
-      constructor(fighterA,fighterB,{hpFloor=HP_FLOOR}={}){this.fighters={a:fighterA,b:fighterB};this.hpFloor=hpFloor;this.events=[];this.startedAt=0;this.finished=false;}
+      constructor(fighterA,fighterB,{hpFloor=HP_FLOOR,lockedLoserSide=null,knockoutEnabled=false,knockoutEarliestMs=10000}={}){this.fighters={a:fighterA,b:fighterB};this.hpFloor=hpFloor;this.lockedLoserSide=lockedLoserSide;this.knockoutEnabled=knockoutEnabled;this.knockoutEarliestMs=knockoutEarliestMs;this.events=[];this.startedAt=0;this.finished=false;}
       emit(type,data={}){const event=Object.freeze({type,at:Math.max(0,performance.now()-this.startedAt),...data});this.events.push(event);return event;}
       start(){this.startedAt=performance.now();this.finished=false;this.emit("fight_started",{durationMs:FIGHT_DURATION_MS});}
       fighter(side){return this.fighters[side];}
-      applyDamage(targetSide,amount,kind,sourceSide){const target=this.fighter(targetSide),before=target.hp,after=Math.max(this.hpFloor,before-amount);target.hp=after;const applied=before-after;this.emit(kind,{source:sourceSide,target:targetSide,requestedDamage:amount,damage:applied,hpBefore:before,hpAfter:after});return applied;}
-      resolveAttack({attacker,defense,attackId,contact}){const defender=attacker==="a"?"b":"a",attack=ATTACKS[attackId];if(!attack)throw new Error(`Unknown attack: ${attackId}`);if(this.finished)return null;
+      applyDamage(targetSide,amount,kind,sourceSide,elapsedMs=performance.now()-this.startedAt){const target=this.fighter(targetSide),before=target.hp,canKnockout=this.knockoutEnabled&&targetSide===this.lockedLoserSide&&elapsedMs>=this.knockoutEarliestMs,floor=canKnockout?0:targetSide===this.lockedLoserSide?this.hpFloor:this.hpFloor+1,after=Math.max(floor,before-amount);target.hp=after;const applied=before-after;this.emit(kind,{source:sourceSide,target:targetSide,requestedDamage:amount,damage:applied,hpBefore:before,hpAfter:after});return applied;}
+      resolveAttack({attacker,defense,attackId,contact,elapsedMs}){const defender=attacker==="a"?"b":"a",attack=ATTACKS[attackId];if(!attack)throw new Error(`Unknown attack: ${attackId}`);if(this.finished)return null;
         if(!contact||["lean","crouch","jump"].includes(defense)){this.emit("miss",{attacker,defender,attackId,defense});return {outcome:"miss",target:defender,damage:0};}
-        if(defense==="block"){const damage=this.applyDamage(defender,attack.chipDamage,"chip_damage",attacker);return {outcome:"block",target:defender,damage};}
-        const damage=this.applyDamage(defender,attack.damage,"damage",attacker);this.emit(attack.knockdown?"knockdown":"hit",{attacker,defender,attackId,damage,knockback:attack.knockback});return {outcome:attack.knockdown?"knockdown":"hit",target:defender,damage};
+        if(defense==="block"){const damage=this.applyDamage(defender,attack.chipDamage,"chip_damage",attacker,elapsedMs);return {outcome:"block",target:defender,damage};}
+        const damage=this.applyDamage(defender,attack.damage,"damage",attacker,elapsedMs),knockout=this.fighter(defender).hp===0,outcome=knockout?"knockout":attack.knockdown?"knockdown":"hit";this.emit(outcome,{attacker,defender,attackId,damage,knockback:attack.knockback});return {outcome,target:defender,damage};
       }
-      finish(lockedLoserSide){this.finished=true;const loser=this.fighter(lockedLoserSide),winner=this.fighter(lockedLoserSide==="a"?"b":"a");const valid=loser.hp<winner.hp&&loser.hp>0&&winner.hp>0;this.emit("fight_finished",{lockedLoserSide,hpA:this.fighter("a").hp,hpB:this.fighter("b").hp,valid});if(!valid)throw new Error("Combat outcome invariant failed");return this.events.at(-1);}
+      finish(lockedLoserSide,reason="time",elapsedMs=performance.now()-this.startedAt){this.finished=true;const loser=this.fighter(lockedLoserSide),winner=this.fighter(lockedLoserSide==="a"?"b":"a"),valid=reason==="knockout"?loser.hp===0&&winner.hp>0&&elapsedMs>=this.knockoutEarliestMs&&elapsedMs<FIGHT_DURATION_MS:loser.hp<winner.hp&&loser.hp>0&&winner.hp>0;this.emit("fight_finished",{lockedLoserSide,reason,elapsedMs,hpA:this.fighter("a").hp,hpB:this.fighter("b").hp,valid});if(!valid)throw new Error("Combat outcome invariant failed");return this.events.at(-1);}
     }
 
     const LEAD_CHANGE_TEMPLATES=Object.freeze([
@@ -719,9 +719,9 @@
     const weightedClosingStyle=()=>{const roll=Math.random();return roll<CLOSING_STYLES[0].weight?CLOSING_STYLES[0]:roll<CLOSING_STYLES[0].weight+CLOSING_STYLES[1].weight?CLOSING_STYLES[1]:CLOSING_STYLES[2];};
 
     class CombatDirector {
-      constructor({lockedLoserSide,exchangeCount=10+Math.floor(Math.random()*5),guaranteeSignature=false}){
-        this.loser=lockedLoserSide;this.winner=lockedLoserSide==="a"?"b":"a";this.exchangeCount=Math.max(10,Math.min(14,exchangeCount));this.template=Math.random()<.85?pick(LEAD_CHANGE_TEMPLATES):pick(STEADY_LEAD_TEMPLATES);this.closingStyle=weightedClosingStyle();this.guaranteeSignature=guaranteeSignature;this.defenseBudget=Math.max(2,Math.floor(this.exchangeCount*.2));this.defensesUsed=0;this.knockdowns=0;this.signatureUsed=false;this.comebackUsed=false;this.history=[];
-        const interval=14650/(this.exchangeCount-1);this.schedule=Object.freeze(Array.from({length:this.exchangeCount},(_,index)=>Math.round(350+index*interval)));
+      constructor({lockedLoserSide,exchangeCount=10+Math.floor(Math.random()*5),guaranteeSignature=false,knockoutEnabled=false}){
+        this.loser=lockedLoserSide;this.winner=lockedLoserSide==="a"?"b":"a";this.exchangeCount=Math.max(10,Math.min(14,exchangeCount));this.template=Math.random()<.85?pick(LEAD_CHANGE_TEMPLATES):pick(STEADY_LEAD_TEMPLATES);this.closingStyle=weightedClosingStyle();this.guaranteeSignature=guaranteeSignature;this.knockoutEnabled=knockoutEnabled;this.defenseBudget=Math.max(2,Math.floor(this.exchangeCount*.2));this.defensesUsed=0;this.knockdowns=0;this.signatureUsed=false;this.comebackUsed=false;this.history=[];
+        const scheduleSpan=this.knockoutEnabled?15650:17850,interval=scheduleSpan/(this.exchangeCount-1);this.schedule=Object.freeze(Array.from({length:this.exchangeCount},(_,index)=>Math.round(350+index*interval)));
       }
       desiredLeader(index){const progress=index/(this.exchangeCount-1),path=this.template.leadPath,pathIndex=Math.min(path.length-1,Math.floor(progress*path.length));return path[pathIndex]==="winner"?this.winner:this.loser;}
       chooseAttack(index,attacker,engine){const defender=attacker==="a"?"b":"a",deficit=Math.max(0,engine.fighter(defender).hp-engine.fighter(attacker).hp),late=index>=this.exchangeCount-3;
@@ -743,6 +743,7 @@
       }
       ensureClosingOutcome(engine,index){
         if(index<this.exchangeCount-5)return this.next(index,engine);
+        if(this.knockoutEnabled){const attackId=index===this.exchangeCount-1?"signature":"heavy";if(attackId==="signature")this.signatureUsed=true;const exchange=Object.freeze({at:this.schedule[index],attacker:this.winner,defense:"hit",attackId,narrative:this.template.id,desiredLeader:this.winner,closing:true,knockoutPush:true});this.history.push(exchange);return exchange;}
         const loserHp=engine.fighter(this.loser).hp,winnerHp=engine.fighter(this.winner).hp,gap=winnerHp-loserHp,target=this.closingStyle;let attacker,defense,attackId;
         if(gap<target.min){attacker=this.winner;defense="hit";attackId=gap<=-8?"signature":"light";if(attackId==="signature")this.signatureUsed=true;}
         else if(gap>target.max+ATTACKS.comeback.damage){attacker=this.loser;defense="hit";attackId="comeback";this.comebackUsed=true;}
@@ -771,11 +772,12 @@
       if(["lean","crouch","jump","counter"].includes(defense))contacted=false;
       const result=engine.resolveAttack({attacker,defense,attackId,contact:contacted});
       if(result.outcome==="block"){defendFighter.transition("block");stickmanStage.play(defender,"blockHit");stickmanStage.spawnImpact(defender,true,false);stickmanStage.contactState="CHIP DAMAGE";}
-      else if(result.outcome==="hit"||result.outcome==="knockdown"){defendFighter.transition(result.outcome);stickmanStage.play(defender,result.outcome==="knockdown"?"knockdown":"hit");stickmanStage.spawnImpact(defender,false,true);stickmanStage.contactState=result.outcome.toUpperCase();const direction=attacker==="a"?1:-1;stickmanStage.positions[defender]+=direction*stickmanStage.scale()*attack.knockback;}
+      else if(result.outcome==="hit"||result.outcome==="knockdown"||result.outcome==="knockout"){defendFighter.transition(result.outcome==="knockout"?"knockdown":result.outcome);stickmanStage.play(defender,result.outcome==="knockdown"||result.outcome==="knockout"?"knockdown":"hit");stickmanStage.spawnImpact(defender,false,true);stickmanStage.contactState=result.outcome.toUpperCase();const direction=attacker==="a"?1:-1;stickmanStage.positions[defender]+=direction*stickmanStage.scale()*attack.knockback;}
       else stickmanStage.contactState=defense==="counter"?"DODGE → COUNTER":"CLEAN MISS";
       updateCombatHud(engine);await wait(result.outcome==="knockdown"?650:attack.activeMs+180);
       attackFighter.transition("recovery");await stickmanStage.retreat(attacker);stickmanStage.play(attacker,"idle",true);attackFighter.transition("idle");
       if(result.outcome==="knockdown"){defendFighter.transition("grounded");await wait(100);defendFighter.transition("getup");stickmanStage.contactState="GET UP";stickmanStage.play(defender,"getup");await wait(650);}
+      if(result.outcome==="knockout"){defendFighter.transition("grounded");stickmanStage.contactState="K.O.";return result;}
       if(defense==="counter"){
         defendFighter.transition("counter");await stickmanStage.approach(defender);stickmanStage.play(defender,"counter");await wait(ATTACKS.counter.startupMs);const counterContact=stickmanStage.testContact(defender,attacker,false,false);const counterResult=engine.resolveAttack({attacker:defender,defense:"hit",attackId:"counter",contact:counterContact});if(counterResult.damage){stickmanStage.play(attacker,"hit");stickmanStage.spawnImpact(attacker,false,true);updateCombatHud(engine);}await wait(300);await stickmanStage.retreat(defender);
       }
@@ -821,46 +823,51 @@
 
       const loserIsA = appState.round.lockedLoserId === fighterA.id;
       const lockedLoserSide=loserIsA?"a":"b";
-      const engine=new CombatEngine(new CombatFighter(fighterA.id,"a"),new CombatFighter(fighterB.id,"b"));
+      const knockoutEnabled=Math.random()<.7;
+      const engine=new CombatEngine(new CombatFighter(fighterA.id,"a"),new CombatFighter(fighterB.id,"b"),{lockedLoserSide,knockoutEnabled});
       appState.combatEngine=engine;engine.start();
       const verticalSlice=[jobA.id,jobB.id].every(id=>id==="takraw"||id==="somtam");
-      const director=new CombatDirector({lockedLoserSide,guaranteeSignature:verticalSlice});
+      const director=new CombatDirector({lockedLoserSide,guaranteeSignature:verticalSlice,knockoutEnabled});
       const battleDeadline = performance.now() + FIGHT_DURATION_MS;
       const timerId = window.setInterval(() => {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return window.clearInterval(timerId);
         const remaining = Math.max(0, Math.ceil((battleDeadline-performance.now())/1000));
         elements.battleTimer.textContent = String(remaining).padStart(2, "0");
       }, 200);
+      let knockout=false;
       for (let index = 0; index < director.exchangeCount; index += 1) {
         if (runId !== appState.battleRunId || appState.phase !== "battle") return;
         const exchange = director.ensureClosingOutcome(engine,index);
         const untilExchange=battleDeadline-FIGHT_DURATION_MS+exchange.at-performance.now();if(untilExchange>0)await wait(untilExchange);
-        await presentCombatExchange(engine,exchange,runId);
+        const result=await presentCombatExchange(engine,exchange,runId);
+        if(result?.outcome==="knockout"){knockout=true;break;}
       }
       const remainingBattleTime = battleDeadline-performance.now();
-      if (remainingBattleTime > 0) await wait(remainingBattleTime);
+      if (!knockout&&remainingBattleTime > 0) await wait(remainingBattleTime);
       window.clearInterval(timerId);
       if (runId !== appState.battleRunId || appState.phase !== "battle") return;
       elements.battleTimer.textContent = "00";
       let finalEvent;
-      try{finalEvent=engine.finish(lockedLoserSide);}catch(error){console.error(error);finalEvent=Object.freeze({type:"fight_finished",lockedLoserSide,hpA:engine.fighter("a").hp,hpB:engine.fighter("b").hp,valid:false,recovered:true});}
+      const finishReason=knockout?"knockout":"time",elapsedMs=performance.now()-engine.startedAt;
+      try{finalEvent=engine.finish(lockedLoserSide,finishReason,elapsedMs);}catch(error){console.error(error);finalEvent=Object.freeze({type:"fight_finished",lockedLoserSide,reason:finishReason,elapsedMs,hpA:engine.fighter("a").hp,hpB:engine.fighter("b").hp,valid:false,recovered:true});}
       const signatureHits=engine.events.filter(event=>(event.type==="hit"||event.type==="knockdown")&&event.attackId==="signature"&&event.damage>0).length;
       window.__randomFighterDiagnostics=Object.freeze({finalEvent,director:director.summary(),signatureHits,exchanges:Object.freeze([...director.history]),eventCount:engine.events.length,eventTypes:Object.freeze([...new Set(engine.events.map(event=>event.type))])});
       document.documentElement.dataset.fightDiagnostics=JSON.stringify(window.__randomFighterDiagnostics);
-      elements.arenaLabel.textContent = "TIME!";
+      elements.arenaLabel.textContent = knockout?"K.O.!":"TIME!";
       elements.arenaLabel.classList.remove("hidden");
       stickmanStage.play(loserIsA ? "a" : "b", "lose");
       stickmanStage.play(loserIsA ? "b" : "a", "victory");
       await wait(1200);
       if (runId !== appState.battleRunId || appState.phase !== "battle") return;
-      showResult();
+      showResult(finishReason);
     }
 
-    function showResult() {
+    function showResult(reason="time") {
       if (!appState.round) return;
       const loser = appState.round.fighters.find(fighter => fighter.id === appState.round.lockedLoserId);
       const jobA = professionById(appState.round.professions.fighterA);
       const jobB = professionById(appState.round.professions.fighterB);
+      elements.resultKicker.textContent=reason==="knockout"?"K.O.! · ROUND RESULT":"TIME! · ROUND RESULT";
       elements.loserName.textContent = loser?.name || "ผู้ท้าชิง";
       elements.resultSummary.textContent = `${appState.round.fighters[0].name} ${jobA?.icon || ""}  VS  ${appState.round.fighters[1].name} ${jobB?.icon || ""}`;
       stickmanStage.stop();
@@ -1003,21 +1010,22 @@
     function runPhaseThreeInvariants(simulationCount=5000) {
       const requiredAttackFields=["startupMs","activeMs","recoveryMs","damage","chipDamage","knockback","knockdown"];
       const structuredAttacks=Object.values(ATTACKS).every(attack=>requiredAttackFields.every(field=>field in attack)&&attack.startupMs>0&&attack.activeMs>0&&attack.recoveryMs>0);
-      const allEvents=[],outcomes=[],templates=new Set(),narrativeKinds={lead_change:0,steady:0},closingStyles={close:0,competitive:0,clear:0},counts=[],defenseCounts=[],failures=[],leadChangeCounts=[],finalGaps=[];
+      const allEvents=[],outcomes=[],templates=new Set(),narrativeKinds={lead_change:0,steady:0},closingStyles={close:0,competitive:0,clear:0},counts=[],defenseCounts=[],failures=[],leadChangeCounts=[],timeFinalGaps=[],knockoutTimes=[];
       for(let run=0;run<simulationCount;run++){
-        const lockedLoserSide=run%2?"a":"b",engine=new CombatEngine(new CombatFighter("test-a","a"),new CombatFighter("test-b","b")),director=new CombatDirector({lockedLoserSide});engine.start();
-        let previousLeader=null,pendingLeader=null,pendingCount=0,leadChanges=0;
-        try{for(let index=0;index<director.exchangeCount;index++){const exchange=director.ensureClosingOutcome(engine,index),dodged=["lean","crouch","jump","counter"].includes(exchange.defense);engine.resolveAttack({...exchange,contact:!dodged});if(exchange.defense==="counter"){const counterSide=exchange.attacker==="a"?"b":"a";engine.resolveAttack({attacker:counterSide,defense:"hit",attackId:"counter",contact:true});}const hpA=engine.fighter("a").hp,hpB=engine.fighter("b").hp,difference=hpA-hpB,leader=Math.abs(difference)<3?null:(difference>0?"a":"b");if(leader&&leader!==previousLeader){if(leader===pendingLeader)pendingCount++;else{pendingLeader=leader;pendingCount=1;}if(pendingCount>=2){if(previousLeader&&leader!==previousLeader)leadChanges++;previousLeader=leader;pendingLeader=null;pendingCount=0;}}else if(leader===previousLeader){pendingLeader=null;pendingCount=0;}}const outcome=engine.finish(lockedLoserSide);outcomes.push(outcome);finalGaps.push(Math.abs(outcome.hpA-outcome.hpB));leadChangeCounts.push(leadChanges);}
+        const lockedLoserSide=run%2?"a":"b",knockoutEnabled=run%10<7,engine=new CombatEngine(new CombatFighter("test-a","a"),new CombatFighter("test-b","b"),{lockedLoserSide,knockoutEnabled}),director=new CombatDirector({lockedLoserSide,knockoutEnabled});engine.start();
+        let previousLeader=null,pendingLeader=null,pendingCount=0,leadChanges=0,knockout=false,lastAt=FIGHT_DURATION_MS;
+        try{for(let index=0;index<director.exchangeCount;index++){const exchange=director.ensureClosingOutcome(engine,index),dodged=["lean","crouch","jump","counter"].includes(exchange.defense),result=engine.resolveAttack({...exchange,contact:!dodged,elapsedMs:exchange.at});lastAt=exchange.at;if(result?.outcome==="knockout"){knockout=true;break;}if(exchange.defense==="counter"){const counterSide=exchange.attacker==="a"?"b":"a";engine.resolveAttack({attacker:counterSide,defense:"hit",attackId:"counter",contact:true,elapsedMs:exchange.at});}const hpA=engine.fighter("a").hp,hpB=engine.fighter("b").hp,difference=hpA-hpB,leader=Math.abs(difference)<3?null:(difference>0?"a":"b");if(leader&&leader!==previousLeader){if(leader===pendingLeader)pendingCount++;else{pendingLeader=leader;pendingCount=1;}if(pendingCount>=2){if(previousLeader&&leader!==previousLeader)leadChanges++;previousLeader=leader;pendingLeader=null;pendingCount=0;}}else if(leader===previousLeader){pendingLeader=null;pendingCount=0;}}const reason=knockout?"knockout":"time",outcome=engine.finish(lockedLoserSide,reason,knockout?lastAt:FIGHT_DURATION_MS);outcomes.push(outcome);if(knockout)knockoutTimes.push(lastAt);else timeFinalGaps.push(Math.abs(outcome.hpA-outcome.hpB));leadChangeCounts.push(leadChanges);}
         catch(error){failures.push({run,lockedLoserSide,hpA:engine.fighter("a").hp,hpB:engine.fighter("b").hp,message:error.message});}
         templates.add(director.template.id);narrativeKinds[director.template.kind]++;closingStyles[director.closingStyle.id]++;counts.push(director.exchangeCount);defenseCounts.push(director.defensesUsed);allEvents.push(...engine.events);
       }
       const eventTypes=new Set(allEvents.map(event=>event.type));
-      const requiredEvents=["damage","chip_damage","miss","hit","knockdown","fight_finished"];
+      const requiredEvents=["damage","chip_damage","miss","hit","knockdown","knockout","fight_finished"];
       const fightsWithLeadChange=leadChangeCounts.filter(count=>count>0).length,leadChangeRate=fightsWithLeadChange/simulationCount;
       const leadChangeNarrativeRate=narrativeKinds.lead_change/simulationCount;
       const defenseRate=defenseCounts.reduce((sum,count)=>sum+count,0)/counts.reduce((sum,count)=>sum+count,0);
-      const passed=structuredAttacks&&!failures.length&&outcomes.length===simulationCount&&templates.size===NARRATIVE_TEMPLATES.length&&counts.every(count=>count>=10&&count<=16)&&outcomes.every(result=>result.valid&&result.hpA>0&&result.hpB>0)&&leadChangeRate>=.6&&leadChangeRate<=.7&&leadChangeNarrativeRate>=.82&&leadChangeNarrativeRate<=.88&&defenseRate<=.2&&Math.max(...finalGaps)<=18&&requiredEvents.every(type=>eventTypes.has(type));
-      window.__phase3Simulation=Object.freeze({passed,simulationCount,failureCount:failures.length,failures:Object.freeze(failures.slice(0,5)),templateCount:templates.size,narrativeKindRates:Object.freeze({leadChange:Number(leadChangeNarrativeRate.toFixed(3)),steady:Number((narrativeKinds.steady/simulationCount).toFixed(3))}),closingStyleRates:Object.freeze(Object.fromEntries(Object.entries(closingStyles).map(([key,value])=>[key,Number((value/simulationCount).toFixed(3))]))),exchangeRange:Object.freeze([Math.min(...counts),Math.max(...counts)]),defenseRate:Number(defenseRate.toFixed(3)),defenseCountRange:Object.freeze([Math.min(...defenseCounts),Math.max(...defenseCounts)]),meaningfulLeadChangeRate:Number(leadChangeRate.toFixed(3)),averageLeadChanges:Number((leadChangeCounts.reduce((sum,count)=>sum+count,0)/simulationCount).toFixed(2)),finalGapRange:Object.freeze([Math.min(...finalGaps),Math.max(...finalGaps)]),eventTypes:Object.freeze([...eventTypes])});
+      const knockoutRate=knockoutTimes.length/simulationCount,timeResults=outcomes.filter(result=>result.reason==="time"),knockoutResults=outcomes.filter(result=>result.reason==="knockout");
+      const passed=structuredAttacks&&!failures.length&&outcomes.length===simulationCount&&templates.size===NARRATIVE_TEMPLATES.length&&counts.every(count=>count>=10&&count<=16)&&outcomes.every(result=>result.valid)&&knockoutRate>=.69&&knockoutRate<=.71&&knockoutResults.every(result=>(result.lockedLoserSide==="a"?result.hpA:result.hpB)===0)&&timeResults.every(result=>result.hpA>0&&result.hpB>0)&&leadChangeNarrativeRate>=.82&&leadChangeNarrativeRate<=.88&&defenseRate<=.2&&Math.max(...timeFinalGaps)<=20&&Math.min(...knockoutTimes)>10000&&Math.max(...knockoutTimes)<FIGHT_DURATION_MS&&requiredEvents.every(type=>eventTypes.has(type));
+      window.__phase3Simulation=Object.freeze({passed,simulationCount,failureCount:failures.length,failures:Object.freeze(failures.slice(0,5)),knockoutRate:Number(knockoutRate.toFixed(3)),knockoutTimeRange:Object.freeze([Math.min(...knockoutTimes),Math.max(...knockoutTimes)]),templateCount:templates.size,narrativeKindRates:Object.freeze({leadChange:Number(leadChangeNarrativeRate.toFixed(3)),steady:Number((narrativeKinds.steady/simulationCount).toFixed(3))}),closingStyleRates:Object.freeze(Object.fromEntries(Object.entries(closingStyles).map(([key,value])=>[key,Number((value/simulationCount).toFixed(3))]))),exchangeRange:Object.freeze([Math.min(...counts),Math.max(...counts)]),defenseRate:Number(defenseRate.toFixed(3)),defenseCountRange:Object.freeze([Math.min(...defenseCounts),Math.max(...defenseCounts)]),meaningfulLeadChangeRate:Number(leadChangeRate.toFixed(3)),averageLeadChanges:Number((leadChangeCounts.reduce((sum,count)=>sum+count,0)/simulationCount).toFixed(2)),timeFinalGapRange:Object.freeze([Math.min(...timeFinalGaps),Math.max(...timeFinalGaps)]),eventTypes:Object.freeze([...eventTypes])});
       document.documentElement.dataset.phase3Simulation=JSON.stringify(window.__phase3Simulation);
       console.info("Phase 3 simulation",window.__phase3Simulation);
       return passed;
