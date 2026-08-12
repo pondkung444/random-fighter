@@ -643,8 +643,8 @@
       light: Object.freeze({ id:"light", clip:"punch", startupMs:180, activeMs:105, recoveryMs:410, damage:8, chipDamage:2, knockback:.035, knockdown:false }),
       heavy: Object.freeze({ id:"heavy", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:500, damage:14, chipDamage:3, knockback:.09, knockdown:true }),
       counter: Object.freeze({ id:"counter", clip:"counter", startupMs:150, activeMs:105, recoveryMs:400, damage:9, chipDamage:0, knockback:.05, knockdown:false }),
-      signature: Object.freeze({ id:"signature", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:15, chipDamage:3, knockback:.1, knockdown:true }),
-      comeback: Object.freeze({ id:"comeback", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:14, chipDamage:3, knockback:.1, knockdown:true })
+      signature: Object.freeze({ id:"signature", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:15, chipDamage:3, knockback:.1, knockdown:false }),
+      comeback: Object.freeze({ id:"comeback", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:14, chipDamage:3, knockback:.1, knockdown:false })
     });
 
     class CombatFighter {
@@ -687,8 +687,8 @@
 
     class CombatDirector {
       constructor({lockedLoserSide,exchangeCount=10+Math.floor(Math.random()*5)}){
-        this.loser=lockedLoserSide;this.winner=lockedLoserSide==="a"?"b":"a";this.exchangeCount=Math.max(10,Math.min(14,exchangeCount));this.template=Math.random()<.7?pick(LEAD_CHANGE_TEMPLATES):pick(STEADY_LEAD_TEMPLATES);this.closingStyle=weightedClosingStyle();this.knockdowns=0;this.signatureUsed=false;this.comebackUsed=false;this.history=[];
-        const interval=16150/(this.exchangeCount-1);this.schedule=Object.freeze(Array.from({length:this.exchangeCount},(_,index)=>Math.round(350+index*interval)));
+        this.loser=lockedLoserSide;this.winner=lockedLoserSide==="a"?"b":"a";this.exchangeCount=Math.max(10,Math.min(14,exchangeCount));this.template=Math.random()<.85?pick(LEAD_CHANGE_TEMPLATES):pick(STEADY_LEAD_TEMPLATES);this.closingStyle=weightedClosingStyle();this.defenseBudget=Math.max(2,Math.floor(this.exchangeCount*.2));this.defensesUsed=0;this.knockdowns=0;this.signatureUsed=false;this.comebackUsed=false;this.history=[];
+        const interval=14650/(this.exchangeCount-1);this.schedule=Object.freeze(Array.from({length:this.exchangeCount},(_,index)=>Math.round(350+index*interval)));
       }
       desiredLeader(index){const progress=index/(this.exchangeCount-1),path=this.template.leadPath,pathIndex=Math.min(path.length-1,Math.floor(progress*path.length));return path[pathIndex]==="winner"?this.winner:this.loser;}
       chooseAttack(index,attacker,engine){const defender=attacker==="a"?"b":"a",deficit=Math.max(0,engine.fighter(defender).hp-engine.fighter(attacker).hp),late=index>=this.exchangeCount-3;
@@ -697,6 +697,7 @@
         if(deficit>=9&&this.knockdowns<2){this.knockdowns++;return "heavy";}
         return Math.random()<.22&&this.knockdowns<2?(this.knockdowns++,"heavy"):"light";
       }
+      reserveDefense(candidate){if(candidate==="hit")return candidate;if(this.defensesUsed>=this.defenseBudget)return "hit";this.defensesUsed++;return candidate;}
       next(index,engine){const closing=index>=this.exchangeCount-2,desired=closing?this.winner:this.desiredLeader(index),other=desired==="a"?"b":"a",desiredHp=engine.fighter(desired).hp,otherHp=engine.fighter(other).hp;
         let attacker=desired,defense="hit";
         if(this.template.kind==="steady"&&desiredHp>otherHp+13){attacker=other;defense="hit";}
@@ -704,18 +705,18 @@
         else if(!closing&&desiredHp>otherHp+5){attacker=other;defense=pick(["block","lean","crouch","jump"]);}
         else if(!closing&&desiredHp>otherHp&&Math.random()<.38){attacker=other;defense=pick(["block","lean","crouch","jump","counter"]);}
         else if(!closing&&Math.random()<.18){defense=pick(["block","lean","crouch","jump"]);}
-        const attackId=this.chooseAttack(index,attacker,engine),exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:desired,closing});this.history.push(exchange);return exchange;
+        const requestedDefense=defense;defense=this.reserveDefense(defense);if(requestedDefense!=="hit"&&defense==="hit")attacker=desired;const attackId=this.chooseAttack(index,attacker,engine),exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:desired,closing});this.history.push(exchange);return exchange;
       }
       ensureClosingOutcome(engine,index){
-        if(index<this.exchangeCount-3)return this.next(index,engine);
+        if(index<this.exchangeCount-5)return this.next(index,engine);
         const loserHp=engine.fighter(this.loser).hp,winnerHp=engine.fighter(this.winner).hp,gap=winnerHp-loserHp,target=this.closingStyle;let attacker,defense,attackId;
         if(gap<target.min){attacker=this.winner;defense="hit";attackId=gap<=-8?"signature":"light";if(attackId==="signature")this.signatureUsed=true;}
         else if(gap>target.max+ATTACKS.comeback.damage){attacker=this.loser;defense="hit";attackId="comeback";this.comebackUsed=true;}
         else if(gap>target.max&&gap>ATTACKS.light.damage){attacker=this.loser;defense="hit";attackId="light";}
         else{attacker=this.loser;defense=pick(["lean","crouch","jump"]);attackId="light";}
-        const exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:this.winner,closing:true});this.history.push(exchange);return exchange;
+        const requestedDefense=defense;defense=this.reserveDefense(defense);if(requestedDefense!=="hit"&&defense==="hit")attacker=gap>ATTACKS.light.damage?this.loser:this.winner;const exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:this.winner,closing:true});this.history.push(exchange);return exchange;
       }
-      summary(){return Object.freeze({template:this.template.id,narrativeKind:this.template.kind,closingStyle:this.closingStyle.id,exchangeCount:this.exchangeCount,signatureUsed:this.signatureUsed,comebackUsed:this.comebackUsed,knockdowns:this.knockdowns});}
+      summary(){return Object.freeze({template:this.template.id,narrativeKind:this.template.kind,closingStyle:this.closingStyle.id,exchangeCount:this.exchangeCount,defenseBudget:this.defenseBudget,defensesUsed:this.defensesUsed,defenseRate:Number((this.defensesUsed/this.exchangeCount).toFixed(3)),signatureUsed:this.signatureUsed,comebackUsed:this.comebackUsed,knockdowns:this.knockdowns});}
     }
 
     function updateCombatHud(engine){elements.hpA.style.width=`${engine.fighter("a").hp}%`;elements.hpB.style.width=`${engine.fighter("b").hp}%`;}
@@ -731,7 +732,7 @@
       stickmanStage.play(attacker,attack.clip);await wait(attack.startupMs);
       attackFighter.transition("active");stickmanStage.contactState="ACTIVE";
       let contacted=stickmanStage.testContact(attacker,defender,defense==="block",attack.knockdown);
-      if(defense==="hit"&&!contacted){const facing=attacker==="a"?1:-1;await stickmanStage.move(attacker,stickmanStage.positions[attacker]+facing*stickmanStage.scale()*.1,70);contacted=stickmanStage.testContact(attacker,defender,false,attack.knockdown);}
+      if(defense==="hit"&&!contacted){const facing=attacker==="a"?1:-1;for(let step=0;step<3&&!contacted;step++){await stickmanStage.move(attacker,stickmanStage.positions[attacker]+facing*stickmanStage.scale()*.06,45);contacted=stickmanStage.testContact(attacker,defender,false,attack.knockdown);}}
       if(["lean","crouch","jump","counter"].includes(defense))contacted=false;
       const result=engine.resolveAttack({attacker,defense,attackId,contact:contacted});
       if(result.outcome==="block"){defendFighter.transition("block");stickmanStage.play(defender,"blockHit");stickmanStage.spawnImpact(defender,true,false);stickmanStage.contactState="CHIP DAMAGE";}
@@ -960,20 +961,21 @@
     function runPhaseThreeInvariants(simulationCount=5000) {
       const requiredAttackFields=["startupMs","activeMs","recoveryMs","damage","chipDamage","knockback","knockdown"];
       const structuredAttacks=Object.values(ATTACKS).every(attack=>requiredAttackFields.every(field=>field in attack)&&attack.startupMs>0&&attack.activeMs>0&&attack.recoveryMs>0);
-      const allEvents=[],outcomes=[],templates=new Set(),narrativeKinds={lead_change:0,steady:0},closingStyles={close:0,competitive:0,clear:0},counts=[],failures=[],leadChangeCounts=[],finalGaps=[];
+      const allEvents=[],outcomes=[],templates=new Set(),narrativeKinds={lead_change:0,steady:0},closingStyles={close:0,competitive:0,clear:0},counts=[],defenseCounts=[],failures=[],leadChangeCounts=[],finalGaps=[];
       for(let run=0;run<simulationCount;run++){
         const lockedLoserSide=run%2?"a":"b",engine=new CombatEngine(new CombatFighter("test-a","a"),new CombatFighter("test-b","b")),director=new CombatDirector({lockedLoserSide});engine.start();
         let previousLeader=null,pendingLeader=null,pendingCount=0,leadChanges=0;
         try{for(let index=0;index<director.exchangeCount;index++){const exchange=director.ensureClosingOutcome(engine,index),dodged=["lean","crouch","jump","counter"].includes(exchange.defense);engine.resolveAttack({...exchange,contact:!dodged});if(exchange.defense==="counter"){const counterSide=exchange.attacker==="a"?"b":"a";engine.resolveAttack({attacker:counterSide,defense:"hit",attackId:"counter",contact:true});}const hpA=engine.fighter("a").hp,hpB=engine.fighter("b").hp,difference=hpA-hpB,leader=Math.abs(difference)<3?null:(difference>0?"a":"b");if(leader&&leader!==previousLeader){if(leader===pendingLeader)pendingCount++;else{pendingLeader=leader;pendingCount=1;}if(pendingCount>=2){if(previousLeader&&leader!==previousLeader)leadChanges++;previousLeader=leader;pendingLeader=null;pendingCount=0;}}else if(leader===previousLeader){pendingLeader=null;pendingCount=0;}}const outcome=engine.finish(lockedLoserSide);outcomes.push(outcome);finalGaps.push(Math.abs(outcome.hpA-outcome.hpB));leadChangeCounts.push(leadChanges);}
         catch(error){failures.push({run,lockedLoserSide,hpA:engine.fighter("a").hp,hpB:engine.fighter("b").hp,message:error.message});}
-        templates.add(director.template.id);narrativeKinds[director.template.kind]++;closingStyles[director.closingStyle.id]++;counts.push(director.exchangeCount);allEvents.push(...engine.events);
+        templates.add(director.template.id);narrativeKinds[director.template.kind]++;closingStyles[director.closingStyle.id]++;counts.push(director.exchangeCount);defenseCounts.push(director.defensesUsed);allEvents.push(...engine.events);
       }
       const eventTypes=new Set(allEvents.map(event=>event.type));
       const requiredEvents=["damage","chip_damage","miss","hit","knockdown","fight_finished"];
       const fightsWithLeadChange=leadChangeCounts.filter(count=>count>0).length,leadChangeRate=fightsWithLeadChange/simulationCount;
       const leadChangeNarrativeRate=narrativeKinds.lead_change/simulationCount;
-      const passed=structuredAttacks&&!failures.length&&outcomes.length===simulationCount&&templates.size===NARRATIVE_TEMPLATES.length&&counts.every(count=>count>=10&&count<=16)&&outcomes.every(result=>result.valid&&result.hpA>0&&result.hpB>0)&&leadChangeRate>=.6&&leadChangeRate<=.7&&leadChangeNarrativeRate>=.67&&leadChangeNarrativeRate<=.73&&requiredEvents.every(type=>eventTypes.has(type));
-      window.__phase3Simulation=Object.freeze({passed,simulationCount,failureCount:failures.length,failures:Object.freeze(failures.slice(0,5)),templateCount:templates.size,narrativeKindRates:Object.freeze({leadChange:Number(leadChangeNarrativeRate.toFixed(3)),steady:Number((narrativeKinds.steady/simulationCount).toFixed(3))}),closingStyleRates:Object.freeze(Object.fromEntries(Object.entries(closingStyles).map(([key,value])=>[key,Number((value/simulationCount).toFixed(3))]))),exchangeRange:Object.freeze([Math.min(...counts),Math.max(...counts)]),meaningfulLeadChangeRate:Number(leadChangeRate.toFixed(3)),averageLeadChanges:Number((leadChangeCounts.reduce((sum,count)=>sum+count,0)/simulationCount).toFixed(2)),finalGapRange:Object.freeze([Math.min(...finalGaps),Math.max(...finalGaps)]),eventTypes:Object.freeze([...eventTypes])});
+      const defenseRate=defenseCounts.reduce((sum,count)=>sum+count,0)/counts.reduce((sum,count)=>sum+count,0);
+      const passed=structuredAttacks&&!failures.length&&outcomes.length===simulationCount&&templates.size===NARRATIVE_TEMPLATES.length&&counts.every(count=>count>=10&&count<=16)&&outcomes.every(result=>result.valid&&result.hpA>0&&result.hpB>0)&&leadChangeRate>=.6&&leadChangeRate<=.7&&leadChangeNarrativeRate>=.82&&leadChangeNarrativeRate<=.88&&defenseRate<=.2&&Math.max(...finalGaps)<=18&&requiredEvents.every(type=>eventTypes.has(type));
+      window.__phase3Simulation=Object.freeze({passed,simulationCount,failureCount:failures.length,failures:Object.freeze(failures.slice(0,5)),templateCount:templates.size,narrativeKindRates:Object.freeze({leadChange:Number(leadChangeNarrativeRate.toFixed(3)),steady:Number((narrativeKinds.steady/simulationCount).toFixed(3))}),closingStyleRates:Object.freeze(Object.fromEntries(Object.entries(closingStyles).map(([key,value])=>[key,Number((value/simulationCount).toFixed(3))]))),exchangeRange:Object.freeze([Math.min(...counts),Math.max(...counts)]),defenseRate:Number(defenseRate.toFixed(3)),defenseCountRange:Object.freeze([Math.min(...defenseCounts),Math.max(...defenseCounts)]),meaningfulLeadChangeRate:Number(leadChangeRate.toFixed(3)),averageLeadChanges:Number((leadChangeCounts.reduce((sum,count)=>sum+count,0)/simulationCount).toFixed(2)),finalGapRange:Object.freeze([Math.min(...finalGaps),Math.max(...finalGaps)]),eventTypes:Object.freeze([...eventTypes])});
       document.documentElement.dataset.phase3Simulation=JSON.stringify(window.__phase3Simulation);
       console.info("Phase 3 simulation",window.__phase3Simulation);
       return passed;
