@@ -54,7 +54,8 @@
       const step = Math.sin(time * 14); rig.footX += step * 22; rig.rearX -= step * 22;
       rig.footY = -Math.max(0, step) * 12; rig.rearY = Math.min(0, step) * 12;
       rig.kneeX += step * 10; rig.rearKneeX -= step * 10; rig.fx -= step * 8; rig.bx += step * 8;
-    } else if (state === 'block') Object.assign(rig, { fx: 27, fy: -169, ex: 43, ey: -142, bx: 13, by: -146, bex: -8, bey: -124, lean: -.13, crouch: 7 });
+    } else if (state === 'showcase') Object.assign(rig, { fx: 48, fy: -153, ex: 35, ey: -128, bx: -40, by: -109, prop: -.15, lean: -.05 });
+    else if (state === 'block') Object.assign(rig, { fx: 27, fy: -169, ex: 43, ey: -142, bx: 13, by: -146, bex: -8, bey: -124, lean: -.13, crouch: 7 });
     else if (state === 'duck') Object.assign(rig, { crouch: 42, lean: -.27, footX: 47, rearX: -42, kneeX: 49, rearKneeX: -43, fx: 22, fy: -157 });
     else if (state === 'jump') Object.assign(rig, { lift: 54, footX: 12, footY: -34, kneeX: 38, kneeY: -57, rearY: -29, rearKneeX: -44, fx: 25, fy: -159 });
     else if (state === 'backstep') Object.assign(rig, { lean: -.3, footX: 14, footY: -9, rearX: -47, fx: 18, fy: -154 });
@@ -69,7 +70,7 @@
   function drawFighter(c, job, x, y, scale, side = 0, state = 'idle', pose = 0, time = 0, move = 0) {
     const r = rigFor(job, state, clamp(pose), time, move), dir = side ? -1 : 1;
     const [color, dark] = COLORS[job];
-    const attack = ['jab', 'heavy', 'special', 'counter', 'projectile'].includes(state);
+    const attack = ['jab', 'heavy', 'special', 'counter', 'projectile', 'showcase'].includes(state);
     const hurt = ['hit', 'knockdown', 'lose'].includes(state);
     const skin = '#f0bd95', ink = '#151c2b';
     const path = (points, fill, width = 3) => { c.beginPath(); points.forEach((p, i) => i ? c.lineTo(...p) : c.moveTo(...p)); c.closePath(); c.fillStyle = fill; c.fill(); c.strokeStyle = ink; c.lineWidth = width; c.stroke(); };

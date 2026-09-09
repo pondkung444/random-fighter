@@ -272,7 +272,7 @@
           c.fillStyle = JOBS[j].dark; c.beginPath(); c.moveTo(0, 115); c.lineTo(1000, 30); c.lineTo(1000, 415); c.lineTo(0, 510); c.fill();
           if (!this.reduced) { c.strokeStyle = JOBS[j].color + '55'; c.lineWidth = 2; for (let i = 0; i < 18; i++) { c.beginPath(); c.moveTo(0, 80 + i * 24); c.lineTo(1000, i * 24 - 35); c.stroke(); } }
           const entrance = this.reduced ? 1 : Math.min(1, this.cut.age / .3);
-          drawFighter(c, j, (this.cut.side ? 765 : 235) + (this.cut.side ? 1 : -1) * (1 - entrance) * 150, 560, 2.1, this.cut.side, 'special', .2, this.cut.age, 4);
+          drawFighter(c, j, (this.cut.side ? 765 : 235) + (this.cut.side ? 1 : -1) * (1 - entrance) * 150, 540, 2, this.cut.side, 'showcase', .2, this.cut.age, 4);
           c.textAlign = this.cut.side ? 'left' : 'right'; const tx = this.cut.side ? 55 : 945;
           c.fillStyle = '#ffe1a0'; c.font = 'bold 20px sans-serif'; c.fillText(this.cut.special ? 'SIGNATURE ART' : 'LIMIT BREAK', tx, 178);
           c.fillStyle = '#fff'; c.font = '900 42px Kanit, sans-serif'; c.fillText(this.cut.name, tx, 246, 570);
@@ -283,6 +283,7 @@
       this.el.battleTimer.textContent = String(Math.max(0, Math.ceil(20 - this.fight.time))).padStart(2, '0');
       this.el.battleNote.textContent = this.fight.ko ? 'จบด้วยน็อกเอาต์!' : this.textUntil > this.fight.time ? this.text : 'ขยับหาช่อง • แย่งจังหวะ';
       this.el.battleNote.style.color = this.textColor || '#fff';
+      this.el.battleNote.classList.toggle('hidden', Boolean(this.cut));
     }
     run() {
       return new Promise(resolve => {
