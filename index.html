@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Random Fighter — Combat Variety KO</title>
+  <title>Random Fighter — After School Arena</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -255,6 +255,15 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
+    .profession-button { grid-template-columns: 86px 1fr 24px; min-height: 99px; padding: 4px 12px 4px 0; }
+    .job-portrait { width: 86px; height: 86px; object-fit: contain; }
+    .vs-portrait { display: block; width: min(100%, 280px); height: 200px; object-fit: contain; margin: 0 auto 12px; }
+    .hud-job { color: var(--gold); font-size: clamp(12px, 1.6vw, 17px); margin: 5px 0; }
+    .battle-note { font-size: clamp(14px, 2vw, 23px); border-radius: 6px; font-weight: 800; }
+    .hp-fill { transition: width .16s ease-out; }
+    .arena { height: auto; aspect-ratio: 1000 / 540; min-height: 0; }
+    .battle-canvas { position: absolute; inset: 0; }
+    @media (max-width: 560px) { .arena { min-height: 0; } .vs-portrait { height: 130px; } .battle-content { margin-top: 10vh; } .battle-note { font-size: 12px; bottom: 1%; } }
   </style>
 </head>
 <body>
@@ -264,7 +273,7 @@
     <section class="screen" id="setupScreen">
       <div class="content">
         <header class="brand">
-          <div class="eyebrow pixel">COMBAT VARIETY · KO BUILD</div>
+          <div class="eyebrow pixel">AFTER SCHOOL ARENA</div>
           <h1>RANDOM <span>FIGHTER</span></h1>
           <p class="subtitle">สุ่มผู้ท้าชิง 2 คน เพื่อเข้าสู่สังเวียน</p>
         </header>
@@ -380,6 +389,8 @@
     </section>
   </main>
 
+  <script src="fighter-art.js"></script>
+  <script src="combat.js"></script>
   <script>
     "use strict";
 
@@ -491,9 +502,10 @@
       button.disabled = selectedByOpponent;
       button.dataset.professionId = profession.id;
       button.setAttribute("aria-pressed", String(selectedHere));
-      const icon = document.createElement("span");
-      icon.className = "job-icon";
-      icon.textContent = profession.icon;
+      const icon = document.createElement("canvas");
+      icon.className = "job-portrait";
+      icon.setAttribute("aria-hidden", "true");
+      RandomFighterCombat.portrait(icon, profession.id);
       const name = document.createElement("span");
       name.className = "job-name";
       name.textContent = profession.name;
@@ -538,388 +550,8 @@
       elements.selectionPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
-    const COMBAT_POOLS = Object.freeze({
-      moods: ["technical", "brawl", "counter", "chase", "chaos", "lateStorm"],
-      openings: ["aPressure", "bPressure", "trade", "doubleDodge", "whiffCounter", "cautious"],
-      mids: ["counterTurn", "knockdownTurn", "tradeTurn", "leaderGuards", "chaserRush", "signatureTurn", "dodgePunish", "heavyWhiff"],
-      endings: ["heavyKO", "counterKO", "signatureKO", "comebackKO", "simpleKO", "tradeKO", "getupKO", "whiffKO"]
-    });
-    const EVENT_LABELS = Object.freeze({
-      light: "โจมตีเร็ว!", heavy: "ท่าหนัก!", block: "ตั้งการ์ดรับ!", dodge: "หลบได้!",
-      counter: "สวนกลับ!", trade: "แลกกันเต็มแรง!", knockdown: "ล้มลง!",
-      signature: "SIGNATURE MOVE!", final: "ท่าปิดเกม!"
-    });
-    const JOB_COLORS = Object.freeze({ takraw: "#39e7ff", somtam: "#ff4f70", lottery: "#b978ff", student: "#ffd34e" });
-    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-    const randomBetween = (min, max) => min + Math.random() * (max - min);
-    const randomInt = (min, max) => Math.floor(randomBetween(min, max + 1));
-    const pick = list => list[Math.floor(Math.random() * list.length)];
-    const ease = value => value < .5 ? 2 * value * value : 1 - Math.pow(-2 * value + 2, 2) / 2;
-
-    function chooseVariety(poolName, recentDepth) {
-      const recent = appState.combatHistory.slice(-recentDepth).map(item => item[poolName]);
-      const candidates = COMBAT_POOLS[poolName].filter(item => !recent.includes(item));
-      return pick(candidates.length ? candidates : COMBAT_POOLS[poolName]);
-    }
-
-    function makeCombatFingerprint() {
-      return {
-        moods: chooseVariety("moods", 1),
-        openings: chooseVariety("openings", 1),
-        mids: chooseVariety("mids", 2),
-        endings: chooseVariety("endings", 3)
-      };
-    }
-
-    function eventTypeFor(index, count, fingerprint) {
-      const progress = index / Math.max(1, count - 1);
-      const early = ["light", "block", "dodge", "light", "counter", "trade"];
-      const middle = ["light", "heavy", "block", "counter", "trade", "knockdown", "dodge"];
-      const late = ["heavy", "counter", "trade", "knockdown", "signature", "light"];
-      let type = pick(progress < .32 ? early : progress < .72 ? middle : late);
-      if (fingerprint.mids === "signatureTurn" && index === Math.floor(count * .58)) type = "signature";
-      if (fingerprint.mids === "knockdownTurn" && index === Math.floor(count * .52)) type = "knockdown";
-      if (fingerprint.openings === "doubleDodge" && index < 2) type = "dodge";
-      if (fingerprint.openings === "trade" && index === 0) type = "trade";
-      if (fingerprint.openings === "whiffCounter" && index === 1) type = "counter";
-      return type;
-    }
-
-    function generateFightPlan(loserSide) {
-      const winnerSide = loserSide === "A" ? "B" : "A";
-      const fingerprint = makeCombatFingerprint();
-      const count = randomInt(11, 15);
-      const koAt = randomBetween(18.0, 19.45);
-      const spacing = (koAt - .45) / count;
-      const events = [];
-      let lastAttacker = null;
-      let knockdowns = 0;
-
-      for (let index = 0; index < count - 1; index += 1) {
-        let attacker;
-        if (index === 0 && fingerprint.openings === "aPressure") attacker = "A";
-        else if (index === 0 && fingerprint.openings === "bPressure") attacker = "B";
-        else if (lastAttacker && Math.random() < .58) attacker = lastAttacker === "A" ? "B" : "A";
-        else attacker = Math.random() < .5 ? "A" : "B";
-        let type = eventTypeFor(index, count, fingerprint);
-        if (type === "knockdown" && knockdowns >= 2) type = "heavy";
-        if (type === "knockdown") knockdowns += 1;
-        if (index > 0 && events[index - 1].type === type && ["knockdown", "signature", "counter"].includes(type)) type = "light";
-        events.push({
-          id: index,
-          start: .35 + index * spacing + randomBetween(-.10, .10),
-          duration: clamp(spacing * randomBetween(.78, .96), .72, 1.28),
-          attacker,
-          type,
-          applied: false
-        });
-        lastAttacker = attacker;
-      }
-
-      const endingMap = {
-        heavyKO: "heavy", counterKO: "counter", signatureKO: "signature", comebackKO: "signature",
-        simpleKO: "light", tradeKO: "trade", getupKO: "heavy", whiffKO: "counter"
-      };
-      const finalType = endingMap[fingerprint.endings];
-      events.push({
-        id: count - 1,
-        start: koAt - .92,
-        duration: .92,
-        attacker: finalType === "counter" ? loserSide : winnerSide,
-        type: finalType,
-        final: true,
-        applied: false
-      });
-
-      appState.combatHistory.push(fingerprint);
-      if (appState.combatHistory.length > 5) appState.combatHistory.shift();
-      return { events, fingerprint, koAt, loserSide, winnerSide };
-    }
-
-    class CanvasBattle {
-      constructor(plan, jobs) {
-        this.plan = plan;
-        this.jobs = jobs;
-        this.canvas = elements.battleCanvas;
-        this.ctx = this.canvas.getContext("2d");
-        this.hp = { A: 100, B: 100 };
-        this.current = null;
-        this.particles = [];
-        this.ko = false;
-        this.koElapsed = 0;
-        this.raf = 0;
-        this.lastTimer = null;
-        this.speed = new URLSearchParams(location.search).has("testSpeed") ? 8 : 1;
-      }
-
-      resize() {
-        const rect = this.canvas.getBoundingClientRect();
-        const dpr = Math.min(2, window.devicePixelRatio || 1);
-        const width = Math.max(1, Math.round(rect.width * dpr));
-        const height = Math.max(1, Math.round(rect.height * dpr));
-        if (this.canvas.width !== width || this.canvas.height !== height) {
-          this.canvas.width = width;
-          this.canvas.height = height;
-        }
-        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        this.width = rect.width;
-        this.height = rect.height;
-      }
-
-      positions(event, local) {
-        const strike = Math.sin(Math.PI * clamp(local, 0, 1));
-        const attackerAdvance = ease(clamp(strike * 1.22, 0, 1));
-        let xA = this.width * .25;
-        let xB = this.width * .75;
-        if (event) {
-          if (event.type === "trade") {
-            xA += this.width * .21 * attackerAdvance;
-            xB -= this.width * .21 * attackerAdvance;
-          } else if (event.attacker === "A") {
-            xA += this.width * .30 * attackerAdvance;
-            xB -= this.width * .12 * attackerAdvance;
-          } else {
-            xB -= this.width * .30 * attackerAdvance;
-            xA += this.width * .12 * attackerAdvance;
-          }
-        }
-        return { A: xA, B: xB };
-      }
-
-      contact(event, local) {
-        const positions = this.positions(event, local);
-        return Math.abs(positions.B - positions.A) <= Math.max(96, this.width * .115);
-      }
-
-      damageFor(type) {
-        if (type === "block") return randomInt(2, 4);
-        if (type === "light") return randomInt(7, 11);
-        if (type === "heavy") return randomInt(13, 18);
-        if (type === "knockdown") return randomInt(16, 22);
-        if (type === "signature") return randomInt(19, 26);
-        if (type === "counter") return randomInt(10, 16);
-        if (type === "trade") return randomInt(7, 12);
-        return 0;
-      }
-
-      applyDamage(side, amount, final = false) {
-        if (final && side === this.plan.loserSide) {
-          this.hp[side] = 0;
-        } else {
-          const floor = side === this.plan.loserSide ? 7 : 6;
-          this.hp[side] = Math.max(floor, this.hp[side] - amount);
-        }
-        const element = side === "A" ? elements.hpA : elements.hpB;
-        element.style.width = `${this.hp[side]}%`;
-      }
-
-      burst(side, strong) {
-        const positions = this.positions(this.current, .5);
-        const x = positions[side];
-        const y = this.height * .48;
-        const count = strong ? 18 : 9;
-        for (let index = 0; index < count; index += 1) {
-          this.particles.push({
-            x, y, born: this.elapsed,
-            vx: randomBetween(-115, 115), vy: randomBetween(-150, 35),
-            color: index % 4 === 0 ? "#ff385d" : index % 2 ? "#fff4a8" : "#ffffff",
-            size: randomBetween(2, strong ? 7 : 5)
-          });
-        }
-        elements.arena.classList.remove("flash", "shake");
-        void elements.arena.offsetWidth;
-        elements.arena.classList.add("flash");
-        if (strong) elements.arena.classList.add("shake");
-      }
-
-      resolve(event, local) {
-        if (event.applied) return;
-        const hitPoint = event.type === "counter" ? .68 : .49;
-        if (local < hitPoint) return;
-        event.applied = true;
-        const defender = event.attacker === "A" ? "B" : "A";
-        if (event.type === "dodge") return;
-        if (!this.contact(event, event.type === "counter" ? .52 : .5)) return;
-        if (event.type === "counter") {
-          this.applyDamage(event.attacker, this.damageFor(event.type), event.final && event.attacker === this.plan.loserSide);
-          this.burst(event.attacker, event.final);
-        } else if (event.type === "trade") {
-          this.applyDamage(defender, this.damageFor(event.type), event.final && defender === this.plan.loserSide);
-          if (!event.final) this.applyDamage(event.attacker, this.damageFor(event.type));
-          this.burst(defender, event.final);
-        } else {
-          this.applyDamage(defender, this.damageFor(event.type), event.final);
-          this.burst(defender, event.final || ["heavy", "signature", "knockdown"].includes(event.type));
-        }
-        if (event.final) {
-          this.ko = true;
-          this.koElapsed = this.elapsed;
-        }
-      }
-
-      fighterState(side, event, local) {
-        if (this.ko) return side === this.plan.loserSide ? "lose" : "victory";
-        if (!event) return "idle";
-        const attacker = event.attacker;
-        const defender = attacker === "A" ? "B" : "A";
-        if (event.type === "counter") {
-          if (local < .48) return side === attacker ? "attack" : "dodge";
-          return side === defender ? "attack" : "hit";
-        }
-        if (event.type === "trade") return local < .57 ? "attack" : "hit";
-        if (side === attacker) return event.type === "signature" ? "signature" : event.type === "heavy" ? "heavy" : "attack";
-        if (event.type === "block") return "block";
-        if (event.type === "dodge") return "dodge";
-        if (event.type === "knockdown" && local > .48) return "knockdown";
-        return local > .45 && local < .78 ? "hit" : "idle";
-      }
-
-      drawArena() {
-        const ctx = this.ctx;
-        const w = this.width;
-        const h = this.height;
-        const sky = ctx.createLinearGradient(0, 0, 0, h);
-        sky.addColorStop(0, "#132653"); sky.addColorStop(.58, "#48285d"); sky.addColorStop(.59, "#e15a70"); sky.addColorStop(.62, "#241d43"); sky.addColorStop(1, "#111326");
-        ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
-        ctx.fillStyle = "rgba(255,255,255,.035)";
-        for (let x = 0; x < w; x += 72) ctx.fillRect(x, 0, 2, h * .58);
-        ctx.strokeStyle = "rgba(255,211,89,.20)"; ctx.lineWidth = 2;
-        for (let x = -w; x < w * 2; x += 90) {
-          ctx.beginPath(); ctx.moveTo(w / 2, h * .60); ctx.lineTo(x, h); ctx.stroke();
-        }
-        for (let y = h * .64; y < h; y += 36) {
-          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-        }
-        ctx.fillStyle = "rgba(5,7,19,.42)"; ctx.fillRect(0, h * .83, w, h * .17);
-      }
-
-      drawFighter(side, x, state, local) {
-        const ctx = this.ctx;
-        const dir = side === "A" ? 1 : -1;
-        const ground = this.height * .80;
-        const scale = clamp(this.height / 500, .68, 1.12);
-        const color = JOB_COLORS[this.jobs[side].id] || (side === "A" ? "#4cf3ff" : "#ff4fd8");
-        const bob = state === "idle" ? Math.sin(this.elapsed * 5 + (side === "A" ? 0 : 1.2)) * 3 : 0;
-        let rotation = 0;
-        let y = ground + bob;
-        if (state === "hit") rotation = -dir * .15;
-        if (state === "dodge") rotation = -dir * .22;
-        if (state === "knockdown" || state === "lose") rotation = -dir * 1.34;
-        if (state === "victory") y -= Math.abs(Math.sin(this.elapsed * 5)) * 5;
-
-        ctx.save(); ctx.translate(x, y); ctx.rotate(rotation); ctx.scale(scale, scale);
-        ctx.lineCap = "round"; ctx.lineJoin = "round";
-        const headY = -132;
-        const shoulderY = -92;
-        const hipY = -35;
-        let frontHand = { x: dir * 36, y: -69 }, backHand = { x: -dir * 28, y: -62 };
-        let frontFoot = { x: dir * 31, y: 0 }, backFoot = { x: -dir * 27, y: 0 };
-        const punch = Math.sin(Math.PI * clamp(local, 0, 1));
-        if (["attack", "heavy", "signature"].includes(state)) {
-          const reach = state === "signature" ? 78 : state === "heavy" ? 70 : 60;
-          frontHand = { x: dir * (34 + reach * punch), y: -82 + (state === "heavy" ? -24 * punch : 0) };
-          if (this.jobs[side].id === "takraw" || state === "signature") frontFoot = { x: dir * (35 + 72 * punch), y: -54 * punch };
-        } else if (state === "block") {
-          frontHand = { x: dir * 34, y: -112 }; backHand = { x: dir * 17, y: -96 };
-        } else if (state === "victory") {
-          frontHand = { x: dir * 39, y: -155 }; backHand = { x: -dir * 39, y: -155 };
-        }
-        const shoulderA = { x: dir * 11, y: shoulderY }, shoulderB = { x: -dir * 11, y: shoulderY };
-        const elbowA = { x: (shoulderA.x + frontHand.x) * .48, y: (shoulderA.y + frontHand.y) * .48 - 9 };
-        const elbowB = { x: (shoulderB.x + backHand.x) * .5, y: (shoulderB.y + backHand.y) * .5 + 7 };
-        const kneeA = { x: frontFoot.x * .52, y: -18 + frontFoot.y * .44 };
-        const kneeB = { x: backFoot.x * .52, y: -18 + backFoot.y * .44 };
-        const limb = (a, b, c) => { ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.stroke(); };
-
-        ctx.strokeStyle = "#090b16"; ctx.lineWidth = 15;
-        ctx.beginPath(); ctx.moveTo(0, shoulderY); ctx.lineTo(0, hipY); ctx.stroke();
-        limb(shoulderA, elbowA, frontHand); limb(shoulderB, elbowB, backHand);
-        limb({x:0,y:hipY}, kneeA, frontFoot); limb({x:0,y:hipY}, kneeB, backFoot);
-        ctx.strokeStyle = color; ctx.lineWidth = 8;
-        ctx.beginPath(); ctx.moveTo(0, shoulderY); ctx.lineTo(0, hipY); ctx.stroke();
-        limb(shoulderA, elbowA, frontHand); limb(shoulderB, elbowB, backHand);
-        limb({x:0,y:hipY}, kneeA, frontFoot); limb({x:0,y:hipY}, kneeB, backFoot);
-        ctx.fillStyle = "#f4c89a"; ctx.strokeStyle = "#090b16"; ctx.lineWidth = 7;
-        ctx.beginPath(); ctx.arc(0, headY, 24, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#0b0d17";
-        ctx.beginPath(); ctx.arc(dir * 8, headY - 3, 3, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = color; ctx.lineWidth = 9;
-        if (this.jobs[side].id === "somtam") {
-          ctx.beginPath(); ctx.moveTo(frontHand.x, frontHand.y); ctx.lineTo(frontHand.x + dir * 38, frontHand.y - 20); ctx.stroke();
-        } else if (this.jobs[side].id === "lottery") {
-          ctx.fillStyle = "#ffe55a"; ctx.fillRect(frontHand.x - 9, frontHand.y - 14, 18, 24);
-        } else if (this.jobs[side].id === "student") {
-          ctx.fillStyle = "#fff"; ctx.fillRect(frontHand.x - 13, frontHand.y - 11, 25, 20);
-          ctx.strokeStyle = "#5b7cff"; ctx.lineWidth = 3; ctx.strokeRect(frontHand.x - 13, frontHand.y - 11, 25, 20);
-        } else {
-          ctx.strokeStyle = "#ffe44d"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(frontFoot.x + dir * 15, frontFoot.y - 8, 10, 0, Math.PI * 2); ctx.stroke();
-        }
-        ctx.restore();
-      }
-
-      drawParticles() {
-        const ctx = this.ctx;
-        this.particles = this.particles.filter(particle => this.elapsed - particle.born < .72);
-        this.particles.forEach(particle => {
-          const age = this.elapsed - particle.born;
-          const x = particle.x + particle.vx * age;
-          const y = particle.y + particle.vy * age + 190 * age * age;
-          ctx.globalAlpha = 1 - age / .72;
-          ctx.fillStyle = particle.color;
-          ctx.beginPath(); ctx.arc(x, y, particle.size, 0, Math.PI * 2); ctx.fill();
-        });
-        ctx.globalAlpha = 1;
-      }
-
-      draw() {
-        this.resize();
-        this.drawArena();
-        let event = this.current;
-        let local = event ? clamp((this.elapsed - event.start) / event.duration, 0, 1) : 0;
-        const positions = this.positions(event, local);
-        this.drawFighter("A", positions.A, this.fighterState("A", event, local), local);
-        this.drawFighter("B", positions.B, this.fighterState("B", event, local), local);
-        this.drawParticles();
-      }
-
-      run() {
-        return new Promise(resolve => {
-          const start = performance.now();
-          const tick = now => {
-            this.elapsed = ((now - start) / 1000) * this.speed;
-            this.current = this.plan.events.find(event => this.elapsed >= event.start && this.elapsed <= event.start + event.duration) || null;
-            this.plan.events.forEach(event => {
-              const hitPoint = event.type === "counter" ? .68 : .49;
-              if (!event.applied && this.elapsed >= event.start + event.duration * hitPoint) this.resolve(event, hitPoint);
-            });
-            if (this.current) {
-              const local = clamp((this.elapsed - this.current.start) / this.current.duration, 0, 1);
-              this.resolve(this.current, local);
-              elements.battleNote.textContent = EVENT_LABELS[this.current.final ? "final" : this.current.type] || "ปะทะ!";
-            } else if (!this.ko) {
-              elements.battleNote.textContent = "จับจังหวะ...";
-            }
-            const remaining = Math.max(0, 20 - this.elapsed);
-            const timer = Math.ceil(remaining);
-            if (timer !== this.lastTimer) {
-              elements.battleTimer.textContent = String(timer).padStart(2, "0");
-              this.lastTimer = timer;
-            }
-            this.draw();
-            if (this.ko && this.elapsed - this.koElapsed > 1.35 * this.speed) {
-              cancelAnimationFrame(this.raf);
-              resolve(this.hp);
-              return;
-            }
-            this.raf = requestAnimationFrame(tick);
-          };
-          this.raf = requestAnimationFrame(tick);
-        });
-      }
-    }
-
     async function playCombatBattle() {
-      if (!appState.round) return;
+      if (!appState.round || appState.phase !== "profession") return;
       const [fighterA, fighterB] = appState.round.fighters;
       const jobA = professionById(appState.round.professions.fighterA);
       const jobB = professionById(appState.round.professions.fighterB);
@@ -929,28 +561,40 @@
       elements.vsBName.textContent = fighterB.name;
       elements.vsAJob.textContent = `${jobA.icon} ${jobA.name}`;
       elements.vsBJob.textContent = `${jobB.icon} ${jobB.name}`;
+      [elements.vsAName, elements.vsBName].forEach((name, side) => {
+        name.parentElement.querySelector("canvas")?.remove();
+        const portrait = document.createElement("canvas");
+        portrait.className = "vs-portrait";
+        portrait.setAttribute("aria-hidden", "true");
+        name.before(portrait);
+        RandomFighterCombat.portrait(portrait, side ? jobB.id : jobA.id);
+      });
       setScreen("vs");
       await wait(1800);
       if (appState.phase !== "vs") return;
 
       elements.hudAName.textContent = fighterA.name;
       elements.hudBName.textContent = fighterB.name;
+      [elements.hudAName, elements.hudBName].forEach((name, side) => {
+        name.parentElement.querySelector(".hud-job")?.remove();
+        const label = document.createElement("div");
+        label.className = "hud-job";
+        label.textContent = side ? jobB.name : jobA.name;
+        name.after(label);
+      });
       elements.hpA.style.width = "100%";
       elements.hpB.style.width = "100%";
       elements.battleTimer.textContent = "20";
       elements.arenaLabel.textContent = "FIGHT!";
       elements.arenaLabel.classList.remove("hidden");
       setScreen("battle");
+      const loserSide = appState.round.lockedLoserId === fighterA.id ? 0 : 1;
+      const battle = new RandomFighterCombat.Battle(elements, [jobA.id, jobB.id], loserSide);
+      battle.draw();
       await wait(700);
       elements.arenaLabel.classList.add("hidden");
 
-      const loserSide = appState.round.lockedLoserId === fighterA.id ? "A" : "B";
-      const plan = generateFightPlan(loserSide);
-      const battle = new CanvasBattle(plan, { A: jobA, B: jobB });
       await battle.run();
-      elements.arenaLabel.textContent = "KO!";
-      elements.arenaLabel.classList.remove("hidden");
-      await wait(1100);
       showResult();
     }
 

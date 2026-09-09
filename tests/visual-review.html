@@ -1,0 +1,15 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><title>Character motion review</title>
+<style>body{margin:0;background:#111a2b;color:white;font-family:sans-serif}canvas{width:100%;display:block}</style>
+<canvas id="sheet" width="1600" height="1320"></canvas><script src="/fighter-art.js"></script>
+<script>
+const c=document.getElementById('sheet').getContext('2d');
+const samples=[['idle',0,0],['heavy',.22,3],['heavy',.55,3],['special',.55,4],['hit',0,0]];
+Object.keys(RandomFighterArt.POSES).forEach((job,row)=>{
+ samples.forEach(([state,p,move],col)=>{
+  const x=col*320,y=row*330;
+  c.fillStyle=(row+col)%2?'#1e2940':'#192238';c.fillRect(x,y,320,330);
+  c.fillStyle='#dae4f2';c.font='16px sans-serif';c.textAlign='center';c.fillText(job+' / '+state,x+160,y+25);
+  RandomFighterArt.drawFighter(c,job,x+150,y+307,1.03,0,state,p,1,move);
+ });
+});
+</script></html>
