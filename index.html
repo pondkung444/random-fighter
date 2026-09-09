@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Random Fighter — Classroom Edition</title>
+  <title>Random Fighter — Combat Variety KO</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -216,31 +216,22 @@
     .hud-side { min-width: 0; }
     .hud-side.right { text-align: right; }
     .hud-name { margin-bottom: 7px; overflow: hidden; text-overflow: ellipsis; font-size: clamp(18px, 3vw, 31px); font-weight: 900; white-space: nowrap; }
-    .hud-job { margin: -3px 0 7px; overflow: hidden; color: var(--gold); font-size: clamp(11px,1.5vw,16px); font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
     .hp-shell { height: clamp(22px, 3.2vw, 34px); overflow: hidden; border: 4px solid #e9e6ff; background: #3f1431; box-shadow: 4px 4px 0 #000; }
     .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #31ed82, #b8ff52); transform-origin: left; transition: width .55s ease; }
     .right .hp-fill { margin-left: auto; transform-origin: right; }
     .timer-box { padding: 10px 4px; border: 4px solid var(--gold); color: var(--gold); background: #151a36; box-shadow: 4px 4px 0 #000; font-size: clamp(23px, 4vw, 36px); text-align: center; }
-    .arena { position: relative; height: min(62vh, 570px); min-height: 330px; overflow: hidden; border: 4px solid #424a7c; background: linear-gradient(#172852 0 58%, #663b67 58% 61%, #1a1832 61%); box-shadow: 0 22px 60px #000; }
-    .arena::before { position: absolute; inset: 0 0 39%; content: ""; background: repeating-linear-gradient(90deg, transparent 0 70px, rgba(255,255,255,.035) 70px 72px), linear-gradient(180deg, transparent, rgba(255,79,216,.15)); }
-    .arena::after { position: absolute; inset: 61% 0 0; content: ""; background: repeating-linear-gradient(90deg, transparent 0 86px, rgba(255,201,74,.12) 86px 89px); transform: perspective(240px) rotateX(55deg); transform-origin: top; }
-    #fightCanvas { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; }
+    .arena { position: relative; height: min(62vh, 570px); min-height: 330px; overflow: hidden; border: 4px solid #424a7c; background: #101634; box-shadow: 0 22px 60px #000; }
+    .battle-canvas { display: block; width: 100%; height: 100%; }
+    .arena.flash { animation: arenaFlash .18s steps(2); }
+    .arena.shake { animation: arenaShake .24s ease; }
+    @keyframes arenaFlash { 50% { filter: brightness(1.8) saturate(1.35); } }
+    @keyframes arenaShake { 25% { transform: translateX(-7px); } 55% { transform: translateX(6px); } 80% { transform: translateX(-3px); } }
     .arena-label { position: absolute; inset: 42% 0 auto; z-index: 4; color: #fff; font-size: clamp(42px, 9vw, 100px); text-align: center; text-shadow: 6px 6px 0 #9b1b47, 0 0 28px #ff4fd8; pointer-events: none; }
-    .banter { position: absolute; top: 10%; z-index: 5; max-width: 34%; padding: 9px 14px; border: 3px solid #101425; border-radius: 16px; color: #101425; background: #fff8d8; box-shadow: 4px 4px 0 rgba(0,0,0,.45); font-size: clamp(15px,2vw,24px); font-weight: 900; line-height: 1.15; text-align: center; pointer-events: none; }
-    .banter::after { position: absolute; bottom: -13px; content: ""; border: 8px solid transparent; border-top-color: #101425; }
-    .banter-a { left: 9%; } .banter-a::after { left: 22%; }
-    .banter-b { right: 9%; } .banter-b::after { right: 22%; }
-    .battle-note { position: absolute; left: 50%; bottom: 2%; z-index: 4; width: max-content; max-width: 88%; padding: 7px 12px; border: 1px solid rgba(255,255,255,.15); border-radius: 999px; color: var(--muted); background: rgba(8,11,25,.82); font-size: 13px; transform: translateX(-50%); }
-    .animation-lab { position: fixed; right: 12px; bottom: 12px; z-index: 20; width: min(360px, calc(100vw - 24px)); padding: 12px; border: 1px solid rgba(76,243,255,.45); border-radius: 14px; background: rgba(8,11,25,.94); box-shadow: 0 12px 40px #000; }
-    .lab-title { margin-bottom: 8px; color: var(--cyan); font-size: 10px; }
-    .lab-controls { display: flex; flex-wrap: wrap; gap: 6px; }
-    .lab-controls button { padding: 6px 9px; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; color: var(--ink); background: rgba(255,255,255,.08); cursor: pointer; }
-    .lab-status { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+    .battle-note { position: absolute; left: 50%; bottom: 3%; z-index: 4; width: max-content; max-width: 88%; padding: 7px 12px; border: 1px solid rgba(255,255,255,.15); border-radius: 999px; color: #fff; background: rgba(8,11,25,.78); font-size: 13px; transform: translateX(-50%); }
 
     .result-kicker { color: var(--danger); font-size: clamp(11px,1.8vw,15px); }
-    .result-title { margin: 16px 0 8px; color: var(--gold); font-size: clamp(21px,3vw,36px); line-height: 1.1; }
-    .result-loser { margin: 0 0 12px; color: #fff; font-size: clamp(46px,8vw,94px); font-weight: 900; line-height: 1.05; overflow-wrap: anywhere; text-shadow: 5px 5px 0 #8a173f, 0 0 30px rgba(255,79,216,.38); }
-    .result-copy { margin: 0 0 24px; color: var(--gold); font-size: clamp(25px,4vw,48px); font-weight: 900; }
+    .result-title { margin: 18px 0 10px; color: #fff; font-size: clamp(38px, 7vw, 78px); line-height: 1.08; text-shadow: 4px 4px 0 #8a173f; }
+    .result-copy { margin: 0 0 26px; color: var(--gold); font-size: clamp(20px,3vw,34px); font-weight: 800; }
     .result-jobs { margin-bottom: 24px; color: var(--muted); }
     .result-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
     .button-next { padding: 14px 24px; color: #251900; background: linear-gradient(#ffd568,#eaa821); box-shadow: 0 5px 0 #865800; }
@@ -260,7 +251,6 @@
       .hud { grid-template-columns: 1fr 62px 1fr; gap: 7px; }
       .timer-box { border-width: 3px; }
       .arena { min-height: 390px; }
-      .battle-note { font-size: 11px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -274,7 +264,7 @@
     <section class="screen" id="setupScreen">
       <div class="content">
         <header class="brand">
-          <div class="eyebrow pixel">CLASSROOM EDITION · RANDOM FIGHTER</div>
+          <div class="eyebrow pixel">COMBAT VARIETY · KO BUILD</div>
           <h1>RANDOM <span>FIGHTER</span></h1>
           <p class="subtitle">สุ่มผู้ท้าชิง 2 คน เพื่อเข้าสู่สังเวียน</p>
         </header>
@@ -364,25 +354,23 @@
     <section class="screen arcade-screen hidden" id="battleScreen" aria-live="assertive">
       <div class="battle-content">
         <div class="hud">
-          <div class="hud-side"><div class="hud-name" id="hudAName"></div><div class="hud-job" id="hudAJob"></div><div class="hp-shell"><div class="hp-fill" id="hpA"></div></div></div>
-          <div class="timer-box pixel" id="battleTimer">03</div>
-          <div class="hud-side right"><div class="hud-name" id="hudBName"></div><div class="hud-job" id="hudBJob"></div><div class="hp-shell"><div class="hp-fill" id="hpB"></div></div></div>
+          <div class="hud-side"><div class="hud-name" id="hudAName"></div><div class="hp-shell"><div class="hp-fill" id="hpA"></div></div></div>
+          <div class="timer-box pixel" id="battleTimer">20</div>
+          <div class="hud-side right"><div class="hud-name" id="hudBName"></div><div class="hp-shell"><div class="hp-fill" id="hpB"></div></div></div>
         </div>
-        <div class="arena">
+        <div class="arena" id="arena">
+          <canvas class="battle-canvas" id="battleCanvas" aria-label="สนามต่อสู้ของนักสู้สองคน"></canvas>
           <div class="arena-label pixel" id="arenaLabel">FIGHT!</div>
-          <div class="banter banter-a hidden" id="banterA"></div><div class="banter banter-b hidden" id="banterB"></div>
-          <canvas id="fightCanvas" aria-label="สนามแสดงแอนิเมชันนักสู้สองคน"></canvas>
-          <div class="battle-note">Random Fighter · Classroom Battle</div>
+          <div class="battle-note" id="battleNote">เตรียมต่อสู้...</div>
         </div>
       </div>
     </section>
 
     <section class="screen arcade-screen hidden" id="resultScreen" aria-live="assertive">
       <div class="result-stage">
-        <div class="result-kicker pixel" id="resultKicker">TIME! · ROUND RESULT</div>
-        <h2 class="result-title"><span id="winnerName"></span> ชนะ</h2>
-        <p class="result-loser"><span id="loserName"></span> แพ้!</p>
-        <p class="result-copy">ออกมาทำโจทย์</p>
+        <div class="result-kicker pixel">KO! · ROUND RESULT</div>
+        <h2 class="result-title"><span id="loserName"></span> แพ้!</h2>
+        <p class="result-copy">ถึงเวลาตอบโจทย์</p>
         <p class="result-jobs" id="resultSummary"></p>
         <div class="result-actions">
           <button class="button button-secondary" id="resultEditButton" type="button">แก้รายชื่อ</button>
@@ -407,13 +395,6 @@
       Object.freeze({ id: "lottery", icon: "🎰", name: "ป้าใบ้หวยสายมู" }),
       Object.freeze({ id: "student", icon: "📚", name: "นักเรียนสายลืมการบ้าน" })
     ]);
-    const PROFESSION_PRESENTATION = Object.freeze({
-      generic: Object.freeze({id:"generic",primary:"#4cf3ff",secondary:"#ff4fd8",clips:{},anchors:{light:"handR",heavy:"handR",signature:"handR",comeback:"handR",counter:"handR"}}),
-      takraw: Object.freeze({id:"takraw",primary:"#1687ff",secondary:"#ffd34e",signatureName:"สายฟ้าฟาดตะกร้อ!",comebackName:"THUNDER SEPAK SMASH!",clips:{idle:"takrawIdle",light:"takrawLight",heavy:"takrawHeavy",signature:"takrawSignature",comeback:"takrawComeback",block:"takrawBlock",hit:"takrawHit",victory:"takrawVictory"},anchors:{light:"footR",heavy:"footR",signature:"footR",comeback:"footR",counter:"footR"}}),
-      somtam: Object.freeze({id:"somtam",primary:"#e94b35",secondary:"#78d64b",signatureName:"ครกเพชฌฆาต!",comebackName:"ส้มตำเดือดนรก!",clips:{idle:"somtamIdle",light:"somtamLight",heavy:"somtamHeavy",signature:"somtamSignature",comeback:"somtamComeback",block:"somtamBlock",hit:"somtamHit",victory:"somtamVictory"},anchors:{light:"pestleTip",heavy:"pestleTip",signature:"pestleTip",comeback:"pestleTip",counter:"pestleTip"}}),
-      lottery: Object.freeze({id:"lottery",primary:"#9b59d0",secondary:"#ffd45c",signatureName:"สามตัวตรง!",comebackName:"เจ้าที่บอกเลข!",clips:{idle:"lotteryIdle",light:"lotteryLight",heavy:"lotteryHeavy",signature:"lotterySignature",comeback:"lotteryComeback",block:"lotteryBlock",hit:"lotteryHit",victory:"lotteryVictory"},anchors:{light:"bookTip",heavy:"bookTip",signature:"projectile",comeback:"bookTip",counter:"bookTip"}}),
-      student: Object.freeze({id:"student",primary:"#2e77d0",secondary:"#f4f7ff",signatureName:"การบ้านถล่ม!",comebackName:"ครูมาแล้ว!",clips:{idle:"studentIdle",light:"studentLight",heavy:"studentHeavy",signature:"studentSignature",comeback:"studentComeback",block:"studentBlock",hit:"studentHit",victory:"studentVictory"},anchors:{light:"bookTip",heavy:"bagTip",signature:"projectile",comeback:"shoulder",counter:"bagTip"}})
-    });
 
     const elements = {
       setupScreen: document.querySelector("#setupScreen"),
@@ -443,11 +424,12 @@
       enterArenaButton: document.querySelector("#enterArenaButton"),
       vsAName: document.querySelector("#vsAName"), vsBName: document.querySelector("#vsBName"),
       vsAJob: document.querySelector("#vsAJob"), vsBJob: document.querySelector("#vsBJob"),
-      hudAName: document.querySelector("#hudAName"), hudBName: document.querySelector("#hudBName"), hudAJob: document.querySelector("#hudAJob"), hudBJob: document.querySelector("#hudBJob"),
+      hudAName: document.querySelector("#hudAName"), hudBName: document.querySelector("#hudBName"),
       hpA: document.querySelector("#hpA"), hpB: document.querySelector("#hpB"),
-      battleTimer: document.querySelector("#battleTimer"), arenaLabel: document.querySelector("#arenaLabel"), banterA: document.querySelector("#banterA"), banterB: document.querySelector("#banterB"),
-      fightCanvas: document.querySelector("#fightCanvas"),
-      winnerName: document.querySelector("#winnerName"), loserName: document.querySelector("#loserName"), resultKicker: document.querySelector("#resultKicker"), resultSummary: document.querySelector("#resultSummary"),
+      battleTimer: document.querySelector("#battleTimer"), arenaLabel: document.querySelector("#arenaLabel"),
+      arena: document.querySelector("#arena"), battleCanvas: document.querySelector("#battleCanvas"),
+      battleNote: document.querySelector("#battleNote"),
+      loserName: document.querySelector("#loserName"), resultSummary: document.querySelector("#resultSummary"),
       nextRoundButton: document.querySelector("#nextRoundButton"), resultEditButton: document.querySelector("#resultEditButton")
     };
 
@@ -456,162 +438,10 @@
       studentPool: [],
       round: null,
       lastRosterText: "",
-      battleRunId: 0,
-      combatEngine: null,
-      battleTimerId: null,
-      roundBusy: false
+      combatHistory: []
     };
 
     const wait = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
-
-    // Phase 1 animation is presentation-only. It never reads or writes lockedLoserId.
-    const RAD = Math.PI / 180;
-    const POSES = Object.freeze({
-      idleA: { rootX:0, rootY:0, torso:-4, head:2, shoulderL:220, elbowL:250, shoulderR:135, elbowR:105, hipL:192, kneeL:174, hipR:168, kneeR:186 },
-      idleB: { rootX:0, rootY:-.012, torso:3, head:-2, shoulderL:225, elbowL:255, shoulderR:128, elbowR:98, hipL:190, kneeL:172, hipR:166, kneeR:188 },
-      brace: { rootX:-.01, rootY:.035, torso:-9, head:5, shoulderL:232, elbowL:272, shoulderR:118, elbowR:78, hipL:202, kneeL:170, hipR:160, kneeR:190 },
-      block: { rootX:-.035, rootY:.02, torso:-14, head:-3, shoulderL:145, elbowL:105, shoulderR:112, elbowR:72, hipL:200, kneeL:168, hipR:158, kneeR:193 },
-      hit: { rootX:-.075, rootY:.025, torso:-25, head:-18, shoulderL:245, elbowL:268, shoulderR:70, elbowR:48, hipL:210, kneeL:175, hipR:154, kneeR:196 },
-      lean: { rootX:-.24, rootY:.01, torso:-34, head:-12, shoulderL:220, elbowL:250, shoulderR:142, elbowR:112, hipL:204, kneeL:176, hipR:158, kneeR:192 },
-      crouch: { rootX:-.02, rootY:.28, torso:8, head:-3, shoulderL:228, elbowL:258, shoulderR:132, elbowR:102, hipL:232, kneeL:145, hipR:128, kneeR:215 },
-      jumpPrep: { rootX:0, rootY:.13, torso:5, head:0, shoulderL:205, elbowL:236, shoulderR:155, elbowR:124, hipL:225, kneeL:142, hipR:135, kneeR:218 },
-      jump: { rootX:0, rootY:-.4, torso:-2, head:2, shoulderL:250, elbowL:280, shoulderR:110, elbowR:80, hipL:238, kneeL:150, hipR:122, kneeR:210 },
-      fall: { rootX:-.09, rootY:.12, torso:-67, head:-22, shoulderL:250, elbowL:285, shoulderR:82, elbowR:45, hipL:238, kneeL:170, hipR:112, kneeR:205 },
-      down: { rootX:-.12, rootY:.58, torso:-88, head:-8, shoulderL:265, elbowL:300, shoulderR:92, elbowR:55, hipL:255, kneeL:184, hipR:104, kneeR:196 },
-      rise: { rootX:-.04, rootY:.18, torso:-25, head:8, shoulderL:188, elbowL:155, shoulderR:118, elbowR:82, hipL:232, kneeL:152, hipR:138, kneeR:205 },
-      victory: { rootX:0, rootY:-.01, torso:0, head:0, shoulderL:220, elbowL:255, shoulderR:42, elbowR:18, hipL:194, kneeL:174, hipR:166, kneeR:188 },
-      lose: { rootX:-.02, rootY:.14, torso:17, head:18, shoulderL:252, elbowL:278, shoulderR:108, elbowR:82, hipL:225, kneeL:150, hipR:135, kneeR:212 }
-      ,punchWindup: { rootX:-.04, rootY:.015, torso:-10, head:4, shoulderL:145, elbowL:104, shoulderR:238, elbowR:270, hipL:200, kneeL:172, hipR:160, kneeR:190 }
-      ,punchActive: { rootX:.09, rootY:0, torso:13, head:4, shoulderL:154, elbowL:118, shoulderR:90, elbowR:90, hipL:198, kneeL:174, hipR:158, kneeR:188 }
-      ,punchRecover: { rootX:.025, rootY:.01, torso:2, head:2, shoulderL:166, elbowL:126, shoulderR:132, elbowR:102, hipL:195, kneeL:174, hipR:164, kneeR:188 }
-      ,heavyWindup: { rootX:-.1, rootY:.06, torso:-24, head:8, shoulderL:152, elbowL:112, shoulderR:255, elbowR:292, hipL:208, kneeL:168, hipR:154, kneeR:195 }
-      ,heavyActive: { rootX:.16, rootY:-.015, torso:24, head:8, shoulderL:160, elbowL:122, shoulderR:82, elbowR:88, hipL:204, kneeL:172, hipR:156, kneeR:190 }
-      ,blockRecoil: { rootX:-.11, rootY:.035, torso:-24, head:-8, shoulderL:138, elbowL:98, shoulderR:108, elbowR:68, hipL:207, kneeL:168, hipR:153, kneeR:195 }
-      ,counterWindup: { rootX:-.16, rootY:.02, torso:-28, head:-8, shoulderL:215, elbowL:250, shoulderR:246, elbowR:278, hipL:205, kneeL:170, hipR:156, kneeR:192 }
-      ,counterActive: { rootX:.13, rootY:-.01, torso:19, head:5, shoulderL:160, elbowL:122, shoulderR:88, elbowR:88, hipL:200, kneeL:174, hipR:158, kneeR:188 }
-      ,takrawReady: { rootX:0, rootY:-.02, torso:-7, head:2, shoulderL:205, elbowL:240, shoulderR:138, elbowR:105, hipL:205, kneeL:158, hipR:145, kneeR:205 }
-      ,takrawKick: { rootX:.08, rootY:-.04, torso:-18, head:6, shoulderL:238, elbowL:268, shoulderR:116, elbowR:82, hipL:205, kneeL:168, hipR:72, kneeR:88 }
-      ,takrawBicycle: { rootX:.02, rootY:-.38, torso:-70, head:-8, shoulderL:250, elbowL:280, shoulderR:95, elbowR:58, hipL:245, kneeL:160, hipR:65, kneeR:82 }
-      ,somtamReady: { rootX:0, rootY:.035, torso:4, head:-2, shoulderL:230, elbowL:265, shoulderR:125, elbowR:92, hipL:215, kneeL:166, hipR:145, kneeR:198 }
-      ,somtamJab: { rootX:.08, rootY:.025, torso:17, head:2, shoulderL:220, elbowL:255, shoulderR:88, elbowR:88, hipL:208, kneeL:168, hipR:150, kneeR:195 }
-      ,somtamSmash: { rootX:.09, rootY:.04, torso:20, head:7, shoulderL:150, elbowL:105, shoulderR:48, elbowR:32, hipL:215, kneeL:164, hipR:145, kneeR:200 }
-      ,lotteryReady: { rootX:0, rootY:.035, torso:-3, head:5, shoulderL:218, elbowL:250, shoulderR:128, elbowR:98, hipL:210, kneeL:168, hipR:150, kneeR:196 }
-      ,lotterySwing: { rootX:.08, rootY:.02, torso:18, head:8, shoulderL:220, elbowL:252, shoulderR:82, elbowR:76, hipL:206, kneeL:170, hipR:152, kneeR:194 }
-      ,lotteryCast: { rootX:.04, rootY:-.04, torso:9, head:-5, shoulderL:120, elbowL:82, shoulderR:54, elbowR:28, hipL:204, kneeL:172, hipR:154, kneeR:192 }
-      ,studentReady: { rootX:0, rootY:.04, torso:-7, head:4, shoulderL:225, elbowL:258, shoulderR:132, elbowR:100, hipL:210, kneeL:168, hipR:150, kneeR:198 }
-      ,studentThrow: { rootX:.1, rootY:.02, torso:20, head:8, shoulderL:226, elbowL:258, shoulderR:86, elbowR:88, hipL:205, kneeL:170, hipR:154, kneeR:194 }
-      ,studentSwing: { rootX:.13, rootY:.04, torso:25, head:12, shoulderL:245, elbowL:278, shoulderR:72, elbowR:70, hipL:210, kneeL:166, hipR:148, kneeR:198 }
-      ,studentDash: { rootX:.2, rootY:.08, torso:32, head:15, shoulderL:250, elbowL:282, shoulderR:105, elbowR:74, hipL:220, kneeL:160, hipR:140, kneeR:205 }
-    });
-    const copyPose = pose => ({ ...pose });
-    const mixPose = (a, b, t) => Object.fromEntries(Object.keys(a).map(key => [key, a[key] + (b[key] - a[key]) * t]));
-    const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
-    const CLIPS = Object.freeze({
-      idle: [{p:"idleA",d:700},{p:"idleB",d:700},{p:"idleA",d:700}],
-      hit: [{p:"hit",d:150},{p:"brace",d:260},{p:"idleA",d:360}],
-      block: [{p:"block",d:210},{p:"block",d:260},{p:"brace",d:180},{p:"idleA",d:320}],
-      lean: [{p:"lean",d:230},{p:"lean",d:250},{p:"idleA",d:360}],
-      crouch: [{p:"crouch",d:210},{p:"crouch",d:270},{p:"idleA",d:360}],
-      jump: [{p:"jumpPrep",d:220},{p:"jump",d:310},{p:"jump",d:170},{p:"jumpPrep",d:260},{p:"idleA",d:300}],
-      knockdown: [{p:"hit",d:160},{p:"fall",d:420},{p:"down",d:500},{p:"down",d:850}],
-      getup: [{p:"rise",d:430},{p:"crouch",d:340},{p:"brace",d:300},{p:"idleA",d:350}],
-      victory: [{p:"brace",d:250},{p:"victory",d:380},{p:"victory",d:900}],
-      lose: [{p:"hit",d:180},{p:"lose",d:520},{p:"lose",d:900}]
-      ,punch: [{p:"punchWindup",d:180},{p:"punchActive",d:105},{p:"punchRecover",d:190},{p:"idleA",d:220}]
-      ,heavy: [{p:"heavyWindup",d:300},{p:"heavyActive",d:135},{p:"punchRecover",d:240},{p:"idleA",d:260}]
-      ,blockHit: [{p:"block",d:90},{p:"blockRecoil",d:150},{p:"block",d:170},{p:"brace",d:180},{p:"idleA",d:250}]
-      ,counter: [{p:"counterWindup",d:150},{p:"counterActive",d:105},{p:"punchRecover",d:180},{p:"idleA",d:220}]
-      ,takrawIdle: [{p:"takrawReady",d:520},{p:"idleA",d:420},{p:"takrawReady",d:520}]
-      ,takrawLight: [{p:"jumpPrep",d:130},{p:"takrawKick",d:150},{p:"takrawReady",d:220}]
-      ,takrawHeavy: [{p:"takrawReady",d:180},{p:"takrawKick",d:180},{p:"takrawReady",d:250}]
-      ,takrawSignature: [{p:"takrawReady",d:60},{p:"jumpPrep",d:90},{p:"takrawBicycle",d:130},{p:"takrawKick",d:210},{p:"takrawReady",d:280}]
-      ,takrawComeback: [{p:"jumpPrep",d:170},{p:"takrawBicycle",d:240},{p:"takrawReady",d:300}]
-      ,takrawBlock: [{p:"takrawReady",d:120},{p:"blockRecoil",d:160},{p:"takrawReady",d:220}]
-      ,takrawHit: [{p:"hit",d:130},{p:"takrawReady",d:260}]
-      ,takrawVictory: [{p:"takrawKick",d:300},{p:"victory",d:900}]
-      ,somtamIdle: [{p:"somtamReady",d:650},{p:"brace",d:450},{p:"somtamReady",d:650}]
-      ,somtamLight: [{p:"somtamReady",d:150},{p:"somtamJab",d:150},{p:"somtamReady",d:250}]
-      ,somtamHeavy: [{p:"heavyWindup",d:250},{p:"somtamSmash",d:190},{p:"somtamReady",d:280}]
-      ,somtamSignature: [{p:"somtamReady",d:50},{p:"crouch",d:70},{p:"heavyWindup",d:140},{p:"somtamSmash",d:280},{p:"somtamReady",d:320}]
-      ,somtamComeback: [{p:"heavyWindup",d:220},{p:"somtamSmash",d:180},{p:"somtamJab",d:150},{p:"somtamReady",d:300}]
-      ,somtamBlock: [{p:"somtamReady",d:120},{p:"blockRecoil",d:180},{p:"somtamReady",d:260}]
-      ,somtamHit: [{p:"hit",d:180},{p:"somtamReady",d:320}]
-      ,somtamVictory: [{p:"somtamSmash",d:320},{p:"victory",d:900}]
-      ,lotteryIdle: [{p:"lotteryReady",d:600},{p:"brace",d:350},{p:"lotteryReady",d:600}]
-      ,lotteryLight: [{p:"punchWindup",d:160},{p:"lotterySwing",d:180},{p:"lotteryReady",d:250}]
-      ,lotteryHeavy: [{p:"heavyWindup",d:280},{p:"lotteryCast",d:220},{p:"lotteryReady",d:280}]
-      ,lotterySignature: [{p:"lotteryReady",d:60},{p:"crouch",d:70},{p:"lotteryCast",d:300},{p:"victory",d:180},{p:"lotteryReady",d:280}]
-      ,lotteryComeback: [{p:"heavyWindup",d:180},{p:"lotteryCast",d:260},{p:"lotterySwing",d:180},{p:"lotteryReady",d:300}]
-      ,lotteryBlock: [{p:"block",d:150},{p:"blockRecoil",d:160},{p:"lotteryReady",d:240}]
-      ,lotteryHit: [{p:"hit",d:170},{p:"lotteryReady",d:280}]
-      ,lotteryVictory: [{p:"lotteryCast",d:280},{p:"victory",d:900}]
-      ,studentIdle: [{p:"studentReady",d:520},{p:"brace",d:320},{p:"studentReady",d:520}]
-      ,studentLight: [{p:"punchWindup",d:160},{p:"studentThrow",d:180},{p:"studentReady",d:250}]
-      ,studentHeavy: [{p:"heavyWindup",d:280},{p:"studentSwing",d:220},{p:"studentReady",d:280}]
-      ,studentSignature: [{p:"studentReady",d:60},{p:"crouch",d:70},{p:"studentThrow",d:300},{p:"studentSwing",d:180},{p:"studentReady",d:280}]
-      ,studentComeback: [{p:"jumpPrep",d:150},{p:"studentDash",d:300},{p:"studentSwing",d:180},{p:"studentReady",d:300}]
-      ,studentBlock: [{p:"block",d:150},{p:"blockRecoil",d:160},{p:"studentReady",d:240}]
-      ,studentHit: [{p:"hit",d:170},{p:"studentReady",d:280}]
-      ,studentVictory: [{p:"studentThrow",d:250},{p:"victory",d:900}]
-    });
-
-    class FighterAnimator {
-      constructor(side) { this.side=side; this.profession="generic"; this.pose=copyPose(POSES.idleA); this.from=copyPose(this.pose); this.clip="idle"; this.frame=0; this.elapsed=0; this.loop=true; }
-      setProfession(id){this.profession=PROFESSION_PRESENTATION[id]?id:"generic";}
-      play(name, loop=false) { this.clip=PROFESSION_PRESENTATION[this.profession]?.clips[name]||name; this.frame=0; this.elapsed=0; this.from=copyPose(this.pose); this.loop=loop; }
-      update(dt) {
-        const frames=CLIPS[this.clip]; if(!frames) return;
-        let frame=frames[this.frame]; this.elapsed+=dt;
-        while(this.elapsed>=frame.d){ this.pose=copyPose(POSES[frame.p]); this.elapsed-=frame.d; this.from=copyPose(this.pose); this.frame++;
-          if(this.frame>=frames.length){ if(this.loop){this.frame=0;} else {this.play("idle",true); return;} } frame=frames[this.frame]; }
-        this.pose=mixPose(this.from,POSES[frame.p],ease(Math.min(1,this.elapsed/frame.d)));
-      }
-    }
-
-    class StickmanStage {
-      constructor(canvas){ this.canvas=canvas; this.ctx=canvas.getContext("2d"); this.a=new FighterAnimator("a"); this.b=new FighterAnimator("b"); this.running=false; this.guides=false; this.last=0; this.positions={a:0,b:0}; this.rigs={}; this.events=[]; this.particles=[]; this.projectiles=[]; this.contactState="IDLE"; this.impact=null; this.resize=()=>this.fit(); window.addEventListener("resize",this.resize); }
-      fit(){ const r=this.canvas.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1),oldW=this.w||r.width; this.canvas.width=Math.max(1,Math.round(r.width*d)); this.canvas.height=Math.max(1,Math.round(r.height*d)); this.ctx.setTransform(d,0,0,d,0,0); this.w=r.width; this.h=r.height; if(!this.positions.a){this.resetPositions();}else if(oldW!==this.w){this.positions.a*=this.w/oldW;this.positions.b*=this.w/oldW;} }
-      resetPositions(){this.positions.a=this.w*.29;this.positions.b=this.w*.71;}
-      start(){ if(this.running)return; this.running=true; this.fit(); this.last=performance.now(); requestAnimationFrame(t=>this.tick(t)); }
-      stop(){this.running=false;}
-      tick(now){ if(!this.running)return; const dt=Math.min(50,now-this.last); this.last=now; this.a.update(dt); this.b.update(dt); this.updateParticles(dt); this.draw(); requestAnimationFrame(t=>this.tick(t)); }
-      play(side,name,loop=false){(side==="a"?this.a:this.b).play(name,loop);}
-      setProfession(side,id){(side==="a"?this.a:this.b).setProfession(id);}
-      scale(){return Math.min(this.w/4.5,this.h/2.65);}
-      async move(side,to,duration=220){const from=this.positions[side],started=performance.now();return new Promise(resolve=>{const step=now=>{const t=Math.min(1,(now-started)/duration),e=ease(t);this.positions[side]=from+(to-from)*e;if(t<1)requestAnimationFrame(step);else resolve();};requestAnimationFrame(step);});}
-      async approach(attacker){const defender=attacker==="a"?"b":"a",facing=attacker==="a"?1:-1,target=this.positions[defender]-facing*this.scale()*.88;this.contactState="APPROACH";await this.move(attacker,target,260);}
-      async retreat(side){this.contactState="RECOVERY";await this.move(side,this.w*(side==="a"?.29:.71),260);this.contactState="IDLE";}
-      point(origin,len,angle,facing){ const a=(facing===1?angle:-angle)*RAD; return{x:origin.x+Math.sin(a)*len,y:origin.y-Math.cos(a)*len}; }
-      fighter(anim,x,ground,facing,color){
-        const c=this.ctx,p=anim.pose,s=Math.min(this.w/4.5,this.h/2.65);color=(PROFESSION_PRESENTATION[anim.profession]||PROFESSION_PRESENTATION.generic).primary;const root={x:x+p.rootX*s*facing,y:ground-.72*s+p.rootY*s};
-        const neck=this.point(root,.48*s,p.torso,facing), head=this.point(neck,.17*s,p.head+p.torso,facing), shoulder={x:neck.x,y:neck.y+.08*s}, hipL={x:root.x-.08*s*facing,y:root.y},hipR={x:root.x+.08*s*facing,y:root.y};
-        const elbowL=this.point(shoulder,.3*s,p.shoulderL,facing),handL=this.point(elbowL,.28*s,p.elbowL,facing),elbowR=this.point(shoulder,.3*s,p.shoulderR,facing),handR=this.point(elbowR,.28*s,p.elbowR,facing);
-        const kneeL=this.point(hipL,.38*s,p.hipL,facing),footL=this.point(kneeL,.38*s,p.kneeL,facing),kneeR=this.point(hipR,.38*s,p.hipR,facing),footR=this.point(kneeR,.38*s,p.kneeR,facing);
-        if(!["jump","knockdown","getup","lose"].includes(anim.clip)){const lowest=Math.max(footL.y,footR.y),lift=ground-lowest;[root,neck,head,shoulder,hipL,hipR,elbowL,handL,elbowR,handR,kneeL,footL,kneeR,footR].forEach(q=>q.y+=lift);}
-        c.save(); c.lineCap="round"; c.lineJoin="round"; c.strokeStyle="rgba(0,0,0,.35)"; c.lineWidth=.19*s; c.beginPath(); c.ellipse(root.x,ground+.02*s,.42*s,.09*s,0,0,Math.PI*2); c.stroke();
-        const limb=(a,b,w=.105)=>{c.strokeStyle="#101425";c.lineWidth=w*s+.07*s;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();c.strokeStyle=color;c.lineWidth=w*s;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();};
-        limb(hipL,kneeL,.13);limb(kneeL,footL,.115);limb(hipR,kneeR,.13);limb(kneeR,footR,.115); limb(root,neck,.2); limb(shoulder,elbowL,.12);limb(elbowL,handL,.105);limb(shoulder,elbowR,.12);limb(elbowR,handR,.105);
-        c.fillStyle="#f4e3c1";c.strokeStyle="#101425";c.lineWidth=.055*s;c.beginPath();c.arc(head.x,head.y,.16*s,0,Math.PI*2);c.fill();c.stroke();
-        [handL,handR].forEach(q=>{c.fillStyle=color;c.beginPath();c.arc(q.x,q.y,.07*s,0,Math.PI*2);c.fill();});
-        [footL,footR].forEach(q=>{c.strokeStyle="#101425";c.lineWidth=.11*s;c.beginPath();c.moveTo(q.x-.03*s*facing,q.y);c.lineTo(q.x+.15*s*facing,q.y);c.stroke();});
-        const style=PROFESSION_PRESENTATION[anim.profession]||PROFESSION_PRESENTATION.generic,pestleTip={x:handR.x+.26*s*facing,y:handR.y-.04*s},mortar={x:root.x+.18*s*facing,y:root.y-.08*s},ball={x:footR.x+.1*s*facing,y:footR.y-.08*s},bookTip={x:handR.x+.22*s*facing,y:handR.y},charmTip={x:handR.x+.28*s*facing,y:handR.y-.05*s},bagTip={x:handR.x+.18*s*facing,y:handR.y+.06*s};
-        if(anim.profession==="takraw"){c.save();c.strokeStyle="#101425";c.lineWidth=.045*s;c.fillStyle=style.primary;c.beginPath();c.moveTo(neck.x-.2*s,neck.y+.02*s);c.lineTo(root.x-.17*s,root.y-.02*s);c.lineTo(root.x+.17*s,root.y-.02*s);c.lineTo(neck.x+.2*s,neck.y+.02*s);c.closePath();c.fill();c.stroke();c.fillStyle=style.secondary;c.beginPath();c.moveTo(neck.x-.035*s,neck.y);c.lineTo(root.x-.015*s,root.y);c.lineTo(root.x+.08*s,root.y);c.lineTo(neck.x+.045*s,neck.y);c.closePath();c.fill();c.fillStyle="#fff";c.fillRect(root.x-.19*s,root.y-.06*s,.38*s,.11*s);c.fillStyle=style.primary;c.fillRect(root.x-.19*s,root.y-.06*s,.13*s,.14*s);c.fillRect(root.x+.06*s,root.y-.06*s,.13*s,.14*s);c.fillStyle="#ffd34e";c.beginPath();c.arc(ball.x,ball.y,.09*s,0,Math.PI*2);c.fill();c.stroke();c.strokeStyle="#7d5b12";c.lineWidth=.018*s;c.beginPath();c.arc(ball.x,ball.y,.055*s,0,Math.PI*2);c.moveTo(ball.x-.08*s,ball.y);c.lineTo(ball.x+.08*s,ball.y);c.moveTo(ball.x,ball.y-.08*s);c.lineTo(ball.x,ball.y+.08*s);c.stroke();c.strokeStyle=style.secondary;c.lineWidth=.052*s;c.beginPath();c.moveTo(head.x-.17*s*facing,head.y-.065*s);c.lineTo(head.x+.21*s*facing,head.y-.065*s);c.stroke();c.restore();}
-        if(anim.profession==="somtam"){c.save();c.fillStyle="#3f2234";c.beginPath();c.arc(head.x,head.y-.02*s,.18*s,Math.PI,Math.PI*2);c.fill();c.beginPath();c.arc(head.x-.15*s*facing,head.y+.02*s,.07*s,0,Math.PI*2);c.fill();c.beginPath();c.arc(head.x-.23*s*facing,head.y+.01*s,.09*s,0,Math.PI*2);c.fill();c.strokeStyle="#101425";c.lineWidth=.018*s;c.beginPath();c.moveTo(head.x+.035*s*facing,head.y+.015*s);c.lineTo(head.x+.09*s*facing,head.y+.005*s);c.stroke();c.strokeStyle="#101425";c.lineWidth=.045*s;c.fillStyle="#fff1cf";c.beginPath();c.moveTo(neck.x-.22*s,neck.y+.02*s);c.lineTo(root.x-.25*s,root.y+.08*s);c.lineTo(root.x+.25*s,root.y+.08*s);c.lineTo(neck.x+.22*s,neck.y+.02*s);c.closePath();c.fill();c.stroke();c.strokeStyle="#78d64b";c.lineWidth=.04*s;c.beginPath();c.moveTo(neck.x-.13*s,neck.y);c.lineTo(root.x-.08*s,root.y+.06*s);c.moveTo(neck.x+.13*s,neck.y);c.lineTo(root.x+.08*s,root.y+.06*s);c.stroke();c.fillStyle="#e94b35";c.beginPath();c.arc(root.x,root.y-.18*s,.055*s,0,Math.PI*2);c.fill();c.strokeStyle="#8b5a2b";c.lineWidth=.085*s;c.beginPath();c.moveTo(handR.x,handR.y);c.lineTo(pestleTip.x,pestleTip.y);c.stroke();c.fillStyle="#8d6044";c.strokeStyle="#3d2618";c.lineWidth=.035*s;c.beginPath();c.moveTo(mortar.x-.2*s,mortar.y-.08*s);c.quadraticCurveTo(mortar.x-.17*s,mortar.y+.2*s,mortar.x,mortar.y+.21*s);c.quadraticCurveTo(mortar.x+.17*s,mortar.y+.2*s,mortar.x+.2*s,mortar.y-.08*s);c.closePath();c.fill();c.stroke();c.fillStyle="#51321f";c.beginPath();c.ellipse(mortar.x,mortar.y-.08*s,.2*s,.075*s,0,0,Math.PI*2);c.fill();c.fillStyle="#ff554c";for(let i=-1;i<=1;i++){c.beginPath();c.arc(mortar.x+i*.07*s,mortar.y-.1*s,.025*s,0,Math.PI*2);c.fill();}c.restore();}
-        if(anim.profession==="lottery"){c.save();c.fillStyle="#38203f";c.beginPath();c.arc(head.x,head.y-.04*s,.18*s,Math.PI,Math.PI*2);c.fill();c.beginPath();c.arc(head.x-.13*s*facing,head.y-.2*s,.1*s,0,Math.PI*2);c.fill();c.strokeStyle="#ffd45c";c.lineWidth=.022*s;c.beginPath();c.arc(head.x-.065*s,head.y,.065*s,0,Math.PI*2);c.arc(head.x+.075*s,head.y,.065*s,0,Math.PI*2);c.stroke();c.fillStyle=style.primary;c.strokeStyle="#101425";c.lineWidth=.04*s;c.beginPath();c.moveTo(neck.x-.23*s,neck.y+.01*s);c.lineTo(root.x-.27*s,root.y+.08*s);c.lineTo(root.x+.27*s,root.y+.08*s);c.lineTo(neck.x+.23*s,neck.y+.01*s);c.closePath();c.fill();c.stroke();for(let i=-1;i<=1;i++){c.fillStyle=i%2?"#ff7cab":"#ffd45c";c.beginPath();c.arc(root.x+i*.12*s,root.y-.18*s,.035*s,0,Math.PI*2);c.fill();}c.fillStyle="#fff3bc";c.strokeStyle="#6c4a13";c.lineWidth=.03*s;c.save();c.translate(handR.x+.1*s*facing,handR.y);c.rotate(.08*facing);c.beginPath();c.roundRect(-.17*s,-.13*s,.34*s,.26*s,.025*s);c.fill();c.stroke();c.strokeStyle="#d29b32";c.beginPath();c.moveTo(0,-.12*s);c.lineTo(0,.12*s);c.stroke();c.fillStyle="#6c4a13";c.font=`bold ${Math.max(9,.085*s)}px Kanit`;c.textAlign="center";c.textBaseline="middle";c.fillText("หวย",0,-.035*s);c.font=`bold ${Math.max(8,.065*s)}px monospace`;c.fillText("789",0,.055*s);c.restore();c.restore();}
-        if(anim.profession==="student"){c.save();c.fillStyle="#1d2438";c.beginPath();c.arc(head.x,head.y-.045*s,.18*s,Math.PI,Math.PI*2);c.fill();c.beginPath();c.moveTo(head.x-.17*s,head.y-.02*s);c.lineTo(head.x-.08*s,head.y+.04*s);c.lineTo(head.x,head.y-.03*s);c.lineTo(head.x+.08*s,head.y+.04*s);c.lineTo(head.x+.17*s,head.y-.02*s);c.closePath();c.fill();c.fillStyle="#f4f7ff";c.strokeStyle="#101425";c.lineWidth=.04*s;c.beginPath();c.moveTo(neck.x-.2*s,neck.y+.01*s);c.lineTo(root.x-.2*s,root.y+.04*s);c.lineTo(root.x+.2*s,root.y+.04*s);c.lineTo(neck.x+.2*s,neck.y+.01*s);c.closePath();c.fill();c.stroke();c.fillStyle="#d9364f";c.beginPath();c.moveTo(neck.x,neck.y+.02*s);c.lineTo(root.x-.045*s,root.y-.09*s);c.lineTo(root.x+.02*s,root.y);c.lineTo(neck.x+.035*s,neck.y+.02*s);c.closePath();c.fill();c.fillStyle="#273b68";c.fillRect(root.x-.21*s,root.y-.03*s,.42*s,.13*s);const bagX=root.x-.31*s*facing,bagY=root.y-.35*s;c.fillStyle="#87512c";c.strokeStyle="#101425";c.lineWidth=.035*s;c.beginPath();c.roundRect(bagX,bagY,.25*s,.34*s,.05*s);c.fill();c.stroke();c.fillStyle="#b87a43";c.beginPath();c.roundRect(bagX+.02*s,bagY+.03*s,.21*s,.1*s,.025*s);c.fill();c.stroke();c.beginPath();c.arc(bagX+.125*s,bagY-.01*s,.065*s,Math.PI,0);c.stroke();c.strokeStyle="#d9a96d";c.lineWidth=.035*s;c.beginPath();c.moveTo(neck.x-.12*s*facing,neck.y);c.lineTo(root.x-.2*s*facing,root.y+.02*s);c.stroke();c.fillStyle="#fff8d8";c.strokeStyle="#294f94";c.lineWidth=.03*s;c.save();c.translate(handR.x+.09*s*facing,handR.y);c.rotate(.08*facing);c.fillRect(-.15*s,-.11*s,.3*s,.22*s);c.strokeRect(-.15*s,-.11*s,.3*s,.22*s);c.fillStyle="#294f94";c.fillRect(-.15*s,-.11*s,.04*s,.22*s);c.strokeStyle="rgba(30,55,95,.45)";c.beginPath();c.moveTo(-.07*s,-.03*s);c.lineTo(.1*s,-.03*s);c.moveTo(-.07*s,.035*s);c.lineTo(.07*s,.035*s);c.stroke();c.restore();c.restore();}
-        if(this.guides){c.fillStyle="#fff";[root,neck,head,elbowL,handL,elbowR,handR,kneeL,footL,kneeR,footR].forEach(q=>{c.beginPath();c.arc(q.x,q.y,3,0,Math.PI*2);c.fill();});}
-        c.restore();
-        return {root,neck,head,shoulder,handL,handR,footL,footR,pestleTip,mortar,ball,bookTip,charmTip,bagTip,scale:s,headBox:{x:head.x,y:head.y,r:.17*s},torsoBox:{x:(root.x+neck.x)/2,y:(root.y+neck.y)/2,r:.25*s},guardBox:{x:(handL.x+handR.x)/2,y:(handL.y+handR.y)/2,r:.22*s}};
-      }
-      testContact(attacker,defender,guard=false,heavy=false,attackId="light"){const anim=attacker==="a"?this.a:this.b,anchor=PROFESSION_PRESENTATION[anim.profession]?.anchors[attackId]||"handR",attack=anchor==="projectile"?this.projectiles.at(-1):this.rigs[attacker]?.[anchor],targetRig=this.rigs[defender];if(!attack||!targetRig)return false;const attackRadius=targetRig.scale*(anchor==="projectile"?.28:heavy?.11:.08),boxes=guard?[targetRig.guardBox]:[targetRig.headBox,targetRig.torsoBox];let best=null;for(const box of boxes){const distance=Math.hypot(attack.x-box.x,attack.y-box.y),limit=attackRadius+box.r;if(!best||distance<best.distance)best={box,distance,limit};}const hit=best.distance<=best.limit;this.events.push({attacker,defender,guard,heavy,attackId,anchor,hit,distance:Math.round(best.distance),limit:Math.round(best.limit)});this.impact={x:(attack.x+best.box.x)/2,y:(attack.y+best.box.y)/2,hit,until:performance.now()+190};return hit;}
-      spawnImpact(side,blocked=false,blood=true){const rig=this.rigs[side];if(!rig)return;const origin=blocked?rig.guardBox:rig.torsoBox;this.impact={x:origin.x,y:origin.y,hit:true,until:performance.now()+190};for(let i=0;i<10;i++){const angle=Math.random()*Math.PI*2,speed=blocked?0.07:0.13+Math.random()*.1;this.particles.push({x:origin.x,y:origin.y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-.05,life:blocked?260:420,maxLife:blocked?260:420,color:blocked?"#fff36a":(blood&&i<4?"#d92d48":"#fff36a"),r:blocked?2.5:2+Math.random()*3});}}
-      spawnBurst(side){const rig=this.rigs[side];if(!rig)return;const anim=side==="a"?this.a:this.b,origin=rig.root,colors=anim.profession==="somtam"?["#ff554c","#78d64b","#fff1cf"]:["#ffd34e","#1687ff","#fff"];this.impact={x:origin.x,y:origin.y-.2*rig.scale,hit:true,until:performance.now()+520};for(let i=0;i<24;i++){const angle=(i/24)*Math.PI*2,speed=.08+Math.random()*.13;this.particles.push({x:origin.x,y:origin.y-.18*rig.scale,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-.06,life:620,maxLife:620,color:colors[i%colors.length],r:3+Math.random()*3});}}
-      spawnProfessionProjectile(side,attackId){const anim=side==="a"?this.a:this.b;if(!["lottery","student"].includes(anim.profession)||!["signature","comeback"].includes(attackId))return;const from=this.rigs[side]?.root,to=this.rigs[side==="a"?"b":"a"]?.torsoBox;if(!from||!to)return;const drop=attackId==="signature",fromX=drop?to.x:from.x,fromY=drop?-this.scale()*.65:from.y-.35*this.scale();this.projectiles.push({type:anim.profession,attackId,drop,x:fromX,y:fromY,fromX,fromY,toX:to.x,toY:to.y,elapsed:0,duration:drop?360:430});}
-      updateParticles(dt){for(const p of this.particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.00045*dt;}this.particles=this.particles.filter(p=>p.life>0);for(const p of this.projectiles){p.elapsed+=dt;const t=ease(Math.min(1,p.elapsed/p.duration));p.x=p.fromX+(p.toX-p.fromX)*t+(p.drop?Math.sin(t*Math.PI*4)*this.scale()*.025:0);p.y=p.fromY+(p.toY-p.fromY)*t-(p.drop?0:Math.sin(t*Math.PI)*this.scale()*.38);}this.projectiles=this.projectiles.filter(p=>p.elapsed<p.duration+220);}
-      drawProjectiles(){const c=this.ctx,s=this.scale();for(const p of this.projectiles){const fade=Math.max(0,1-Math.max(0,p.elapsed-p.duration)/220);c.save();c.globalAlpha=fade;c.translate(p.x,p.y);if(p.type==="lottery"){c.shadowColor="#ffd45c";c.shadowBlur=24;c.fillStyle="#ffd45c";c.strokeStyle="#6f3e91";c.lineWidth=.055*s;c.beginPath();c.roundRect(-.42*s,-.28*s,.84*s,.56*s,.08*s);c.fill();c.stroke();c.fillStyle="#3b174e";c.font=`900 ${Math.max(26,.38*s)}px monospace`;c.textAlign="center";c.textBaseline="middle";c.fillText(p.attackId==="signature"?"789":"๙๙๙",0,0);}else{c.rotate(p.drop?-.08:.12);c.fillStyle="#f8e3a2";c.strokeStyle="#17233d";c.lineWidth=.06*s;c.beginPath();c.roundRect(-.43*s,-.3*s,.86*s,.6*s,.055*s);c.fill();c.stroke();c.fillStyle="#d9364f";c.fillRect(-.43*s,-.3*s,.1*s,.6*s);c.strokeStyle="#294f94";c.lineWidth=.035*s;c.beginPath();c.moveTo(-.25*s,-.13*s);c.lineTo(.28*s,-.13*s);c.moveTo(-.25*s,0);c.lineTo(.2*s,0);c.moveTo(-.25*s,.13*s);c.lineTo(.28*s,.13*s);c.stroke();c.fillStyle="#17233d";c.font=`bold ${Math.max(11,.11*s)}px Kanit`;c.textAlign="center";c.fillText("การบ้าน",.03*s,-.18*s);}c.restore();}}
-      draw(){ const c=this.ctx;c.clearRect(0,0,this.w,this.h);const ground=this.h*.78;if(this.guides){c.strokeStyle="rgba(255,255,255,.25)";c.setLineDash([8,8]);c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();c.setLineDash([]);} this.rigs.a=this.fighter(this.a,this.positions.a,ground,1,"#4cf3ff");this.rigs.b=this.fighter(this.b,this.positions.b,ground,-1,"#ff4fd8");this.drawProjectiles();if(this.impact&&performance.now()<this.impact.until){c.save();c.strokeStyle="#fff36a";c.lineWidth=5;c.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?11:25;c.lineTo(this.impact.x+Math.cos(a)*r,this.impact.y+Math.sin(a)*r);}c.closePath();c.stroke();c.restore();}for(const p of this.particles){c.globalAlpha=Math.max(0,p.life/p.maxLife);c.fillStyle=p.color;c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();}c.globalAlpha=1;if(this.guides){c.save();for(const rig of Object.values(this.rigs)){c.strokeStyle="rgba(255,79,216,.7)";for(const box of [rig.headBox,rig.torsoBox]){c.beginPath();c.arc(box.x,box.y,box.r,0,Math.PI*2);c.stroke();}c.strokeStyle="rgba(76,243,255,.8)";c.beginPath();c.arc(rig.guardBox.x,rig.guardBox.y,rig.guardBox.r,0,Math.PI*2);c.stroke();c.strokeStyle="rgba(255,201,74,.9)";c.beginPath();c.arc(rig.handR.x,rig.handR.y,rig.scale*.08,0,Math.PI*2);c.stroke();}c.fillStyle="#fff";c.font="12px Kanit";c.fillText(this.contactState,12,22);c.restore();} }
-    }
-    const stickmanStage = new StickmanStage(elements.fightCanvas);
 
     function parseStudentNames(rawText) {
       return rawText.split("\n").map(name => name.trim()).filter(Boolean);
@@ -708,137 +538,388 @@
       elements.selectionPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
-    const FIGHT_DURATION_MS = 20000;
-    const HP_FLOOR = 18;
-    const FIGHTER_STATES = Object.freeze(["idle","approach","windup","active","recovery","block","dodge","counter","hit","knockback","knockdown","grounded","getup","victory","lose"]);
-    const ATTACKS = Object.freeze({
-      light: Object.freeze({ id:"light", clip:"punch", startupMs:180, activeMs:105, recoveryMs:410, damage:10, chipDamage:3, knockback:.035, knockdown:false }),
-      heavy: Object.freeze({ id:"heavy", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:500, damage:19, chipDamage:4, knockback:.09, knockdown:true }),
-      counter: Object.freeze({ id:"counter", clip:"counter", startupMs:150, activeMs:105, recoveryMs:400, damage:11, chipDamage:0, knockback:.05, knockdown:false }),
-      signature: Object.freeze({ id:"signature", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:24, chipDamage:5, knockback:.1, knockdown:false }),
-      comeback: Object.freeze({ id:"comeback", clip:"heavy", startupMs:300, activeMs:135, recoveryMs:520, damage:19, chipDamage:4, knockback:.1, knockdown:false })
+    const COMBAT_POOLS = Object.freeze({
+      moods: ["technical", "brawl", "counter", "chase", "chaos", "lateStorm"],
+      openings: ["aPressure", "bPressure", "trade", "doubleDodge", "whiffCounter", "cautious"],
+      mids: ["counterTurn", "knockdownTurn", "tradeTurn", "leaderGuards", "chaserRush", "signatureTurn", "dodgePunish", "heavyWhiff"],
+      endings: ["heavyKO", "counterKO", "signatureKO", "comebackKO", "simpleKO", "tradeKO", "getupKO", "whiffKO"]
     });
-
-    class CombatFighter {
-      constructor(id, side){this.id=id;this.side=side;this.hp=100;this.state="idle";this.stateSince=0;}
-      transition(next, now=performance.now()){if(!FIGHTER_STATES.includes(next))throw new Error(`Unknown fighter state: ${next}`);this.state=next;this.stateSince=now;}
-    }
-
-    class CombatEngine {
-      constructor(fighterA,fighterB,{hpFloor=HP_FLOOR,lockedLoserSide=null,knockoutEnabled=false,knockoutEarliestMs=10000}={}){this.fighters={a:fighterA,b:fighterB};this.hpFloor=hpFloor;this.lockedLoserSide=lockedLoserSide;this.knockoutEnabled=knockoutEnabled;this.knockoutEarliestMs=knockoutEarliestMs;this.events=[];this.startedAt=0;this.finished=false;}
-      emit(type,data={}){const event=Object.freeze({type,at:Math.max(0,performance.now()-this.startedAt),...data});this.events.push(event);return event;}
-      start(){this.startedAt=performance.now();this.finished=false;this.emit("fight_started",{durationMs:FIGHT_DURATION_MS});}
-      fighter(side){return this.fighters[side];}
-      applyDamage(targetSide,amount,kind,sourceSide,elapsedMs=performance.now()-this.startedAt){const target=this.fighter(targetSide),before=target.hp,canKnockout=this.knockoutEnabled&&targetSide===this.lockedLoserSide&&elapsedMs>=this.knockoutEarliestMs,floor=canKnockout?0:targetSide===this.lockedLoserSide?this.hpFloor:this.hpFloor+1,after=Math.max(floor,before-amount);target.hp=after;const applied=before-after;this.emit(kind,{source:sourceSide,target:targetSide,requestedDamage:amount,damage:applied,hpBefore:before,hpAfter:after});return applied;}
-      resolveAttack({attacker,defense,attackId,contact,elapsedMs}){const defender=attacker==="a"?"b":"a",attack=ATTACKS[attackId];if(!attack)throw new Error(`Unknown attack: ${attackId}`);if(this.finished)return null;
-        if(!contact||["lean","crouch","jump"].includes(defense)){this.emit("miss",{attacker,defender,attackId,defense});return {outcome:"miss",target:defender,damage:0};}
-        if(defense==="block"){const damage=this.applyDamage(defender,attack.chipDamage,"chip_damage",attacker,elapsedMs);return {outcome:"block",target:defender,damage};}
-        const damage=this.applyDamage(defender,attack.damage,"damage",attacker,elapsedMs),knockout=this.fighter(defender).hp===0,outcome=knockout?"knockout":attack.knockdown?"knockdown":"hit";this.emit(outcome,{attacker,defender,attackId,damage,knockback:attack.knockback});return {outcome,target:defender,damage};
-      }
-      finish(lockedLoserSide,reason="time",elapsedMs=performance.now()-this.startedAt){this.finished=true;const loser=this.fighter(lockedLoserSide),winner=this.fighter(lockedLoserSide==="a"?"b":"a"),valid=reason==="knockout"?loser.hp===0&&winner.hp>0&&elapsedMs>=this.knockoutEarliestMs&&elapsedMs<FIGHT_DURATION_MS:loser.hp<winner.hp&&loser.hp>0&&winner.hp>0;this.emit("fight_finished",{lockedLoserSide,reason,elapsedMs,hpA:this.fighter("a").hp,hpB:this.fighter("b").hp,valid});if(!valid)throw new Error("Combat outcome invariant failed");return this.events.at(-1);}
-    }
-
-    const LEAD_CHANGE_TEMPLATES=Object.freeze([
-      Object.freeze({id:"loser_early_lead",kind:"lead_change",leadPath:["loser","loser","winner","winner"],maxLeadChanges:1}),
-      Object.freeze({id:"mid_fight_swing",kind:"lead_change",leadPath:["winner","winner","loser","loser","winner","winner"],maxLeadChanges:2}),
-      Object.freeze({id:"late_decisive_turn",kind:"lead_change",leadPath:["loser","loser","loser","winner","winner"],maxLeadChanges:1})
-    ]);
-    const STEADY_LEAD_TEMPLATES=Object.freeze([
-      Object.freeze({id:"steady_winner_pressure",kind:"steady",leadPath:["winner"],maxLeadChanges:0}),
-      Object.freeze({id:"steady_close_chase",kind:"steady",leadPath:["winner"],maxLeadChanges:0}),
-      Object.freeze({id:"fake_comeback",kind:"steady",leadPath:["winner"],maxLeadChanges:0})
-    ]);
-    const NARRATIVE_TEMPLATES=Object.freeze([...LEAD_CHANGE_TEMPLATES,...STEADY_LEAD_TEMPLATES]);
-    const CLOSING_STYLES=Object.freeze([
-      Object.freeze({id:"close",min:1,max:5,weight:.35}),
-      Object.freeze({id:"competitive",min:6,max:10,weight:.45}),
-      Object.freeze({id:"clear",min:11,max:18,weight:.2})
-    ]);
-    const pick=randomItems=>randomItems[Math.floor(Math.random()*randomItems.length)];
-    const weightedClosingStyle=()=>{const roll=Math.random();return roll<CLOSING_STYLES[0].weight?CLOSING_STYLES[0]:roll<CLOSING_STYLES[0].weight+CLOSING_STYLES[1].weight?CLOSING_STYLES[1]:CLOSING_STYLES[2];};
-
-    class CombatDirector {
-      constructor({lockedLoserSide,exchangeCount=10+Math.floor(Math.random()*5),guaranteeSignature=false,knockoutEnabled=false}){
-        this.loser=lockedLoserSide;this.winner=lockedLoserSide==="a"?"b":"a";this.exchangeCount=Math.max(10,Math.min(14,exchangeCount));this.template=Math.random()<.85?pick(LEAD_CHANGE_TEMPLATES):pick(STEADY_LEAD_TEMPLATES);this.closingStyle=weightedClosingStyle();this.guaranteeSignature=guaranteeSignature;this.knockoutEnabled=knockoutEnabled;this.defenseBudget=Math.max(2,Math.floor(this.exchangeCount*.2));this.defensesUsed=0;this.knockdowns=0;this.signatureUsed=false;this.comebackUsed=false;this.history=[];
-        const scheduleSpan=this.knockoutEnabled?13000:15500,interval=scheduleSpan/(this.exchangeCount-1);this.schedule=Object.freeze(Array.from({length:this.exchangeCount},(_,index)=>Math.round(350+index*interval)));
-      }
-      desiredLeader(index){const progress=index/(this.exchangeCount-1),path=this.template.leadPath,pathIndex=Math.min(path.length-1,Math.floor(progress*path.length));return path[pathIndex]==="winner"?this.winner:this.loser;}
-      chooseAttack(index,attacker,engine){const defender=attacker==="a"?"b":"a",deficit=Math.max(0,engine.fighter(defender).hp-engine.fighter(attacker).hp),late=index>=this.exchangeCount-3;
-        if(this.guaranteeSignature&&index===Math.max(2,this.exchangeCount-6)&&!this.signatureUsed){this.signatureUsed=true;return "signature";}
-        if(late&&attacker===this.winner&&!this.signatureUsed){this.signatureUsed=true;return "signature";}
-        if(index>=Math.floor(this.exchangeCount*.58)&&attacker===this.loser&&deficit>=5&&!this.comebackUsed&&Math.random()<.7){this.comebackUsed=true;return "comeback";}
-        if(deficit>=9&&this.knockdowns<2){this.knockdowns++;return "heavy";}
-        return Math.random()<.22&&this.knockdowns<2?(this.knockdowns++,"heavy"):"light";
-      }
-      reserveDefense(candidate){if(candidate==="hit")return candidate;if(this.defensesUsed>=this.defenseBudget)return "hit";this.defensesUsed++;return candidate;}
-      next(index,engine){const closing=index>=this.exchangeCount-2,desired=closing?this.winner:this.desiredLeader(index),other=desired==="a"?"b":"a",desiredHp=engine.fighter(desired).hp,otherHp=engine.fighter(other).hp;
-        let attacker=desired,defense="hit";
-        if(this.template.kind==="steady"&&desiredHp>otherHp+13){attacker=other;defense="hit";}
-        else if(this.template.kind==="steady"&&desiredHp>otherHp+5){attacker=other;defense=pick(["block","lean","crouch","jump","counter"]);}
-        else if(!closing&&desiredHp>otherHp+5){attacker=other;defense=pick(["block","lean","crouch","jump"]);}
-        else if(!closing&&desiredHp>otherHp&&Math.random()<.38){attacker=other;defense=pick(["block","lean","crouch","jump","counter"]);}
-        else if(!closing&&Math.random()<.18){defense=pick(["block","lean","crouch","jump"]);}
-        const requestedDefense=defense;defense=this.reserveDefense(defense);if(requestedDefense!=="hit"&&defense==="hit")attacker=desired;const attackId=this.chooseAttack(index,attacker,engine);if(this.guaranteeSignature&&attackId==="signature")defense="hit";const exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:desired,closing});this.history.push(exchange);return exchange;
-      }
-      ensureClosingOutcome(engine,index){
-        if(index<this.exchangeCount-5)return this.next(index,engine);
-        if(this.knockoutEnabled){const attackId=index===this.exchangeCount-1?"signature":"heavy";if(attackId==="signature")this.signatureUsed=true;const exchange=Object.freeze({at:this.schedule[index],attacker:this.winner,defense:"hit",attackId,narrative:this.template.id,desiredLeader:this.winner,closing:true,knockoutPush:true});this.history.push(exchange);return exchange;}
-        const loserHp=engine.fighter(this.loser).hp,winnerHp=engine.fighter(this.winner).hp,gap=winnerHp-loserHp,target=this.closingStyle;let attacker,defense,attackId;
-        if(gap<target.min){attacker=this.winner;defense="hit";attackId=gap<=-8?"signature":"light";if(attackId==="signature")this.signatureUsed=true;}
-        else if(gap>target.max+ATTACKS.comeback.damage){attacker=this.loser;defense="hit";attackId="comeback";this.comebackUsed=true;}
-        else if(gap>target.max&&gap>ATTACKS.light.damage){attacker=this.loser;defense="hit";attackId="light";}
-        else{attacker=this.loser;defense=pick(["lean","crouch","jump"]);attackId="light";}
-        const requestedDefense=defense;defense=this.reserveDefense(defense);if(requestedDefense!=="hit"&&defense==="hit")attacker=gap>ATTACKS.light.damage?this.loser:this.winner;const exchange=Object.freeze({at:this.schedule[index],attacker,defense,attackId,narrative:this.template.id,desiredLeader:this.winner,closing:true});this.history.push(exchange);return exchange;
-      }
-      summary(){return Object.freeze({template:this.template.id,narrativeKind:this.template.kind,closingStyle:this.closingStyle.id,exchangeCount:this.exchangeCount,defenseBudget:this.defenseBudget,defensesUsed:this.defensesUsed,defenseRate:Number((this.defensesUsed/this.exchangeCount).toFixed(3)),signatureUsed:this.signatureUsed,comebackUsed:this.comebackUsed,knockdowns:this.knockdowns});}
-    }
-
-    const BANTER_LINES=Object.freeze({
-      takraw:Object.freeze({attack:["รับลูกนี้!","เตะเต็มข้อ!"],block:["เอาอยู่!"],dodge:["ช้าไป!","ไม่ทันหรอก!"],hit:["โอ๊ย...พลาด!"],knockdown:["ยังไหว!"]}),
-      somtam:Object.freeze({attack:["เผ็ดไหมล่ะ!","เอาสากไปกิน!"],block:["ครกนี้แข็งนะ!"],dodge:["ยังไม่โดนจ้า!"],hit:["โอ๊ย ลูกค้า!"],knockdown:["ยังตำต่อได้!"]}),
-      lottery:Object.freeze({attack:["เลขนี้มาแน่!","จัดไปสามตัว!"],block:["เจ้าที่คุ้มครอง!"],dodge:["ดวงยังดี!"],hit:["เลขเคลื่อนหมด!"],knockdown:["ขอแก้มืออีกใบ!"]}),
-      student:Object.freeze({attack:["ส่งการบ้าน!","รับสมุดไป!"],block:["กระเป๋าช่วยด้วย!"],dodge:["เกือบโดนครูจับ!"],hit:["ลืมหลบ!"],knockdown:["ยังไม่หมดคาบ!"]})
+    const EVENT_LABELS = Object.freeze({
+      light: "โจมตีเร็ว!", heavy: "ท่าหนัก!", block: "ตั้งการ์ดรับ!", dodge: "หลบได้!",
+      counter: "สวนกลับ!", trade: "แลกกันเต็มแรง!", knockdown: "ล้มลง!",
+      signature: "SIGNATURE MOVE!", final: "ท่าปิดเกม!"
     });
-    class BanterDirector{
-      constructor(){this.lastAt=-Infinity;this.lastLine="";this.hideTimer=null;}
-      reset(){window.clearTimeout(this.hideTimer);this.lastAt=-Infinity;this.lastLine="";elements.banterA.classList.add("hidden");elements.banterB.classList.add("hidden");}
-      say(side,event,force=false){const now=performance.now();if(appState.phase!=="battle"||(!force&&(now-this.lastAt<2200||Math.random()>.34)))return;const profession=(side==="a"?stickmanStage.a:stickmanStage.b).profession,lines=BANTER_LINES[profession]?.[event];if(!lines?.length)return;const choices=lines.filter(line=>line!==this.lastLine),line=pick(choices.length?choices:lines),bubble=side==="a"?elements.banterA:elements.banterB,other=side==="a"?elements.banterB:elements.banterA;window.clearTimeout(this.hideTimer);other.classList.add("hidden");bubble.textContent=line;bubble.classList.remove("hidden");this.lastAt=now;this.lastLine=line;this.hideTimer=window.setTimeout(()=>bubble.classList.add("hidden"),950);}
-    }
-    const banterDirector=new BanterDirector();
-    function resetBattlePresentation(){if(appState.battleTimerId){window.clearInterval(appState.battleTimerId);appState.battleTimerId=null;}banterDirector.reset();stickmanStage.particles.length=0;stickmanStage.projectiles.length=0;stickmanStage.impact=null;elements.arenaLabel.classList.add("hidden");}
-    function updateCombatHud(engine){elements.hpA.style.width=`${engine.fighter("a").hp}%`;elements.hpB.style.width=`${engine.fighter("b").hp}%`;}
+    const JOB_COLORS = Object.freeze({ takraw: "#39e7ff", somtam: "#ff4f70", lottery: "#b978ff", student: "#ffd34e" });
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const randomBetween = (min, max) => min + Math.random() * (max - min);
+    const randomInt = (min, max) => Math.floor(randomBetween(min, max + 1));
+    const pick = list => list[Math.floor(Math.random() * list.length)];
+    const ease = value => value < .5 ? 2 * value * value : 1 - Math.pow(-2 * value + 2, 2) / 2;
 
-    async function presentCombatExchange(engine,exchange,runId) {
-      const {attacker,defense,attackId}=exchange,defender=attacker==="a"?"b":"a",attack=ATTACKS[attackId];
-      const attackFighter=engine.fighter(attacker),defendFighter=engine.fighter(defender);
-      attackFighter.transition("approach");engine.emit("state_changed",{fighter:attacker,state:"approach"});
-      await stickmanStage.approach(attacker);if(runId!==appState.battleRunId)return;
-      attackFighter.transition("windup");stickmanStage.contactState="WINDUP";
-      if(attackId==="signature"||attackId==="comeback"){banterDirector.reset();const profession=PROFESSION_PRESENTATION[(attacker==="a"?stickmanStage.a:stickmanStage.b).profession];elements.arenaLabel.textContent=attackId==="signature"?(profession.signatureName||"SIGNATURE!"):(profession.comebackName||"COMEBACK!");elements.arenaLabel.classList.remove("hidden");window.setTimeout(()=>{if(appState.phase==="battle")elements.arenaLabel.classList.add("hidden");},900);stickmanStage.spawnBurst(attacker);stickmanStage.spawnProfessionProjectile(attacker,attackId);}else banterDirector.say(attacker,"attack");
-      const defensiveClip=defense==="counter"?"lean":defense;
-      if(defense!=="hit"){defendFighter.transition(defense==="block"?"block":"dodge");stickmanStage.play(defender,defensiveClip);}
-      stickmanStage.play(attacker,attackId);await wait(attack.startupMs);
-      attackFighter.transition("active");stickmanStage.contactState="ACTIVE";
-      let contacted=stickmanStage.testContact(attacker,defender,defense==="block",attack.knockdown,attackId);
-      if(defense==="hit"&&!contacted){const facing=attacker==="a"?1:-1;for(let step=0;step<7&&!contacted;step++){const proposed=stickmanStage.positions[attacker]+facing*stickmanStage.scale()*.045,minimumGap=stickmanStage.scale()*.38,target=attacker==="a"?Math.min(proposed,stickmanStage.positions[defender]-minimumGap):Math.max(proposed,stickmanStage.positions[defender]+minimumGap);await stickmanStage.move(attacker,target,38);contacted=stickmanStage.testContact(attacker,defender,false,attack.knockdown,attackId);}}
-      if(["lean","crouch","jump","counter"].includes(defense))contacted=false;
-      const result=engine.resolveAttack({attacker,defense,attackId,contact:contacted});
-      if(result.outcome==="block"){defendFighter.transition("block");stickmanStage.play(defender,"blockHit");stickmanStage.spawnImpact(defender,true,false);stickmanStage.contactState="CHIP DAMAGE";banterDirector.say(defender,"block");}
-      else if(result.outcome==="hit"||result.outcome==="knockdown"||result.outcome==="knockout"){defendFighter.transition(result.outcome==="knockout"?"knockdown":result.outcome);stickmanStage.play(defender,result.outcome==="knockdown"||result.outcome==="knockout"?"knockdown":"hit");stickmanStage.spawnImpact(defender,false,true);stickmanStage.contactState=result.outcome.toUpperCase();const direction=attacker==="a"?1:-1;stickmanStage.positions[defender]+=direction*stickmanStage.scale()*attack.knockback;banterDirector.say(defender,result.outcome==="knockdown"?"knockdown":"hit");}
-      else{stickmanStage.contactState=defense==="counter"?"DODGE → COUNTER":"CLEAN MISS";banterDirector.say(defender,"dodge");}
-      updateCombatHud(engine);await wait(result.outcome==="knockdown"?650:attack.activeMs+180);
-      attackFighter.transition("recovery");await stickmanStage.retreat(attacker);stickmanStage.play(attacker,"idle",true);attackFighter.transition("idle");
-      if(result.outcome==="knockdown"){defendFighter.transition("grounded");await wait(100);defendFighter.transition("getup");stickmanStage.contactState="GET UP";stickmanStage.play(defender,"getup");await wait(650);}
-      if(result.outcome==="knockout"){defendFighter.transition("grounded");stickmanStage.contactState="K.O.";return result;}
-      if(defense==="counter"){
-        defendFighter.transition("counter");await stickmanStage.approach(defender);stickmanStage.play(defender,"counter");await wait(ATTACKS.counter.startupMs);const counterContact=stickmanStage.testContact(defender,attacker,false,false);const counterResult=engine.resolveAttack({attacker:defender,defense:"hit",attackId:"counter",contact:counterContact});if(counterResult.damage){stickmanStage.play(attacker,"hit");stickmanStage.spawnImpact(attacker,false,true);updateCombatHud(engine);}await wait(300);await stickmanStage.retreat(defender);
+    function chooseVariety(poolName, recentDepth) {
+      const recent = appState.combatHistory.slice(-recentDepth).map(item => item[poolName]);
+      const candidates = COMBAT_POOLS[poolName].filter(item => !recent.includes(item));
+      return pick(candidates.length ? candidates : COMBAT_POOLS[poolName]);
+    }
+
+    function makeCombatFingerprint() {
+      return {
+        moods: chooseVariety("moods", 1),
+        openings: chooseVariety("openings", 1),
+        mids: chooseVariety("mids", 2),
+        endings: chooseVariety("endings", 3)
+      };
+    }
+
+    function eventTypeFor(index, count, fingerprint) {
+      const progress = index / Math.max(1, count - 1);
+      const early = ["light", "block", "dodge", "light", "counter", "trade"];
+      const middle = ["light", "heavy", "block", "counter", "trade", "knockdown", "dodge"];
+      const late = ["heavy", "counter", "trade", "knockdown", "signature", "light"];
+      let type = pick(progress < .32 ? early : progress < .72 ? middle : late);
+      if (fingerprint.mids === "signatureTurn" && index === Math.floor(count * .58)) type = "signature";
+      if (fingerprint.mids === "knockdownTurn" && index === Math.floor(count * .52)) type = "knockdown";
+      if (fingerprint.openings === "doubleDodge" && index < 2) type = "dodge";
+      if (fingerprint.openings === "trade" && index === 0) type = "trade";
+      if (fingerprint.openings === "whiffCounter" && index === 1) type = "counter";
+      return type;
+    }
+
+    function generateFightPlan(loserSide) {
+      const winnerSide = loserSide === "A" ? "B" : "A";
+      const fingerprint = makeCombatFingerprint();
+      const count = randomInt(11, 15);
+      const koAt = randomBetween(18.0, 19.45);
+      const spacing = (koAt - .45) / count;
+      const events = [];
+      let lastAttacker = null;
+      let knockdowns = 0;
+
+      for (let index = 0; index < count - 1; index += 1) {
+        let attacker;
+        if (index === 0 && fingerprint.openings === "aPressure") attacker = "A";
+        else if (index === 0 && fingerprint.openings === "bPressure") attacker = "B";
+        else if (lastAttacker && Math.random() < .58) attacker = lastAttacker === "A" ? "B" : "A";
+        else attacker = Math.random() < .5 ? "A" : "B";
+        let type = eventTypeFor(index, count, fingerprint);
+        if (type === "knockdown" && knockdowns >= 2) type = "heavy";
+        if (type === "knockdown") knockdowns += 1;
+        if (index > 0 && events[index - 1].type === type && ["knockdown", "signature", "counter"].includes(type)) type = "light";
+        events.push({
+          id: index,
+          start: .35 + index * spacing + randomBetween(-.10, .10),
+          duration: clamp(spacing * randomBetween(.78, .96), .72, 1.28),
+          attacker,
+          type,
+          applied: false
+        });
+        lastAttacker = attacker;
       }
-      defendFighter.transition("idle");stickmanStage.play(defender,"idle",true);stickmanStage.contactState="IDLE";
+
+      const endingMap = {
+        heavyKO: "heavy", counterKO: "counter", signatureKO: "signature", comebackKO: "signature",
+        simpleKO: "light", tradeKO: "trade", getupKO: "heavy", whiffKO: "counter"
+      };
+      const finalType = endingMap[fingerprint.endings];
+      events.push({
+        id: count - 1,
+        start: koAt - .92,
+        duration: .92,
+        attacker: finalType === "counter" ? loserSide : winnerSide,
+        type: finalType,
+        final: true,
+        applied: false
+      });
+
+      appState.combatHistory.push(fingerprint);
+      if (appState.combatHistory.length > 5) appState.combatHistory.shift();
+      return { events, fingerprint, koAt, loserSide, winnerSide };
     }
 
-    async function playPhaseThreeBattle() {
+    class CanvasBattle {
+      constructor(plan, jobs) {
+        this.plan = plan;
+        this.jobs = jobs;
+        this.canvas = elements.battleCanvas;
+        this.ctx = this.canvas.getContext("2d");
+        this.hp = { A: 100, B: 100 };
+        this.current = null;
+        this.particles = [];
+        this.ko = false;
+        this.koElapsed = 0;
+        this.raf = 0;
+        this.lastTimer = null;
+        this.speed = new URLSearchParams(location.search).has("testSpeed") ? 8 : 1;
+      }
+
+      resize() {
+        const rect = this.canvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const width = Math.max(1, Math.round(rect.width * dpr));
+        const height = Math.max(1, Math.round(rect.height * dpr));
+        if (this.canvas.width !== width || this.canvas.height !== height) {
+          this.canvas.width = width;
+          this.canvas.height = height;
+        }
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        this.width = rect.width;
+        this.height = rect.height;
+      }
+
+      positions(event, local) {
+        const strike = Math.sin(Math.PI * clamp(local, 0, 1));
+        const attackerAdvance = ease(clamp(strike * 1.22, 0, 1));
+        let xA = this.width * .25;
+        let xB = this.width * .75;
+        if (event) {
+          if (event.type === "trade") {
+            xA += this.width * .21 * attackerAdvance;
+            xB -= this.width * .21 * attackerAdvance;
+          } else if (event.attacker === "A") {
+            xA += this.width * .30 * attackerAdvance;
+            xB -= this.width * .12 * attackerAdvance;
+          } else {
+            xB -= this.width * .30 * attackerAdvance;
+            xA += this.width * .12 * attackerAdvance;
+          }
+        }
+        return { A: xA, B: xB };
+      }
+
+      contact(event, local) {
+        const positions = this.positions(event, local);
+        return Math.abs(positions.B - positions.A) <= Math.max(96, this.width * .115);
+      }
+
+      damageFor(type) {
+        if (type === "block") return randomInt(2, 4);
+        if (type === "light") return randomInt(7, 11);
+        if (type === "heavy") return randomInt(13, 18);
+        if (type === "knockdown") return randomInt(16, 22);
+        if (type === "signature") return randomInt(19, 26);
+        if (type === "counter") return randomInt(10, 16);
+        if (type === "trade") return randomInt(7, 12);
+        return 0;
+      }
+
+      applyDamage(side, amount, final = false) {
+        if (final && side === this.plan.loserSide) {
+          this.hp[side] = 0;
+        } else {
+          const floor = side === this.plan.loserSide ? 7 : 6;
+          this.hp[side] = Math.max(floor, this.hp[side] - amount);
+        }
+        const element = side === "A" ? elements.hpA : elements.hpB;
+        element.style.width = `${this.hp[side]}%`;
+      }
+
+      burst(side, strong) {
+        const positions = this.positions(this.current, .5);
+        const x = positions[side];
+        const y = this.height * .48;
+        const count = strong ? 18 : 9;
+        for (let index = 0; index < count; index += 1) {
+          this.particles.push({
+            x, y, born: this.elapsed,
+            vx: randomBetween(-115, 115), vy: randomBetween(-150, 35),
+            color: index % 4 === 0 ? "#ff385d" : index % 2 ? "#fff4a8" : "#ffffff",
+            size: randomBetween(2, strong ? 7 : 5)
+          });
+        }
+        elements.arena.classList.remove("flash", "shake");
+        void elements.arena.offsetWidth;
+        elements.arena.classList.add("flash");
+        if (strong) elements.arena.classList.add("shake");
+      }
+
+      resolve(event, local) {
+        if (event.applied) return;
+        const hitPoint = event.type === "counter" ? .68 : .49;
+        if (local < hitPoint) return;
+        event.applied = true;
+        const defender = event.attacker === "A" ? "B" : "A";
+        if (event.type === "dodge") return;
+        if (!this.contact(event, event.type === "counter" ? .52 : .5)) return;
+        if (event.type === "counter") {
+          this.applyDamage(event.attacker, this.damageFor(event.type), event.final && event.attacker === this.plan.loserSide);
+          this.burst(event.attacker, event.final);
+        } else if (event.type === "trade") {
+          this.applyDamage(defender, this.damageFor(event.type), event.final && defender === this.plan.loserSide);
+          if (!event.final) this.applyDamage(event.attacker, this.damageFor(event.type));
+          this.burst(defender, event.final);
+        } else {
+          this.applyDamage(defender, this.damageFor(event.type), event.final);
+          this.burst(defender, event.final || ["heavy", "signature", "knockdown"].includes(event.type));
+        }
+        if (event.final) {
+          this.ko = true;
+          this.koElapsed = this.elapsed;
+        }
+      }
+
+      fighterState(side, event, local) {
+        if (this.ko) return side === this.plan.loserSide ? "lose" : "victory";
+        if (!event) return "idle";
+        const attacker = event.attacker;
+        const defender = attacker === "A" ? "B" : "A";
+        if (event.type === "counter") {
+          if (local < .48) return side === attacker ? "attack" : "dodge";
+          return side === defender ? "attack" : "hit";
+        }
+        if (event.type === "trade") return local < .57 ? "attack" : "hit";
+        if (side === attacker) return event.type === "signature" ? "signature" : event.type === "heavy" ? "heavy" : "attack";
+        if (event.type === "block") return "block";
+        if (event.type === "dodge") return "dodge";
+        if (event.type === "knockdown" && local > .48) return "knockdown";
+        return local > .45 && local < .78 ? "hit" : "idle";
+      }
+
+      drawArena() {
+        const ctx = this.ctx;
+        const w = this.width;
+        const h = this.height;
+        const sky = ctx.createLinearGradient(0, 0, 0, h);
+        sky.addColorStop(0, "#132653"); sky.addColorStop(.58, "#48285d"); sky.addColorStop(.59, "#e15a70"); sky.addColorStop(.62, "#241d43"); sky.addColorStop(1, "#111326");
+        ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(255,255,255,.035)";
+        for (let x = 0; x < w; x += 72) ctx.fillRect(x, 0, 2, h * .58);
+        ctx.strokeStyle = "rgba(255,211,89,.20)"; ctx.lineWidth = 2;
+        for (let x = -w; x < w * 2; x += 90) {
+          ctx.beginPath(); ctx.moveTo(w / 2, h * .60); ctx.lineTo(x, h); ctx.stroke();
+        }
+        for (let y = h * .64; y < h; y += 36) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+        ctx.fillStyle = "rgba(5,7,19,.42)"; ctx.fillRect(0, h * .83, w, h * .17);
+      }
+
+      drawFighter(side, x, state, local) {
+        const ctx = this.ctx;
+        const dir = side === "A" ? 1 : -1;
+        const ground = this.height * .80;
+        const scale = clamp(this.height / 500, .68, 1.12);
+        const color = JOB_COLORS[this.jobs[side].id] || (side === "A" ? "#4cf3ff" : "#ff4fd8");
+        const bob = state === "idle" ? Math.sin(this.elapsed * 5 + (side === "A" ? 0 : 1.2)) * 3 : 0;
+        let rotation = 0;
+        let y = ground + bob;
+        if (state === "hit") rotation = -dir * .15;
+        if (state === "dodge") rotation = -dir * .22;
+        if (state === "knockdown" || state === "lose") rotation = -dir * 1.34;
+        if (state === "victory") y -= Math.abs(Math.sin(this.elapsed * 5)) * 5;
+
+        ctx.save(); ctx.translate(x, y); ctx.rotate(rotation); ctx.scale(scale, scale);
+        ctx.lineCap = "round"; ctx.lineJoin = "round";
+        const headY = -132;
+        const shoulderY = -92;
+        const hipY = -35;
+        let frontHand = { x: dir * 36, y: -69 }, backHand = { x: -dir * 28, y: -62 };
+        let frontFoot = { x: dir * 31, y: 0 }, backFoot = { x: -dir * 27, y: 0 };
+        const punch = Math.sin(Math.PI * clamp(local, 0, 1));
+        if (["attack", "heavy", "signature"].includes(state)) {
+          const reach = state === "signature" ? 78 : state === "heavy" ? 70 : 60;
+          frontHand = { x: dir * (34 + reach * punch), y: -82 + (state === "heavy" ? -24 * punch : 0) };
+          if (this.jobs[side].id === "takraw" || state === "signature") frontFoot = { x: dir * (35 + 72 * punch), y: -54 * punch };
+        } else if (state === "block") {
+          frontHand = { x: dir * 34, y: -112 }; backHand = { x: dir * 17, y: -96 };
+        } else if (state === "victory") {
+          frontHand = { x: dir * 39, y: -155 }; backHand = { x: -dir * 39, y: -155 };
+        }
+        const shoulderA = { x: dir * 11, y: shoulderY }, shoulderB = { x: -dir * 11, y: shoulderY };
+        const elbowA = { x: (shoulderA.x + frontHand.x) * .48, y: (shoulderA.y + frontHand.y) * .48 - 9 };
+        const elbowB = { x: (shoulderB.x + backHand.x) * .5, y: (shoulderB.y + backHand.y) * .5 + 7 };
+        const kneeA = { x: frontFoot.x * .52, y: -18 + frontFoot.y * .44 };
+        const kneeB = { x: backFoot.x * .52, y: -18 + backFoot.y * .44 };
+        const limb = (a, b, c) => { ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.stroke(); };
+
+        ctx.strokeStyle = "#090b16"; ctx.lineWidth = 15;
+        ctx.beginPath(); ctx.moveTo(0, shoulderY); ctx.lineTo(0, hipY); ctx.stroke();
+        limb(shoulderA, elbowA, frontHand); limb(shoulderB, elbowB, backHand);
+        limb({x:0,y:hipY}, kneeA, frontFoot); limb({x:0,y:hipY}, kneeB, backFoot);
+        ctx.strokeStyle = color; ctx.lineWidth = 8;
+        ctx.beginPath(); ctx.moveTo(0, shoulderY); ctx.lineTo(0, hipY); ctx.stroke();
+        limb(shoulderA, elbowA, frontHand); limb(shoulderB, elbowB, backHand);
+        limb({x:0,y:hipY}, kneeA, frontFoot); limb({x:0,y:hipY}, kneeB, backFoot);
+        ctx.fillStyle = "#f4c89a"; ctx.strokeStyle = "#090b16"; ctx.lineWidth = 7;
+        ctx.beginPath(); ctx.arc(0, headY, 24, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#0b0d17";
+        ctx.beginPath(); ctx.arc(dir * 8, headY - 3, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = color; ctx.lineWidth = 9;
+        if (this.jobs[side].id === "somtam") {
+          ctx.beginPath(); ctx.moveTo(frontHand.x, frontHand.y); ctx.lineTo(frontHand.x + dir * 38, frontHand.y - 20); ctx.stroke();
+        } else if (this.jobs[side].id === "lottery") {
+          ctx.fillStyle = "#ffe55a"; ctx.fillRect(frontHand.x - 9, frontHand.y - 14, 18, 24);
+        } else if (this.jobs[side].id === "student") {
+          ctx.fillStyle = "#fff"; ctx.fillRect(frontHand.x - 13, frontHand.y - 11, 25, 20);
+          ctx.strokeStyle = "#5b7cff"; ctx.lineWidth = 3; ctx.strokeRect(frontHand.x - 13, frontHand.y - 11, 25, 20);
+        } else {
+          ctx.strokeStyle = "#ffe44d"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(frontFoot.x + dir * 15, frontFoot.y - 8, 10, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      drawParticles() {
+        const ctx = this.ctx;
+        this.particles = this.particles.filter(particle => this.elapsed - particle.born < .72);
+        this.particles.forEach(particle => {
+          const age = this.elapsed - particle.born;
+          const x = particle.x + particle.vx * age;
+          const y = particle.y + particle.vy * age + 190 * age * age;
+          ctx.globalAlpha = 1 - age / .72;
+          ctx.fillStyle = particle.color;
+          ctx.beginPath(); ctx.arc(x, y, particle.size, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+      }
+
+      draw() {
+        this.resize();
+        this.drawArena();
+        let event = this.current;
+        let local = event ? clamp((this.elapsed - event.start) / event.duration, 0, 1) : 0;
+        const positions = this.positions(event, local);
+        this.drawFighter("A", positions.A, this.fighterState("A", event, local), local);
+        this.drawFighter("B", positions.B, this.fighterState("B", event, local), local);
+        this.drawParticles();
+      }
+
+      run() {
+        return new Promise(resolve => {
+          const start = performance.now();
+          const tick = now => {
+            this.elapsed = ((now - start) / 1000) * this.speed;
+            this.current = this.plan.events.find(event => this.elapsed >= event.start && this.elapsed <= event.start + event.duration) || null;
+            this.plan.events.forEach(event => {
+              const hitPoint = event.type === "counter" ? .68 : .49;
+              if (!event.applied && this.elapsed >= event.start + event.duration * hitPoint) this.resolve(event, hitPoint);
+            });
+            if (this.current) {
+              const local = clamp((this.elapsed - this.current.start) / this.current.duration, 0, 1);
+              this.resolve(this.current, local);
+              elements.battleNote.textContent = EVENT_LABELS[this.current.final ? "final" : this.current.type] || "ปะทะ!";
+            } else if (!this.ko) {
+              elements.battleNote.textContent = "จับจังหวะ...";
+            }
+            const remaining = Math.max(0, 20 - this.elapsed);
+            const timer = Math.ceil(remaining);
+            if (timer !== this.lastTimer) {
+              elements.battleTimer.textContent = String(timer).padStart(2, "0");
+              this.lastTimer = timer;
+            }
+            this.draw();
+            if (this.ko && this.elapsed - this.koElapsed > 1.35 * this.speed) {
+              cancelAnimationFrame(this.raf);
+              resolve(this.hp);
+              return;
+            }
+            this.raf = requestAnimationFrame(tick);
+          };
+          this.raf = requestAnimationFrame(tick);
+        });
+      }
+    }
+
+    async function playCombatBattle() {
       if (!appState.round) return;
-      const runId = ++appState.battleRunId;
       const [fighterA, fighterB] = appState.round.fighters;
       const jobA = professionById(appState.round.professions.fighterA);
       const jobB = professionById(appState.round.professions.fighterB);
@@ -854,100 +935,44 @@
 
       elements.hudAName.textContent = fighterA.name;
       elements.hudBName.textContent = fighterB.name;
-      elements.hudAJob.textContent = `${jobA.icon} ${jobA.name}`;
-      elements.hudBJob.textContent = `${jobB.icon} ${jobB.name}`;
       elements.hpA.style.width = "100%";
       elements.hpB.style.width = "100%";
       elements.battleTimer.textContent = "20";
       elements.arenaLabel.textContent = "FIGHT!";
       elements.arenaLabel.classList.remove("hidden");
       setScreen("battle");
-      resetBattlePresentation();elements.arenaLabel.textContent="FIGHT!";elements.arenaLabel.classList.remove("hidden");
-      stickmanStage.a.play("idle", true);
-      stickmanStage.b.play("idle", true);
-      stickmanStage.setProfession("a",jobA.id);
-      stickmanStage.setProfession("b",jobB.id);
-      stickmanStage.play("a","idle",true);
-      stickmanStage.play("b","idle",true);
-      stickmanStage.events.length = 0;
-      stickmanStage.projectiles.length = 0;
-      stickmanStage.resetPositions();
-      stickmanStage.start();
       await wait(700);
-      if (runId !== appState.battleRunId || appState.phase !== "battle") return;
       elements.arenaLabel.classList.add("hidden");
 
-      const loserIsA = appState.round.lockedLoserId === fighterA.id;
-      const lockedLoserSide=loserIsA?"a":"b";
-      const knockoutEnabled=Math.random()<.7;
-      const engine=new CombatEngine(new CombatFighter(fighterA.id,"a"),new CombatFighter(fighterB.id,"b"),{lockedLoserSide,knockoutEnabled});
-      appState.combatEngine=engine;engine.start();
-      const guaranteeSignature=Math.random()<.85;
-      const director=new CombatDirector({lockedLoserSide,guaranteeSignature,knockoutEnabled});
-      const battleDeadline = performance.now() + FIGHT_DURATION_MS;
-      const timerId = appState.battleTimerId = window.setInterval(() => {
-        if (runId !== appState.battleRunId || appState.phase !== "battle") return window.clearInterval(timerId);
-        const remaining = Math.max(0, Math.ceil((battleDeadline-performance.now())/1000));
-        elements.battleTimer.textContent = String(remaining).padStart(2, "0");
-      }, 200);
-      let knockout=false;
-      for (let index = 0; index < director.exchangeCount; index += 1) {
-        if (runId !== appState.battleRunId || appState.phase !== "battle") return;
-        if(performance.now()>=battleDeadline-950)break;
-        const exchange = director.ensureClosingOutcome(engine,index);
-        const untilExchange=battleDeadline-FIGHT_DURATION_MS+exchange.at-performance.now();if(untilExchange>0)await wait(untilExchange);
-        const result=await presentCombatExchange(engine,exchange,runId);
-        if(result?.outcome==="knockout"){knockout=true;break;}
-      }
-      const remainingBattleTime = battleDeadline-performance.now();
-      if (!knockout&&remainingBattleTime > 0) await wait(remainingBattleTime);
-      window.clearInterval(timerId);appState.battleTimerId=null;
-      if (runId !== appState.battleRunId || appState.phase !== "battle") return;
-      elements.battleTimer.textContent = "00";
-      let finalEvent;
-      const finishReason=knockout?"knockout":"time",elapsedMs=performance.now()-engine.startedAt;
-      try{finalEvent=engine.finish(lockedLoserSide,finishReason,elapsedMs);}catch(error){console.error(error);finalEvent=Object.freeze({type:"fight_finished",lockedLoserSide,reason:finishReason,elapsedMs,hpA:engine.fighter("a").hp,hpB:engine.fighter("b").hp,valid:false,recovered:true});}
-      const signatureHits=engine.events.filter(event=>["hit","knockdown","knockout"].includes(event.type)&&event.attackId==="signature"&&event.damage>0).length;
-      window.__randomFighterDiagnostics=Object.freeze({finalEvent,director:director.summary(),signatureHits,exchanges:Object.freeze([...director.history]),eventCount:engine.events.length,eventTypes:Object.freeze([...new Set(engine.events.map(event=>event.type))])});
-      document.documentElement.dataset.fightDiagnostics=JSON.stringify(window.__randomFighterDiagnostics);
-      elements.arenaLabel.textContent = knockout?"K.O.!":"TIME!";
+      const loserSide = appState.round.lockedLoserId === fighterA.id ? "A" : "B";
+      const plan = generateFightPlan(loserSide);
+      const battle = new CanvasBattle(plan, { A: jobA, B: jobB });
+      await battle.run();
+      elements.arenaLabel.textContent = "KO!";
       elements.arenaLabel.classList.remove("hidden");
-      banterDirector.reset();
-      stickmanStage.play(loserIsA ? "a" : "b", "lose");
-      stickmanStage.play(loserIsA ? "b" : "a", "victory");
-      await wait(1200);
-      if (runId !== appState.battleRunId || appState.phase !== "battle") return;
-      showResult(finishReason);
+      await wait(1100);
+      showResult();
     }
 
-    function showResult(reason="time") {
+    function showResult() {
       if (!appState.round) return;
       const loser = appState.round.fighters.find(fighter => fighter.id === appState.round.lockedLoserId);
-      const winner = appState.round.fighters.find(fighter => fighter.id !== appState.round.lockedLoserId);
       const jobA = professionById(appState.round.professions.fighterA);
       const jobB = professionById(appState.round.professions.fighterB);
-      elements.resultKicker.textContent=reason==="knockout"?"K.O.! · ROUND RESULT":"TIME! · ROUND RESULT";
-      elements.winnerName.textContent=winner?.name||"ผู้ชนะ";
       elements.loserName.textContent = loser?.name || "ผู้ท้าชิง";
-      elements.resultSummary.textContent = `${appState.round.fighters[0].name} · ${jobA?.icon || ""} ${jobA?.name || ""}  VS  ${appState.round.fighters[1].name} · ${jobB?.icon || ""} ${jobB?.name || ""}`;
-      stickmanStage.stop();
+      elements.resultSummary.textContent = `${appState.round.fighters[0].name} ${jobA?.icon || ""}  VS  ${appState.round.fighters[1].name} ${jobB?.icon || ""}`;
       setScreen("result");
     }
 
     async function startNextRound() {
-      if (appState.roundBusy) return;
-      if (!appState.studentPool.length) return returnToSetup();
-      appState.roundBusy=true;
-      const runId=++appState.battleRunId;
-      resetBattlePresentation();stickmanStage.stop();
+      if (!appState.studentPool.length) returnToSetup();
       appState.round = createLockedRound(appState.studentPool);
       elements.selectionPanel.classList.add("hidden");
       elements.drawStatus.textContent = "กำลังเตรียมไพ่...";
       renderCardGrid(appState.studentPool);
       setScreen("draw");
       await wait(350);
-      await revealFighters(appState.round,runId);
-      if (runId===appState.battleRunId) appState.roundBusy=false;
+      await revealFighters(appState.round);
     }
 
     function updateRosterValidation() {
@@ -988,28 +1013,25 @@
       elements.drawGrid.replaceChildren(...students.map(createCard));
     }
 
-    async function revealFighters(round,runId=appState.battleRunId) {
+    async function revealFighters(round) {
       const selectedIds = new Set(round.fighters.map(fighter => fighter.id));
 
       for (let index = 0; index < round.fighters.length; index += 1) {
         const fighter = round.fighters[index];
         elements.drawStatus.textContent = `เปิดไพ่ใบที่ ${index + 1} จาก 2...`;
         await wait(700);
-        if (runId!==appState.battleRunId || appState.phase!=="draw") return;
         const card = elements.drawGrid.querySelector(`[data-student-id="${fighter.id}"]`);
         card?.classList.add("flipped");
       }
 
       elements.drawStatus.textContent = "ได้ผู้ท้าชิงครบ 2 คนแล้ว!";
       await wait(700);
-      if (runId!==appState.battleRunId || appState.phase!=="draw") return;
 
       elements.drawGrid.querySelectorAll(".draw-card").forEach(card => {
         if (!selectedIds.has(card.dataset.studentId)) card.classList.add("dim");
       });
 
       await wait(500);
-      if (runId!==appState.battleRunId || appState.phase!=="draw") return;
       elements.fighterAName.textContent = round.fighters[0].name;
       elements.fighterBName.textContent = round.fighters[1].name;
       elements.selectionPanel.classList.remove("hidden");
@@ -1024,21 +1046,16 @@
       elements.startButton.disabled = true;
       appState.studentPool = makeStudentPool(names);
       appState.round = createLockedRound(appState.studentPool);
-      const runId=++appState.battleRunId;
 
       elements.selectionPanel.classList.add("hidden");
       elements.drawStatus.textContent = "กำลังเตรียมไพ่...";
       renderCardGrid(appState.studentPool);
       setScreen("draw");
       await wait(350);
-      await revealFighters(appState.round,runId);
+      await revealFighters(appState.round);
     }
 
     function returnToSetup() {
-      appState.battleRunId += 1;
-      appState.roundBusy=false;
-      resetBattlePresentation();
-      stickmanStage.stop();
       appState.studentPool = [];
       appState.round = null;
       elements.drawGrid.replaceChildren();
@@ -1061,79 +1078,10 @@
     elements.editNamesButton.addEventListener("click", returnToSetup);
     elements.chooseProfessionsButton.addEventListener("click", openProfessionSelection);
     elements.backToDrawButton.addEventListener("click", returnToDraw);
-    elements.enterArenaButton.addEventListener("click", playPhaseThreeBattle);
+    elements.enterArenaButton.addEventListener("click", playCombatBattle);
     elements.nextRoundButton.addEventListener("click", startNextRound);
     elements.resultEditButton.addEventListener("click", returnToSetup);
     updateRosterValidation();
-
-    function runPhaseOneInvariants() {
-      const required = ["idle","punch","heavy","hit","block","blockHit","lean","crouch","jump","counter","knockdown","getup","victory","lose"];
-      const missingClips = required.filter(name => !CLIPS[name]);
-      const missingPoses = Object.values(CLIPS).flat().map(frame => frame.p).filter(name => !POSES[name]);
-      const numericPoses = Object.entries(POSES).every(([,pose]) => Object.values(pose).every(Number.isFinite));
-      const outcomeFields = Object.keys(CLIPS).some(name => /loser|winner|damage|hp|hitbox/i.test(name));
-      const passed = !missingClips.length && !missingPoses.length && numericPoses && !outcomeFields;
-      console.info("Phase 1 invariant check", { passed, missingClips, missingPoses, numericPoses, outcomeIsolated: !outcomeFields });
-      return passed;
-    }
-    runPhaseOneInvariants();
-
-    function runPhaseThreeInvariants(simulationCount=5000) {
-      const requiredAttackFields=["startupMs","activeMs","recoveryMs","damage","chipDamage","knockback","knockdown"];
-      const structuredAttacks=Object.values(ATTACKS).every(attack=>requiredAttackFields.every(field=>field in attack)&&attack.startupMs>0&&attack.activeMs>0&&attack.recoveryMs>0);
-      const allEvents=[],outcomes=[],templates=new Set(),narrativeKinds={lead_change:0,steady:0},closingStyles={close:0,competitive:0,clear:0},counts=[],defenseCounts=[],failures=[],leadChangeCounts=[],timeFinalGaps=[],knockoutTimes=[];
-      for(let run=0;run<simulationCount;run++){
-        const lockedLoserSide=run%2?"a":"b",knockoutEnabled=run%10<7,engine=new CombatEngine(new CombatFighter("test-a","a"),new CombatFighter("test-b","b"),{lockedLoserSide,knockoutEnabled}),director=new CombatDirector({lockedLoserSide,knockoutEnabled});engine.start();
-        let previousLeader=null,pendingLeader=null,pendingCount=0,leadChanges=0,knockout=false,lastAt=FIGHT_DURATION_MS;
-        try{for(let index=0;index<director.exchangeCount;index++){const exchange=director.ensureClosingOutcome(engine,index),dodged=["lean","crouch","jump","counter"].includes(exchange.defense),result=engine.resolveAttack({...exchange,contact:!dodged,elapsedMs:exchange.at});lastAt=exchange.at;if(result?.outcome==="knockout"){knockout=true;break;}if(exchange.defense==="counter"){const counterSide=exchange.attacker==="a"?"b":"a";engine.resolveAttack({attacker:counterSide,defense:"hit",attackId:"counter",contact:true,elapsedMs:exchange.at});}const hpA=engine.fighter("a").hp,hpB=engine.fighter("b").hp,difference=hpA-hpB,leader=Math.abs(difference)<3?null:(difference>0?"a":"b");if(leader&&leader!==previousLeader){if(leader===pendingLeader)pendingCount++;else{pendingLeader=leader;pendingCount=1;}if(pendingCount>=2){if(previousLeader&&leader!==previousLeader)leadChanges++;previousLeader=leader;pendingLeader=null;pendingCount=0;}}else if(leader===previousLeader){pendingLeader=null;pendingCount=0;}}const reason=knockout?"knockout":"time",outcome=engine.finish(lockedLoserSide,reason,knockout?lastAt:FIGHT_DURATION_MS);outcomes.push(outcome);if(knockout)knockoutTimes.push(lastAt);else timeFinalGaps.push(Math.abs(outcome.hpA-outcome.hpB));leadChangeCounts.push(leadChanges);}
-        catch(error){failures.push({run,lockedLoserSide,hpA:engine.fighter("a").hp,hpB:engine.fighter("b").hp,message:error.message});}
-        templates.add(director.template.id);narrativeKinds[director.template.kind]++;closingStyles[director.closingStyle.id]++;counts.push(director.exchangeCount);defenseCounts.push(director.defensesUsed);allEvents.push(...engine.events);
-      }
-      const eventTypes=new Set(allEvents.map(event=>event.type));
-      const requiredEvents=["damage","chip_damage","miss","hit","knockdown","knockout","fight_finished"];
-      const fightsWithLeadChange=leadChangeCounts.filter(count=>count>0).length,leadChangeRate=fightsWithLeadChange/simulationCount;
-      const leadChangeNarrativeRate=narrativeKinds.lead_change/simulationCount;
-      const defenseRate=defenseCounts.reduce((sum,count)=>sum+count,0)/counts.reduce((sum,count)=>sum+count,0);
-      const knockoutRate=knockoutTimes.length/simulationCount,timeResults=outcomes.filter(result=>result.reason==="time"),knockoutResults=outcomes.filter(result=>result.reason==="knockout");
-      const passed=structuredAttacks&&!failures.length&&outcomes.length===simulationCount&&templates.size===NARRATIVE_TEMPLATES.length&&counts.every(count=>count>=10&&count<=16)&&outcomes.every(result=>result.valid)&&knockoutRate>=.69&&knockoutRate<=.71&&knockoutResults.every(result=>(result.lockedLoserSide==="a"?result.hpA:result.hpB)===0)&&timeResults.every(result=>result.hpA>0&&result.hpB>0)&&leadChangeNarrativeRate>=.82&&leadChangeNarrativeRate<=.88&&defenseRate<=.2&&Math.max(...timeFinalGaps)<=20&&Math.min(...knockoutTimes)>10000&&Math.max(...knockoutTimes)<FIGHT_DURATION_MS&&requiredEvents.every(type=>eventTypes.has(type));
-      window.__phase3Simulation=Object.freeze({passed,simulationCount,failureCount:failures.length,failures:Object.freeze(failures.slice(0,5)),knockoutRate:Number(knockoutRate.toFixed(3)),knockoutTimeRange:Object.freeze([Math.min(...knockoutTimes),Math.max(...knockoutTimes)]),templateCount:templates.size,narrativeKindRates:Object.freeze({leadChange:Number(leadChangeNarrativeRate.toFixed(3)),steady:Number((narrativeKinds.steady/simulationCount).toFixed(3))}),closingStyleRates:Object.freeze(Object.fromEntries(Object.entries(closingStyles).map(([key,value])=>[key,Number((value/simulationCount).toFixed(3))]))),exchangeRange:Object.freeze([Math.min(...counts),Math.max(...counts)]),defenseRate:Number(defenseRate.toFixed(3)),defenseCountRange:Object.freeze([Math.min(...defenseCounts),Math.max(...defenseCounts)]),meaningfulLeadChangeRate:Number(leadChangeRate.toFixed(3)),averageLeadChanges:Number((leadChangeCounts.reduce((sum,count)=>sum+count,0)/simulationCount).toFixed(2)),timeFinalGapRange:Object.freeze([Math.min(...timeFinalGaps),Math.max(...timeFinalGaps)]),eventTypes:Object.freeze([...eventTypes])});
-      document.documentElement.dataset.phase3Simulation=JSON.stringify(window.__phase3Simulation);
-      console.info("Phase 3 simulation",window.__phase3Simulation);
-      return passed;
-    }
-    runPhaseThreeInvariants();
-
-    function runPhaseFourInvariants(){const slice=[PROFESSION_PRESENTATION.takraw,PROFESSION_PRESENTATION.somtam],required=["idle","light","heavy","signature","comeback","block","hit","victory"],passed=slice.every(def=>required.every(key=>CLIPS[def.clips[key]])&&["light","heavy","signature","comeback"].every(key=>def.anchors[key]));document.documentElement.dataset.phase4Invariants=JSON.stringify({passed,professions:slice.map(def=>def.id)});console.info("Phase 4 invariant check",{passed});return passed;}
-    runPhaseFourInvariants();
-    function runPhaseFiveInvariants(){const roster=PROFESSIONS.map(job=>PROFESSION_PRESENTATION[job.id]),required=["idle","light","heavy","signature","comeback","block","hit","victory"],matchups=[];for(let left=0;left<roster.length;left++)for(let right=left+1;right<roster.length;right++)matchups.push(`${roster[left].id}-vs-${roster[right].id}`);const passed=roster.length===4&&matchups.length===6&&roster.every(def=>def&&def.signatureName&&def.comebackName&&required.every(key=>CLIPS[def.clips[key]])&&["light","heavy","signature","comeback"].every(key=>def.anchors[key]));document.documentElement.dataset.phase5Invariants=JSON.stringify({passed,professions:roster.map(def=>def.id),matchups});console.info("Phase 5 invariant check",{passed,matchups});return passed;}
-    runPhaseFiveInvariants();
-    function runPhaseSixInvariants(){
-      const banterEvents=["attack","block","dodge","hit","knockdown"];
-      const banterComplete=PROFESSIONS.every(job=>banterEvents.every(event=>BANTER_LINES[job.id]?.[event]?.length));
-      const resultComplete=[elements.winnerName,elements.loserName,elements.resultKicker,elements.resultSummary].every(Boolean);
-      const hudComplete=[elements.hudAName,elements.hudAJob,elements.hudBName,elements.hudBJob,elements.battleTimer].every(Boolean);
-      const passed=Boolean(banterComplete&&resultComplete&&hudComplete&&FIGHT_DURATION_MS===20000);
-      const report=Object.freeze({passed,banterComplete,resultComplete,hudComplete,fightDurationMs:FIGHT_DURATION_MS});
-      document.documentElement.dataset.phase6Invariants=JSON.stringify(report);
-      console.info("Phase 6 invariant check",report);
-      return passed;
-    }
-    runPhaseSixInvariants();
-
-    if (new URLSearchParams(location.search).get("lab") === "1") {
-      const lab = document.createElement("aside");
-      lab.className = "animation-lab";
-      lab.innerHTML = '<div class="lab-title pixel">ANIMATION LAB</div><div class="lab-controls"></div><p class="lab-status">เลือกท่าเพื่อทดสอบ Fighter A · กด G เพื่อเปิด joints</p>';
-      const controls = lab.querySelector(".lab-controls");
-      Object.keys(CLIPS).forEach(name => {
-        const button=document.createElement("button"); button.type="button"; button.textContent=name;
-        button.addEventListener("click",()=>{stickmanStage.play("a",name,name==="idle");const semantic=name.toLowerCase().includes("signature")?"signature":name.toLowerCase().includes("comeback")?"comeback":null;if(semantic){stickmanStage.spawnBurst("a");stickmanStage.spawnProfessionProjectile("a",semantic);}lab.querySelector(".lab-status").textContent=`Fighter A: ${name} · joints ${stickmanStage.guides?"ON":"OFF"}`;}); controls.append(button);
-      });
-      const guide=document.createElement("button");guide.type="button";guide.textContent="joints";guide.addEventListener("click",()=>{stickmanStage.guides=!stickmanStage.guides;});controls.append(guide);
-      ["generic","takraw","somtam","lottery","student"].forEach(id=>{const button=document.createElement("button");button.type="button";button.textContent=`profession: ${id}`;button.addEventListener("click",()=>{stickmanStage.setProfession("a",id);stickmanStage.play("a","idle",true);lab.querySelector(".lab-status").textContent=`Fighter A: ${id} · anchors ${JSON.stringify(PROFESSION_PRESENTATION[id].anchors)}`;});controls.append(button);});
-      document.body.append(lab);
-      document.addEventListener("keydown",event=>{if(event.key.toLowerCase()==="g")stickmanStage.guides=!stickmanStage.guides;});
-    }
 
     // Some iOS file previews update a textarea after Paste without dispatching
     // the usual input event. Keep the setup UI synced with the actual value.

@@ -1,7 +1,7 @@
 # Random Fighter — MVP Development Design Document
 **Status:** Development Source of Truth  
-**Version:** 1.0  
-**Date:** 2026-08-12  
+**Version:** 1.1  
+**Date:** 2026-08-21  
 **Basis:** พัฒนาต่อยอดจากต้นแบบ `battle-royale.html` และข้อสรุปจากการออกแบบร่วมกัน
 
 ---
@@ -96,13 +96,13 @@ Random Fighter คือ:
 ชื่อ + อาชีพ + presentation แบบ arcade
         ↓
 [FIGHT!]
-Auto Fighting 20 วินาที
+Auto Fighting โดยมีเวลา 20 วินาทีเป็นเพดาน
         ↓
-[TIME!]
-หยุดการต่อสู้
+[KO!]
+ผู้แพ้ HP = 0 จากการโจมตีจริงในช่วงท้าย
         ↓
 [Result]
-คน HP น้อยกว่า = ผู้แพ้
+ผู้ที่ถูก KO = ผู้แพ้
 แสดงชื่อผู้แพ้เพื่อให้ทำโจทย์
         ↓
 [Next Round]
@@ -222,7 +222,7 @@ MVP มี **4 อาชีพ**
 - Timer ตรงกลาง
 - VS Screen ก่อนสู้
 - FIGHT! ก่อนเริ่ม
-- TIME! เมื่อครบเวลา
+- KO! เมื่อ final attack ทำให้ผู้แพ้ HP = 0
 - victory pose
 - loser animation
 - retro fighting presentation
@@ -407,20 +407,19 @@ MVP ใช้ movement เฉพาะแกน X
 
 ---
 
-# 11. Combat Duration — LOCKED
+# 11. Combat Duration & KO — LOCKED
 
 Fight duration:
 
-> **20 seconds fixed**
+> **20 seconds maximum**
 
-Timer นับถอยหลังจนถึง 0
+Timer นับถอยหลังจาก 20 และหยุดทันทีเมื่อเกิด KO
 
-Fight มีผลลัพธ์ 2 แบบ:
+ทุกรอบต้องจบด้วย:
 
-- ประมาณ 70% จบด้วย KO หลังวินาทีที่ 10 และก่อนวินาทีที่ 20
-- ประมาณ 30% ต่อสู้ครบ 20 วินาทีแล้วตัดสินด้วย HP เมื่อ TIME
+> ผู้แพ้ HP = 0 จาก final combat event จริง
 
-เฉพาะผู้แพ้ที่ล็อกไว้ตั้งแต่ต้นรอบเท่านั้นที่ HP ลงถึง 0 ได้ ผู้ชนะต้องมี HP มากกว่า 0 เสมอ
+Combat Director ต้องวาง decisive exchange ในช่วงท้าย โดยเป้าหมายปกติคือวินาทีที่ 17–20 ของเวลาที่ผ่านไป เพื่อให้ไฟต์ยังลุ้นนานแต่จบด้วย KO ทุกครั้ง
 
 ---
 
@@ -434,17 +433,16 @@ Fight มีผลลัพธ์ 2 แบบ:
 - Damage ต้องเกิดจาก combat event จริง
 - เมื่อ animation โจมตีโดนจึงลด HP
 
-เมื่อ timer = 0 ในรอบที่ไม่ KO:
+เมื่อ HP ของ locked loser = 0:
 
-> Fighter ที่ HP ต่ำกว่า = ผู้แพ้
+> แสดง `KO!` และจบการต่อสู้ทันที
 
 ระบบต้องรับประกัน:
 
 - ไม่มี tie
-- ผู้แพ้ที่ล็อกไว้ต้องมี HP ต่ำกว่า
-- ผู้ชนะ HP มากกว่า 0 เสมอ
-- รอบ KO ต้องเกิดหลัง 10 วินาทีและก่อน 20 วินาที
-- รอบ TIME ทั้งสองฝ่ายต้องมี HP มากกว่า 0
+- ผู้แพ้ที่ล็อกไว้ต้องเป็นฝ่าย HP = 0
+- ผู้ชนะต้องมี HP มากกว่า 0
+- ห้ามแก้ HP แบบซ่อนเร้นตอนจบ; HP 0 ต้องเกิดจาก animation และ hit detection ของ final event
 
 ---
 
@@ -594,15 +592,16 @@ Combat Director คือระบบสำคัญที่สุดรอง�
 
 1. รับ Fighter A / Fighter B
 2. รับ locked loser
-3. สร้าง fight plan 20 วินาที
+3. สร้าง fight plan ที่มี 20 วินาทีเป็นเพดานและจบด้วย KO ช่วงท้าย
 4. วาง 10–16 exchanges
 5. ตัดสินผลของแต่ละ exchange
 6. กระจาย hit/block/dodge/counter/knockdown
 7. จัดจังหวะ HP ให้สูสีและพลิกไปมา
 8. ใส่ Signature / Comeback ตามสถานการณ์
-9. ป้องกัน HP = 0 ก่อนเวลา
+9. วาง KO ช่วงท้ายของไฟต์
 10. รับประกันไม่มี tie
-11. รับประกัน locked loser แพ้ตอน timer = 0
+11. รับประกัน locked loser HP = 0 และ winner HP > 0
+12. ป้องกัน narrative และ ending ซ้ำกับรอบล่าสุด
 
 ---
 
@@ -631,11 +630,11 @@ Late:
 A ใช้ Signature ไล่กลับมา
 
 Final seconds:
-B ใช้ Comeback แต่ไม่พอ
+B ใช้ Comeback ไล่กลับมา แต่พลาดท่าปิดเกม
 
-TIME:
-A 37 HP
-B 31 HP
+KO:
+A 12 HP
+B 0 HP
 
 B แพ้
 ```
@@ -787,25 +786,22 @@ VS
 
 # 24. End-of-Fight Presentation — LOCKED
 
-การจบไฟต์มี 2 แบบ:
+เมื่อ final attack ทำให้ locked loser HP = 0:
 
-1. `K.O.!` เกิดได้หลังวินาทีที่ 10 และก่อนครบ 20 วินาที โดยตั้งเป้าประมาณ 7 ใน 10 รอบ
-2. `TIME!` เกิดเมื่อครบ 20 วินาทีและไม่มีใครถูกน็อก
-
-เมื่อจบไฟต์:
-
-1. หยุด combat loop และ timer ทันที
-2. แสดง `K.O.!` หรือ `TIME!` ตามผลจริง
-3. Winner ทำ victory pose
-4. Loser ล้ม / เซ / คุกเข่า / lose animation
-5. แสดงชื่อผู้แพ้เป็นข้อความใหญ่ที่สุด พร้อมข้อความ `แพ้! ออกมาทำโจทย์` ส่วนชื่อผู้ชนะเป็นข้อมูลรอง
+1. เกิด hit freeze / impact FX
+2. Loser กระเด็นหรือล้มตาม final event
+3. แสดง `KO!`
+4. หยุด timer
+5. Winner ทำ victory pose
+6. Loser อยู่ใน lose animation และไม่ลุก
+7. แสดงชื่อผู้แพ้เด่น
 
 ข้อความแนวทาง:
 
 > **[ชื่อผู้แพ้] แพ้!**  
-> **ออกมาทำโจทย์**
+> **ถึงเวลาตอบโจทย์**
 
-หากจบด้วย `TIME!` Fighter ทั้งคู่ต้องยังมี HP เหลือ และผู้แพ้ที่ล็อกไว้ต้องมี HP ต่ำกว่าโดยห้ามเสมอ
+ใช้ `KO!` เป็นผลหลักทุกไฟต์ โดยยังคง tone แบบ cartoon / slapstick และไม่ใช้ gore
 
 ---
 
@@ -820,7 +816,7 @@ MVP:
 - hit sound
 - announcer
 - FIGHT voice
-- TIME voice
+- KO voice
 - music
 - crowd
 - victory sound
@@ -1040,7 +1036,7 @@ stickman 2 ตัวบน arena:
 
 ### Exit Criteria
 
-รัน generic fighter 2 ตัว 20 วินาทีได้
+รัน generic fighter 2 ตัวจนเกิด KO ภายในเพดาน 20 วินาทีได้
 
 และ:
 
@@ -1062,8 +1058,8 @@ stickman 2 ตัวบน arena:
 - alternate advantage
 - choose hit/block/dodge/counter
 - insert knockdown
-- protect HP floor
-- no early death
+- protect winner HP above 0
+- schedule decisive KO in the final 3 seconds
 - no tie
 - guaranteed locked loser
 - fight pacing
@@ -1075,7 +1071,8 @@ stickman 2 ตัวบน arena:
 
 - outcome ถูกต้องทุกครั้ง
 - ไม่มี tie
-- ไม่มี early death
+- locked loser HP = 0 ทุกไฟต์
+- winner HP > 0 ทุกไฟต์
 - fight ไม่เหมือนกันทุกครั้ง
 - ไม่รู้ winner/loser ง่ายตั้งแต่ต้น
 - HP มีจังหวะพลิก
@@ -1144,28 +1141,6 @@ stickman 2 ตัวบน arena:
 - victory/lose personality
 - matchup testing
 
-### Approved Moveset Direction
-
-ป้าใบ้หวยสายมู:
-
-- silhouette: ผมมวย แว่น เสื้อดอก ผ้าพาดไหล่
-- persistent prop: สมุดหวยหรือพัดเลข
-- light: ใบหวยปะหน้า
-- heavy: เซียมซีพิฆาต
-- signature: สามตัวตรง! — เลขสามตัวขนาดใหญ่ลอยพุ่งใส่คู่ต่อสู้
-- comeback: เจ้าที่บอกเลข! — ยันต์และเลขหมุนสร้างแรงกระแทก
-
-นักเรียนสายลืมการบ้าน:
-
-- silhouette: เครื่องแบบนักเรียน กระเป๋าสะพาย และทรงผมนักเรียน
-- persistent prop: กระเป๋านักเรียน
-- light: สมุดบิน!
-- heavy: กระเป๋าฟาด
-- signature: การบ้านถล่ม! — หนังสือและกระดาษลอยถล่มคู่ต่อสู้
-- comeback: ครูมาแล้ว! — ตกใจวิ่งหนีแล้วชนคู่ต่อสู้
-
-Signature projectile เป็น presentation ที่ต้องอ่านออกชัด แต่ damage ยังต้องเกิดจาก active-frame contact event จริง
-
 ### Balance Principle
 
 > combat style ต่าง แต่ expected win rate ห้ามต่าง
@@ -1203,7 +1178,7 @@ Mor vs Student
 - retro visual identity
 - HP readability
 - timer readability
-- TIME presentation
+- KO presentation
 - loser result
 - victory pose
 - blood FX polish
@@ -1211,9 +1186,6 @@ Mor vs Student
 - projector testing
 - performance
 - repeated-round stability
-- combat banter แบบสุ่มตามอาชีพและเหตุการณ์ attack / block / dodge / hit / knockdown
-- banter cooldown, ไม่พูดซ้ำติดกัน และไม่บังชื่อท่า Signature / Comeback
-- ปิด timer, speech bubble, projectile, particle และ state ค้างเมื่อเปลี่ยนรอบหรือกลับหน้า setup
 
 ### Exit Criteria
 
@@ -1249,7 +1221,7 @@ VS
         ↓
 FIGHT!
         ↓
-Stickman 2D auto fight สูงสุด 20 sec
+Stickman 2D auto fight โดยมี 20 sec เป็นเพดาน
         ↓
 HP จริง
         ↓
@@ -1259,9 +1231,9 @@ Knockdown / Get-up
         ↓
 Signature / Comeback possibility
         ↓
-K.O. หลัง 10 sec หรือ TIME เมื่อครบ 20 sec
+Final attack → KO!
         ↓
-HP ต่ำกว่าแพ้
+ผู้ที่ HP = 0 แพ้
         ↓
 แสดงชื่อผู้แพ้ให้ตอบโจทย์
         ↓
@@ -1283,7 +1255,7 @@ HP ต่ำกว่าแพ้
 - Saved roster
 - Attendance
 - History
-- Anti-repeat
+- Student-selection anti-repeat
 - Fair rotation
 - Weighted random
 - Character stats affecting win rate
@@ -1406,7 +1378,7 @@ Milestone สำคัญที่สุดหลัง Phase 0:
 - get-up
 - locked loser
 - Combat Director
-- TIME result
+- guaranteed late-fight KO result
 
 หาก generic fight นี้ **ดูสนุกและลุ้นได้โดยไม่ต้องพึ่ง costume** แสดงว่า foundation แข็งแรงพอสำหรับขยายไป 4 professions
 
@@ -1431,9 +1403,9 @@ Milestone สำคัญที่สุดหลัง Phase 0:
 7. props ใดติดตัวตลอด / props ใด spawn ตอนใช้ท่า
 8. arena artwork รายละเอียด
 9. exact visual theme / fonts / palette
-10. จำนวน combat narrative templates
-11. exact HP floor ก่อนช่วงท้าย
-12. exact damage ranges
+10. รายละเอียดท่าเฉพาะอาชีพภายใน narrative system
+11. exact HP checkpoint ของแต่ละ narrative
+12. exact damage ranges ของ profession animation
 13. blood particle intensity
 14. future audio design
 
@@ -1443,7 +1415,7 @@ Milestone สำคัญที่สุดหลัง Phase 0:
 
 Random Fighter MVP ต้องรักษาหลักต่อไปนี้เสมอ:
 
-> **สุ่มนักเรียน 2 คนอย่างยุติธรรม → ล็อกผู้แพ้ 50/50 → ครูเลือกอาชีพที่ไม่ซ้ำ → ตัวละคร Stickman 2D สู้กันจริง → HP ลดจาก hit จริง → fight มี block/dodge/counter/knockdown และการพลิกนำ → ประมาณ 70% จบ KO หลัง 10 วินาทีและก่อน 20 วินาที อีกประมาณ 30% จบเมื่อ TIME → ไม่มี tie → ผู้แพ้ต้องตรงกับ locked outcome → แสดงชื่อผู้แพ้ให้ตอบโจทย์**
+> **สุ่มนักเรียน 2 คนอย่างยุติธรรม → ล็อกผู้แพ้ 50/50 → ครูเลือกอาชีพที่ไม่ซ้ำ → ตัวละคร Stickman 2D สู้กันจริงโดยมีเวลา 20 วินาทีเป็นเพดาน → HP ลดจาก hit จริง → fight มี block/dodge/counter/knockdown และการพลิกนำ → final attack ทำให้ locked loser HP = 0 → แสดง KO! → แสดงชื่อผู้แพ้ให้ตอบโจทย์**
 
 หัวใจของ product ไม่ใช่ simulation ที่แม่นยำที่สุด
 
@@ -1454,4 +1426,59 @@ Random Fighter MVP ต้องรักษาหลักต่อไปนี�
 
 ---
 
-**End of Random Fighter MVP Development Design Document v1.0**
+---
+
+# 37. Combat Variety Foundation — LOCKED IN v1.1
+
+Combat Director ต้องประกอบไฟต์จากหลายชั้น ไม่ใช้ fight script เดิมทั้งก้อน:
+
+```text
+Fight Mood
+    + Opening Pattern
+    + Mid-game Turn
+    + Ending Pattern
+    + Exchange Variations
+    + Profession Presentation
+```
+
+## 37.1 Variety Pools
+
+- Fight Mood อย่างน้อย 6 รูปแบบ
+- Opening อย่างน้อย 6 รูปแบบ
+- Mid-game turn อย่างน้อย 8 รูปแบบ
+- KO Ending อย่างน้อย 8 รูปแบบ
+- 10–16 attack attempts ต่อไฟต์
+- Signature สามารถเกิดหรือไม่เกิดก็ได้
+- Comeback มีทั้ง success, failed และ fake comeback
+
+## 37.2 Anti-pattern Rules
+
+- จำ combat fingerprint อย่างน้อย 5 รอบล่าสุดใน session
+- ห้าม Mood และ Opening เดิมติดกัน
+- หลีกเลี่ยง Ending เดิมภายใน 3 รอบ
+- หลีกเลี่ยงจังหวะ Signature, จำนวน Knockdown และ winner HP band ซ้ำ
+- Signature, Knockdown และการขึ้นนำห้ามเป็นตัวบอกผลแพ้ชนะ
+- locked loser สามารถนำช่วงต้นหรือช่วงกลางได้
+- winner สามารถตกเป็นรองและถูก Knockdown ได้
+
+## 37.3 KO Integrity
+
+- ทุกรอบมีผู้แพ้ HP = 0 เพียงฝ่ายเดียว
+- KO ต้องมาจาก visible final combat event
+- final event ต้องผ่าน hit detection เช่นเดียวกับ hit อื่น
+- ห้าม set HP = 0 แบบไม่สัมพันธ์กับภาพ
+- timer หยุดเมื่อ KO และต้องไม่แสดง TIME เป็นผลหลัก
+- presentation ใช้ cartoon/slapstick violence ไม่ใช้ gore
+
+## 37.4 Validation
+
+- simulation อย่างน้อย 1,000 ไฟต์ต้องได้ locked outcome ถูกต้อง 100%
+- ไม่มี tie
+- ไม่มี double KO
+- ไม่มี winner HP = 0
+- ไม่มี event ซ้อนหรือ fighter state ค้าง
+- ทดลองดูต่อเนื่องอย่างน้อย 20 รอบแล้วไม่เห็นสูตรตายตัวชัดเจน
+
+---
+
+**End of Random Fighter MVP Development Design Document v1.1**
