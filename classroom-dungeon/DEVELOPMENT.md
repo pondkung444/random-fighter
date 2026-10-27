@@ -71,3 +71,10 @@ The original five motion rooms follow at indices 2–6 (14 stages, all five cons
 Each task includes semantic inline SVG: operation groups, signed-number direction diagram, grouped crystals, exponent blocks, balance scale with equation sides, or start/end motion schematic with known values and unknown target. Physics diagrams identify right as positive and explicitly state not to scale. The task diagram is absent from readiness screens, preventing early disclosure. No numeric solution is inserted in a diagram. Final Chance also has a motion schematic. The earlier vague at-unit prompt is replaced for v4 with: write final velocity with its unit and explain positive direction; the solution explains how acceleration changes velocity each second. Physics room introductions define u/v/a/s/t in Thai.
 
 Question visuals sit beside text at classroom widths and stack on mobile. During work, decorative boss art yields its space to the task diagram; key art remains in story and room scenes. campaign-task-layout.cjs checks all 22 task layouts at 3 classroom resolutions.
+
+
+## Question clarity audit (2026-10-27)
+
+Reviewed and edited all 22 live v4 stages. Every task now has separate Given information and What to do sections; numerical assumptions and positive direction are repeated instead of requiring recall of a previous screen. Arithmetic uses direct expressions instead of ambiguous negative energy stories. Algebra distinguishes numeric solving from expressing x in terms of y. Motion role tasks explicitly request identification, formula selection, substitution/calculation, or verification with units/direction. Bridge and sign-error tasks include the actual incorrect working, labelled as work to check. The stop-before-gate task restates braking inputs and the gate distance.
+
+Diagrams now use the current stage target, avoid adding a 30 m gate before that distance is introduced, and correctly keep the dedicated a/s target in Final Chance. Readiness instructions are generic to avoid disclosing numerical hints before Ready. No room index, score, formula coverage or autosave version changes: current v4 sessions receive the wording fixes after refresh.
