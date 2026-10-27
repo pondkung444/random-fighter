@@ -60,3 +60,14 @@ Each party earns a time crystal after the tram. One use adds 30 seconds to the s
 Undo restores state before an action, pauses the clock, and reverses scores/reward consumption. Autosave uses the same browser origin; reload pauses. JSON export exists; import and real separate teacher/TV screens remain outside this change. Real iPad mirroring still needs classroom validation.
 
 Run: node --test tests/dungeon.test.cjs; node tests/campaign-browser.cjs; node tests/dungeon-preparation.cjs; node tests/dungeon-browser.cjs. Browser scripts require a locally installed playwright (or PLAYWRIGHT_MODULE) and Chrome. No machine-specific dependency path is committed. campaign-visual.cjs captures visual review frames.
+
+
+## Curriculum and question visuals revision (v4, 2026-10-27)
+
+Per user correction, new sessions start with Number Gate (4 independent arithmetic questions: order of operations, signed numbers, fractions, powers), then Equation Balance (4 independent algebra questions: x+7=19, 3x−4=20, x/4+2=5, rearrange y=3x+2). Both rooms select one weighted random member per party from ALL members, ignoring assigned role; previous member is avoided when another is available. Questions remain hidden until teacher Ready. Every question is assessed separately.
+
+The original five motion rooms follow at indices 2–6 (14 stages, all five constant-acceleration formulas). New total: 7 rooms and 22 assessed stages, 33 minutes of task timers plus transitions/discussion/Camp; still not a measured 120-minute lesson. Roles continue in motion rooms; miniboss damage begins only at room 4. Time-crystal reward now follows the arithmetic gate. Versions 2 and 3 retain their old room sets to preserve in-progress autosaves. Start a new room for v4.
+
+Each task includes semantic inline SVG: operation groups, signed-number direction diagram, grouped crystals, exponent blocks, balance scale with equation sides, or start/end motion schematic with known values and unknown target. Physics diagrams identify right as positive and explicitly state not to scale. The task diagram is absent from readiness screens, preventing early disclosure. No numeric solution is inserted in a diagram. Final Chance also has a motion schematic. The earlier vague at-unit prompt is replaced for v4 with: write final velocity with its unit and explain positive direction; the solution explains how acceleration changes velocity each second. Physics room introductions define u/v/a/s/t in Thai.
+
+Question visuals sit beside text at classroom widths and stack on mobile. During work, decorative boss art yields its space to the task diagram; key art remains in story and room scenes. campaign-task-layout.cjs checks all 22 task layouts at 3 classroom resolutions.
