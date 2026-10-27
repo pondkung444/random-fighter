@@ -45,3 +45,18 @@ Names, party membership and flexible role choices now share one preparation scre
 Short entry host: pond-class.vercel.app (alias to Preview). A host-scoped root redirect sends users to the canonical stable classroom-dungeon Preview origin so existing localStorage is retained. This entry does not replace the production Random Fighter domain or root. Alias assignment and deployment readiness must be verified separately.
 
 Validation: preparation browser coverage for every party count 2–8, refresh while preparing, moves preserving roles, member additions preserving assignments, group rename, readiness gate, mobile width and playing-session refresh. Existing full-session browser test now explicitly clicks Begin after arranging groups. Engine tuning and scoring unchanged. Broader TV/boss flow redesign remains separate work.
+
+
+## Motion Chronicles chapter-one preview (2026-10-27)
+
+New sessions enter campaign version 3: preparation → three lore scenes → team reveal → map → room rules → selected seats → explicit Ready → timed task → marking → results → optional solution → reward. Old sessions without campaign retain the original engine; campaign version 2 retains its 20 steps.
+
+The first chapter has 14 assessed stages: tram (4), bridge choice and error hunt (2), knight braking plan (3), sign illusion (2), party-link seal (3). All five constant-acceleration equations are covered; classroom rules and peer checking are teacher enforced. Timers are 90 seconds per stage (21 minutes total), plus setup, transitions, explanation and Camp; this is not a full 120-minute lesson. Final Chance is 120 seconds after a separate readiness screen. The 20-second silent window needs the teacher to press Open team help after it expires.
+
+Artwork uses the existing painterly key art at assets/knight-keyart.png (Git blob 590060a57295503ca8b1f0cb61a4041e8b71dc3b), with CSS crops and glow states. These are not separate illustrated poses or full animations. Tram/bridge use CSS mechanism emblems.
+
+Each party earns a time crystal after the tram. One use adds 30 seconds to the shared class timer. Camp retains unused crystals and marks spent ones; rewards are idempotent. Correct first answer gives 3 stars, successful recovery 1; original incorrect flags remain false. Eight boss stages distribute 100 seal points by party success fraction. Full success frees the knight; otherwise Final Attack leads to Final Chance, with success only if every party explains correctly. Failed Final Chance leads to evacuation/Camp. No negative scores or student elimination.
+
+Undo restores state before an action, pauses the clock, and reverses scores/reward consumption. Autosave uses the same browser origin; reload pauses. JSON export exists; import and real separate teacher/TV screens remain outside this change. Real iPad mirroring still needs classroom validation.
+
+Run: node --test tests/dungeon.test.cjs; node tests/campaign-browser.cjs; node tests/dungeon-preparation.cjs; node tests/dungeon-browser.cjs. Browser scripts require a locally installed playwright (or PLAYWRIGHT_MODULE) and Chrome. No machine-specific dependency path is committed. campaign-visual.cjs captures visual review frames.
