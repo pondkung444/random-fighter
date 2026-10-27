@@ -23,7 +23,7 @@ Original correctness is immutable in recorded encounter history; recovery and er
 
 ## Remaining work before classroom-ready production
 
-Functional UI only: final art direction, reveal transitions, boss/final-attack animation and sound design await the agreed Art Direction discussion. Sound currently provides a simple optional beep.
+Arcane Observatory art direction is approved and applied: existing painterly background, brass/ivory/teal surfaces, large central question, eight colored party crests, floor accents, constellation-ring boss emblem, and nonblocking Switch/Critical/Recovery/Reveal/Boss/Final Attack banners. These are limited presentation effects; cinematic guardian character art, a sequenced final-attack countdown and richer sound remain polish work. Sound currently provides a simple optional beep.
 
 Scheduled events and teacher-triggered events exist; Formula Hint / Recalculate / RECHECK usage is tracked once per party per floor. Timed silent windows, reserve-question selection/import, separate display and printable scrolls are not complete. Teacher currently enforces paper/relay/no-rewind rules. Final Chance is available. Boss Armor has different equivalent data cards per party; other encounters use shared content.
 
@@ -31,4 +31,10 @@ Presentation Mode hides controls and unrevealed solutions; mirror is still one s
 
 Autosave is local to browser and URL origin. Refresh restores the current session paused. Changing preview hostname or browser does not transfer data; JSON export is available, import UI is not yet implemented. Do not move a real class between preview and production during a session.
 
-Production remains unchanged pending classroom validation and art direction. No student accounts, backend, analytics or external requests are added.
+Production remains unchanged pending classroom validation. No student accounts, backend, analytics or external requests are added.
+
+## Art checkpoint — 27 October 2026
+
+Reuses approved image blob b58ec8464932b0f7a21d7732a4897bfac82a45b4 at classroom-dungeon/assets/observatory.png. No engine/content or localStorage schema changes. System Thai fonts avoid network font dependencies. Keyboard focus and 48px teacher controls retained; reduced-motion preference disables banner animation.
+
+Validated: seven engine tests; full 22-room browser run through final attack/report and refresh; 45 layout cases (2/4/8 parties, short/Lab/Armor/Link/Core prompts, 1024x768 / 1180x820 / 1920x1080). All question and party card bounds fit the viewport in these 45 cases. Explicit solutions/diagnostic reports remain scrollable rather than clipped. Presentation masks teacher controls and answers until explicitly shown. Art tests also check explicit answer visibility and reduced motion. Background downloaded locally and visually inspected. No real iPad/TV test yet.
