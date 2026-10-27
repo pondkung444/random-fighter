@@ -78,3 +78,12 @@ Question visuals sit beside text at classroom widths and stack on mobile. During
 Reviewed and edited all 22 live v4 stages. Every task now has separate Given information and What to do sections; numerical assumptions and positive direction are repeated instead of requiring recall of a previous screen. Arithmetic uses direct expressions instead of ambiguous negative energy stories. Algebra distinguishes numeric solving from expressing x in terms of y. Motion role tasks explicitly request identification, formula selection, substitution/calculation, or verification with units/direction. Bridge and sign-error tasks include the actual incorrect working, labelled as work to check. The stop-before-gate task restates braking inputs and the gate distance.
 
 Diagrams now use the current stage target, avoid adding a 30 m gate before that distance is introduced, and correctly keep the dedicated a/s target in Final Chance. Readiness instructions are generic to avoid disclosing numerical hints before Ready. No room index, score, formula coverage or autosave version changes: current v4 sessions receive the wording fixes after refresh.
+
+
+## Selectable question packs (2026-10-27)
+
+Question data extracted into packs/motion-equations.js and registered through question-packs.js. Preparation now selects a pack, displays its room/stage/timer totals, and preserves choice through grouping and draft refresh. The only published ready lesson is สมการการเคลื่อนที่. new-pack.example.js is a developer example, not loaded in the classroom catalog.
+
+New v5 sessions snapshot named-field pack data (id, revision, rooms, givens/asks/answers, timing, diagrams, lore, summary and Final Chance) into autosave/JSON. Snapshot compilation restores the engine's legacy step shape without losing view metadata during JSON serialization. Existing v2/v3/v4 remain compatible; snapshot content protection begins with v5.
+
+Room counts, stage counts, story lengths, per-stage times, silent intervals, boss start and damage normalization now derive from pack data. Future packs support cards, balance and motion SVG templates; the detailed motion-classic diagrams still use the old room-specific renderer and are reserved for the built-in lesson. Theme/4 Role engine remain Astra; this is not a complete lesson builder. See packs/README.md for authoring steps and known limits.
