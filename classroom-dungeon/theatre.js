@@ -3,8 +3,17 @@ const DungeonTheatre=(()=>{
 let overlay=null,timer=null,audio=null,returnFocus=null,background=null;
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const colors=['#72e6e0','#b7a5ff','#ffc985','#9cdfaa','#f4a9ca','#93c9ff','#f1e18d','#c6b6a1'];
-const crops=[[0,380],[380,395],[775,373],[1148,400],[1548,500]];
-const sprite=(i,boss=false)=>'<div class="actor '+(boss?'actor-boss':'actor-hero')+'" style="--sprite:'+i+'" aria-hidden="true"><i class="actor-shadow"></i><div class="actor-body"><svg class="cast-image" viewBox="'+crops[i][0]+' 0 '+crops[i][1]+' 683" preserveAspectRatio="xMidYMax meet"><image href="/classroom-dungeon/assets/astral-cast.png" width="2048" height="683"/></svg><span class="actor-glow"></span></div><i class="cast-orbit"></i></div>';
+// Individual viewports trim empty headroom; contour masks exclude neighboring cloth/weapons.
+const crops=[[8,100,390,583],[335,65,445,618],[775,110,380,573],[1138,85,420,598],[1548,0,500,683]];
+const outlines=[
+'0,0 378,0 378,340 395,400 370,480 335,540 370,600 370,683 0,683',
+'378,0 775,0 775,683 335,683 335,600 335,540 370,480 395,400 378,340',
+'775,0 1138,0 1138,350 1155,420 1120,490 1100,560 1138,683 775,683',
+'1138,0 1548,0 1548,300 1558,400 1548,683 1138,683 1160,500 1200,430 1230,370 1200,310 1138,220',
+'1555,0 2048,0 2048,683 1555,683 1555,500 1548,390 1555,280'
+];
+let spriteId=0;
+function sprite(i,boss=false){const id='cast-crop-'+(++spriteId);return '<div class="actor '+(boss?'actor-boss':'actor-hero')+'" aria-hidden="true"><i class="actor-shadow"></i><div class="actor-body"><svg class="cast-image" viewBox="'+crops[i].join(' ')+'" preserveAspectRatio="xMidYMax meet"><defs><clipPath id="'+id+'" clipPathUnits="userSpaceOnUse"><polygon points="'+outlines[i]+'"/></clipPath></defs><image clip-path="url(#'+id+')" href="/classroom-dungeon/assets/astral-cast.png" width="2048" height="683"/></svg><span class="actor-glow"></span></div><i class="cast-orbit"></i></div>';}
 function scene(v,mode='ambient'){const success=v.parties.filter(p=>v.marks?.[p.id]?.correct||v.marks?.[p.id]?.recovery).length,state=v.hp<=0?'freed':v.hp<55?'exposed':'guarding';return '<div class="astral-theatre '+mode+' '+state+(v.motionOff?' motion-off':'')+'" aria-label="ฉากผู้กล้าและผู้พิทักษ์แห่งอัสตรา"><div class="theatre-stars"></div><div class="astral-ring"></div><div class="seal-door"><span>✦</span></div><div class="theatre-platform"></div><div class="theatre-roster">'+v.parties.map((p,i)=>{const name=p.members.find(m=>m.id===v.selected?.[p.id])?.name,m=v.marks?.[p.id],pose=mode==='summon'?'summoned':mode==='battle'?(m?.correct?'attacking':m?.recovery?'recovering':'thinking'):'idle';return '<div class="theatre-hero '+pose+'" style="--team:'+colors[i%8]+';--delay:'+((i%4)*.18)+'s"><span class="team-sigil">'+(i+1)+'</span>'+sprite(i%4)+'<b>'+esc(p.name)+'</b>'+(name?'<small>'+esc(name)+'</small>':'')+'</div>';}).join('')+'</div><div class="theatre-enemy">'+sprite(4,true)+'<div class="boss-seals"><i></i><i></i><i></i></div><b>'+(state==='freed'?'ผู้พิทักษ์เป็นอิสระ':state==='exposed'?'ผนึกคลาย · จุดอ่อนเปิด':'ผู้พิทักษ์แห่งอัสตรา')+'</b></div><div class="theatre-caption">'+esc(mode==='summon'?'ผู้กล้าเข้าประจำที่':mode==='battle'?(success?success+' Party รวมพลังสำเร็จ':'ทบทวนคัมภีร์ แล้วลองใหม่ร่วมกัน'):mode==='clear'?'เส้นทางดาราเปิดแล้ว':v.title||'หอดูดาวอัสตรา')+'</div></div>';}
 function portraits(v){return v.parties.map((p,i)=>({id:p.id,html:'<span class="party-portrait" style="--team:'+colors[i%8]+'">'+sprite(i%4)+'</span>'}));}
 function close(){clearTimeout(timer);overlay?.remove();overlay=null;if(background){background.inert=false;background=null;}const target=returnFocus;returnFocus=null;if(target?.isConnected)target.focus({preventScroll:true});}
