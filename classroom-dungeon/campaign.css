@@ -22,3 +22,8 @@
 @media(max-width:700px){.working .task-visual{grid-template-columns:1fr}.question-givens{font-size:18px}.working .task-visual .motion-question{font-size:23px}}
 
 @media(min-width:701px){body[data-parties="2"] .question-givens,body[data-parties="3"] .question-givens,body[data-parties="4"] .question-givens{font-size:20px}body[data-parties="2"] .working .task-visual .motion-question,body[data-parties="3"] .working .task-visual .motion-question,body[data-parties="4"] .working .task-visual .motion-question{font-size:26px}}
+
+/* Detailed teacher-revealed solutions remain readable and scrollable. */
+.answer{white-space:pre-line;line-height:1.7;font-size:22px;overflow-wrap:anywhere;padding:18px;background:#173c49;border-left:4px solid #d6bd80;margin:16px 0}.reviewing{padding-bottom:90px}.reviewing .campaign-art{display:none}.reviewing{grid-template-columns:minmax(0,1fr)}.campaign-controls button:disabled{opacity:.45}
+
+.answer{scroll-margin-top:16px}
