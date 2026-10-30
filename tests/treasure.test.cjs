@@ -11,6 +11,13 @@ s=make();E.draw(s);assert.throws(()=>E.lock(s,{t0:{kind:'hook'}}));assert.equal(
 s=make();s.index=2;s.teams.forEach(t=>t.gold=100);resolve(s,[false,true,true,true],{t0:{kind:'map'}});assert.equal(s.teams[0].gold,120);assert.throws(()=>E.settle(s));
 s=make();for(let i=0;i<20;i++){resolve(s,[true,false,true,false]);E.next(s);}assert.equal(s.phase,'finished');assert.equal(s.history.length,20);assert.equal(s.teams[0].gold,2000);assert.equal(s.teams[1].gold,1000);
 console.log('treasure: full 20-question session, fairness, phase guards, item failure, conservation passed');
+// Every round accepts an item when funded, including former non-item rounds.
+for(let round=0;round<20;round++){const g=make();g.index=round;g.teams.forEach(t=>t.gold=100);resolve(g,[true,true,true,true],{t0:{kind:'map'}});assert.equal(g.teams[0].uses,1);assert.equal(g.orders.t0.cost,30);}
+s=make();s.teams.forEach(t=>t.gold=300);
+for(let round=0;round<2;round++){resolve(s,[true,true,true,true],{t0:{kind:'map'}});E.next(s);}
+E.draw(s);const before=E.clone(s);assert.throws(()=>E.lock(s,{t0:{kind:'hook'}}),/2/);assert.deepEqual(s,before);E.lock(s,{});assert.equal(s.teams[0].uses,2);
+assert.throws(()=>E.lock(s,{t1:{kind:'map'}}));assert.equal(s.teams[1].uses,0);
+console.log('items: all 20 rounds available, two-item cap, atomic rejection, pre-question lock passed');
 
 
 // Restored sessions must be usable in every phase; corrupt imports fail before replacing the current game.

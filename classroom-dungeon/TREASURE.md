@@ -5,7 +5,7 @@ Implemented 2026-10-30. Entry: `treasure.html`, also available from the existing
 ## Phases delivered
 1. Isolated game state with reuse of existing roster/grouping helper and optional four-team import.
 2. Twenty ordered questions transcribed from supplied worksheet pages 2–11; 12 cropped original figures, image zoom, worked solutions. Q6 retains 6.1–6.4 with previous/next buttons and counts as one all-or-nothing question.
-3. Four ships, coin piles, shuffled nonrepeating member queues, solo 100 / team recovery 50, pre-question item commitment. Item windows 3/6/9/12/15/18, three uses per team. No shields. Hook costs 30 and draws 30 from every solo-wrong team when solo-correct. Raid costs floor(half own balance) and draws floor(half target post-purchase balance) when attacker solo-correct and target solo-wrong. Map costs 30 and awards 60 only for solo-correct.
+3. Four ships, coin piles, shuffled nonrepeating member queues, solo 100 / team recovery 50, pre-question item commitment. Items may be committed in any round before revealing the question, one per round, two total per team; gold costs still apply. Legacy saves with three historical uses remain readable with zero items left. No shields. Hook costs 30 and draws 30 from every solo-wrong team when solo-correct. Raid costs floor(half own balance) and draws floor(half target post-purchase balance) when attacker solo-correct and target solo-wrong. Map costs 30 and awards 60 only for solo-correct.
 4. Engine tests and 20-question browser flow; viewport review at 1180×820, 1920×1080 and 390×844.
 
 ## Settlement
