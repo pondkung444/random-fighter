@@ -22,7 +22,7 @@ Orders validate atomically before charging. Costs are not refunded. Transfers se
 
 ## Growth and shared finale
 
-All teams evolve after questions 5/10/15: hatchling → explorer → guardian → crowned adult. Lifetime answer food 500/1,000 unlocks visual sparkles. Food spending/theft never reverses growth. Current art is animated pastel SVG, with result/evolution effects and reduced-motion support.
+All teams evolve after questions 5/10/15: hatchling → explorer → guardian → crowned adult. Lifetime answer food 500/1,000 unlocks visual sparkles. Food spending/theft never reverses growth. Current art uses the supplied transparent 4 × 4 dragon sheet, sliced into 16 WebP sprites (columns: orange, blue, green, purple; rows: levels 1–4), with gentle animation, with result/evolution effects and reduced-motion support.
 
 Questions 19–20 contribute each answer's stars to shared storm power. At least 10/16 possible power protects the school. Ordinary individual/team stars still count unchanged. This shared goal does not add or subtract team points.
 
