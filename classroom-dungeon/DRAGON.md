@@ -6,7 +6,7 @@ Entry: `dragon.html`, also selectable from the Classroom Dungeon question select
 
 Twenty ordered questions from supplied `Kru-PonD-BSP-Math-M3-Suratpittaya2.pdf`, pages 12–21. Six original figures/expression crops, image zoom, independently worked solutions (not an official answer key). Questions preserve numbering and mathematical content; prose is condensed in places for projection. Question 17 retains the original typeset expression as an image.
 
-Prepare/edit teams → random nonrepeating representatives → face-down item choices revealed together → teacher commits/pays before question opens → solo marks → team recovery marks → solution/explanation → confirm awards → next. Team retry has a fresh 90-second timer. Item windows 3/6/9/12/15/18, maximum three uses/team. Only solo correctness triggers an item; no swap, shield or map.
+Prepare/edit teams → random nonrepeating representatives → face-down item choices revealed together → teacher commits/pays before question opens → solo marks → team recovery marks → solution/explanation → confirm awards → next. Team retry has a fresh 90-second timer. Items available every round, two charges per kind per team (six total), at most one per round. Remaining charges derive from completed and pending orders, preserving old saves. Only solo correctness triggers an item; no swap, shield or map.
 
 ## Economy
 
@@ -22,7 +22,7 @@ Orders validate atomically before charging. Costs are not refunded. Transfers se
 
 ## Growth and shared finale
 
-All teams evolve after questions 5/10/15: egg → hatchling → adolescent with wings → crowned adult. Lifetime answer food 500/1,000 unlocks visual sparkles. Food spending/theft never reverses growth. Current art is animated pastel SVG, with result/evolution effects and reduced-motion support.
+All teams evolve after questions 5/10/15: hatchling → explorer → guardian → crowned adult. Lifetime answer food 500/1,000 unlocks visual sparkles. Food spending/theft never reverses growth. Current art is animated pastel SVG, with result/evolution effects and reduced-motion support.
 
 Questions 19–20 contribute each answer's stars to shared storm power. At least 10/16 possible power protects the school. Ordinary individual/team stars still count unchanged. This shared goal does not add or subtract team points.
 

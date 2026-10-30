@@ -10,9 +10,14 @@ s=make();s.index=2;s.teams.forEach(t=>t.gold=100);resolve(s,[true,true,true,fals
 // All choices validate before any purchase, and no map/swap item is accepted.
 for(const kind of ['map','swap']){s=make();s.index=2;s.teams.forEach(t=>t.gold=100);E.draw(s);assert.throws(()=>E.lock(s,{t0:{kind:'hook'},t1:{kind}}));assert(s.teams.every(t=>t.gold===100&&t.uses===0));}
 s=make();s.index=2;s.teams.forEach(t=>t.gold=400);resolve(s,[true,false,true,true],{t0:{kind:'raid',target:'t1'}});assert.equal(s.teams[0].gold,500);assert.equal(s.teams[1].gold,250);
-s=make();E.draw(s);assert.throws(()=>E.lock(s,{t0:{kind:'snatch',target:'t1'}}));s=make();s.index=2;s.teams.forEach(t=>t.gold=100);s.teams[0].uses=3;E.draw(s);assert.throws(()=>E.lock(s,{t0:{kind:'hook'}}));
+s=make();E.draw(s);assert.throws(()=>E.lock(s,{t0:{kind:'snatch',target:'t1'}}));s=make();s.index=2;s.teams.forEach(t=>t.gold=100);s.history=[{orders:{t0:{kind:'hook'}}},{orders:{t0:{kind:'hook'}}}];E.draw(s);assert.throws(()=>E.lock(s,{t0:{kind:'hook'}}));
 // Independently check numeric content against each equation/model.
 assert.equal(704*(1-3/8),440);assert.equal(142250*6,853500);assert(Math.abs((3/2)*(-7/59+1)+(2/3)*(-7/59-1)-(1/5)*(-7/59+3))<1e-12);assert.equal(9*3+7*8,83);assert.equal(5*3-11*8,-73);assert.equal(8*58.2-7*56.5,70.10000000000002);assert.equal(Math.sqrt((6**-3*2**13*3**10)/(3**-9*6**10))/Math.sqrt((3**2*3**6)/(3**-4*3**10)),9);assert.equal(954-(98+100+101+104+109+110+111),221);
 console.log('dragon: twenty questions, saved session, stars/food separation, storm, all three items, caps, failure and source arithmetic passed');
 
 s=make();for(let i=0;i<20;i++){E.draw(s);E.lock(s,{});s.teams.forEach(t=>E.mark(s,t.id,false));E.help(s);s.teams.forEach(t=>E.recover(s,t.id,false));E.reveal(s);E.settle(s);E.next(s);}assert.equal(s.storm,0);assert(s.teams.every(t=>t.stars===0&&t.earned===0&&t.gold===0));E.validate(s);console.log('all-wrong path and storm failure passed');
+
+// Each kind has its own two charges, available on consecutive rounds; pending saves count once.
+s=make();s.teams.forEach(t=>t.gold=2000);
+for(const kind of ['snatch','snatch','hook','hook','raid','raid']){assert(E.available(s));E.draw(s);E.lock(s,{t0:{kind,target:'t1'}});assert(E.remaining(s,'t0',kind)<2);E.validate(E.clone(s));s.teams.forEach(t=>E.mark(s,t.id,true));E.help(s);E.reveal(s);E.settle(s);E.validate(E.clone(s));E.next(s);}
+assert.equal(s.teams[0].uses,6);for(const kind of ['snatch','hook','raid'])assert.equal(E.remaining(s,'t0',kind),0);E.draw(s);assert.throws(()=>E.lock(s,{t0:{kind:'snatch',target:'t1'}}));assert.equal(s.phase,'plan');console.log('per-kind inventory, consecutive rounds, pending saves and exhaustion passed');
