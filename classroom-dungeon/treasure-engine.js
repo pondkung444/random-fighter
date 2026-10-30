@@ -2,7 +2,7 @@
 'use strict';
 const windows=[3,6,9,12,15,18];
 const clone=x=>JSON.parse(JSON.stringify(x));
-function create(groups,rng=Math.random){if(groups.length!==4||groups.some(g=>!g.members.length))throw Error('ต้องมี 4 ทีมและสมาชิกอย่างน้อยทีมละหนึ่งคน');return {version:1,questionOrder:shuffle(Array.from({length:20},(_,i)=>i),rng),index:0,phase:'harbor',teams:groups.map((g,i)=>({id:'t'+i,name:g.name,gold:0,uses:0,members:g.members.map((m,j)=>({id:'t'+i+'m'+j,name:typeof m==='string'?m:m.name})),queue:[],last:null})),selected:{},orders:{},first:{},recovery:{},history:[],remaining:180,running:false,elapsed:0};}
+function create(groups){if(groups.length!==4||groups.some(g=>!g.members.length))throw Error('ต้องมี 4 ทีมและสมาชิกอย่างน้อยทีมละหนึ่งคน');return {version:1,questionOrder:Array.from({length:20},(_,i)=>i),index:0,phase:'harbor',teams:groups.map((g,i)=>({id:'t'+i,name:g.name,gold:0,uses:0,members:g.members.map((m,j)=>({id:'t'+i+'m'+j,name:typeof m==='string'?m:m.name})),queue:[],last:null})),selected:{},orders:{},first:{},recovery:{},history:[],remaining:180,running:false,elapsed:0};}
 function shuffle(a,rng){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function draw(s,rng=Math.random){if(s.phase!=='harbor')throw Error('สุ่มได้ก่อนเริ่มข้อเท่านั้น');for(const t of s.teams){if(!t.queue.length){t.queue=shuffle(t.members.map(m=>m.id),rng);if(t.queue.length>1&&t.queue[0]===t.last)[t.queue[0],t.queue[1]]=[t.queue[1],t.queue[0]];}s.selected[t.id]=t.queue.shift();t.last=s.selected[t.id];}s.orders={};s.first={};s.recovery={};s.phase='plan';}
 function available(s){return windows.includes(s.index+1);}

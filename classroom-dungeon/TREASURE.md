@@ -24,3 +24,6 @@ Question 3: x² = (8 + 8√2) + 4, so x≈4.828, option 1. Question 4: outer a=1
 
 ## Continuation fixes
 New sessions shuffle all 20 questions once and save questionOrder; original worksheet numbers remain visible. Item windows use round numbers, independently of worksheet question numbers. Legacy sessions without questionOrder preserve their ordered questions. Restores/imports validate state before acceptance; team recovery starts with a fresh 90 seconds.
+
+## Teaching order (user correction)
+New sessions open worksheet questions 1 through 20 in order. Representative selection remains random. Existing sessions preserve their stored order; start a new session to switch from a previous shuffled run.
