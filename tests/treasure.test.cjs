@@ -15,9 +15,16 @@ console.log('treasure: full 20-question session, fairness, phase guards, item fa
 for(let round=0;round<20;round++){const g=make();g.index=round;g.teams.forEach(t=>t.gold=100);resolve(g,[true,true,true,true],{t0:{kind:'map'}});assert.equal(g.teams[0].uses,1);assert.equal(g.orders.t0.cost,30);}
 s=make();s.teams.forEach(t=>t.gold=300);
 for(let round=0;round<2;round++){resolve(s,[true,true,true,true],{t0:{kind:'map'}});E.next(s);}
-E.draw(s);const before=E.clone(s);assert.throws(()=>E.lock(s,{t0:{kind:'hook'}}),/2/);assert.deepEqual(s,before);E.lock(s,{});assert.equal(s.teams[0].uses,2);
+E.draw(s);const before=E.clone(s);assert.throws(()=>E.lock(s,{t0:{kind:'map'}}),/2/);assert.deepEqual(s,before);assert.equal(E.remaining(s,'t0','map'),0);assert.equal(E.remaining(s,'t0','hook'),2);E.lock(s,{});assert.equal(s.teams[0].uses,2);
 assert.throws(()=>E.lock(s,{t1:{kind:'map'}}));assert.equal(s.teams[1].uses,0);
-console.log('items: all 20 rounds available, two-item cap, atomic rejection, pre-question lock passed');
+// The six uses are independent; failed answers still consume committed items.
+s=make();s.teams.forEach(t=>t.gold=5000);
+for(const kind of ['hook','hook','raid','raid','map','map']){resolve(s,[false,true,true,true],{t0:{kind,target:'t1'}});E.validate(s);assert.equal(E.remaining(s,'t0',kind),kind===s.history.at(-2)?.orders.t0.kind?0:1);E.next(s);}
+assert.equal(s.teams[0].uses,6);for(const kind of ['hook','raid','map'])assert.equal(E.remaining(s,'t0',kind),0);E.validate(E.clone(s));
+assert.equal(E.remaining(s,'t1','map'),2);E.draw(s);for(const kind of ['hook','raid','map'])assert.throws(()=>E.lock(s,{t0:{kind,target:'t1'}}),/2/);
+// Legacy saves have no new inventory field; history and current committed order suffice.
+const legacy=make();legacy.teams.forEach(t=>t.gold=100);E.draw(legacy);E.lock(legacy,{t0:{kind:'hook'}});E.validate(E.clone(legacy));assert.equal(E.remaining(legacy,'t0','hook'),1);assert.equal(E.remaining(legacy,'t0','raid'),2);E.mark(legacy,'t0',false);for(const id of ['t1','t2','t3'])E.mark(legacy,id,true);E.help(legacy);E.recover(legacy,'t0',true);E.reveal(legacy);E.settle(legacy);assert.equal(E.remaining(legacy,'t0','hook'),1);E.next(legacy);assert.equal(E.remaining(legacy,'t0','hook'),1);
+console.log('items: all rounds, two PER TYPE, six uses, independent teams, failed uses, legacy/current-order restore passed');
 
 
 // Restored sessions must be usable in every phase; corrupt imports fail before replacing the current game.

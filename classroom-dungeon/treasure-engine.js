@@ -6,7 +6,10 @@ function create(groups){if(groups.length!==4||groups.some(g=>!g.members.length))
 function shuffle(a,rng){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function draw(s,rng=Math.random){if(s.phase!=='harbor')throw Error('สุ่มได้ก่อนเริ่มข้อเท่านั้น');for(const t of s.teams){if(!t.queue.length){t.queue=shuffle(t.members.map(m=>m.id),rng);if(t.queue.length>1&&t.queue[0]===t.last)[t.queue[0],t.queue[1]]=[t.queue[1],t.queue[0]];}s.selected[t.id]=t.queue.shift();t.last=s.selected[t.id];}s.orders={};s.first={};s.recovery={};s.phase='plan';}
 function available(s){return Number.isInteger(s.index)&&s.index>=0&&s.index<20;}
-function lock(s,orders){if(s.phase!=='plan')throw Error('ล็อกคำสั่งไปแล้ว');const validated={};for(const t of s.teams){const o=orders[t.id]||{kind:'pass'};if(!['pass','hook','raid','map'].includes(o.kind))throw Error('ไม่รู้จักของ');let cost=0;if(o.kind!=='pass'){if(!available(s)||t.uses>=MAX_ITEMS)throw Error('ใช้ของครบทีมละ 2 ชิ้นแล้ว');cost=o.kind==='raid'?Math.floor(t.gold/2):30;if(o.kind==='raid'&&(!s.teams.some(x=>x.id===o.target&&x.id!==t.id)||t.gold<2))throw Error('เลือกทีมเป้าหมายและต้องมีทองอย่างน้อย 2');if(t.gold<cost)throw Error(t.name+' มีทองไม่พอ');}validated[t.id]={kind:o.kind,target:o.target,cost};}for(const t of s.teams){const o=validated[t.id];t.gold-=o.cost;if(o.kind!=='pass')t.uses++;}s.orders=validated;s.base=Object.fromEntries(s.teams.map(t=>[t.id,t.gold]));s.phase='solo';s.running=false;}
+// Derive inventory from committed orders so old saves retain their item history.
+function used(s,id,kind){const completed=s.history.filter(r=>r.orders?.[id]?.kind===kind).length;const pending=['solo','team','answer'].includes(s.phase)&&s.orders?.[id]?.kind===kind?1:0;return completed+pending;}
+function remaining(s,id,kind){return Math.max(0,MAX_ITEMS-used(s,id,kind));}
+function lock(s,orders){if(s.phase!=='plan')throw Error('ล็อกคำสั่งไปแล้ว');const validated={};for(const t of s.teams){const o=orders[t.id]||{kind:'pass'};if(!['pass','hook','raid','map'].includes(o.kind))throw Error('ไม่รู้จักของ');let cost=0;if(o.kind!=='pass'){if(!available(s)||remaining(s,t.id,o.kind)===0)throw Error('ของประเภทนี้ใช้ครบ 2 ชิ้นแล้ว');cost=o.kind==='raid'?Math.floor(t.gold/2):30;if(o.kind==='raid'&&(!s.teams.some(x=>x.id===o.target&&x.id!==t.id)||t.gold<2))throw Error('เลือกทีมเป้าหมายและต้องมีทองอย่างน้อย 2');if(t.gold<cost)throw Error(t.name+' มีทองไม่พอ');}validated[t.id]={kind:o.kind,target:o.target,cost};}for(const t of s.teams){const o=validated[t.id];t.gold-=o.cost;if(o.kind!=='pass')t.uses++;}s.orders=validated;s.base=Object.fromEntries(s.teams.map(t=>[t.id,t.gold]));s.phase='solo';s.running=false;}
 function mark(s,id,correct){if(s.phase!=='solo')throw Error('ไม่ใช่รอบบุคคล');if(!s.teams.some(t=>t.id===id)||typeof correct!=='boolean')throw Error('ผลไม่ถูกต้อง');s.first[id]=correct;}
 function help(s){if(s.phase!=='solo'||s.teams.some(t=>typeof s.first[t.id]!=='boolean'))throw Error('ตรวจรอบบุคคลครบ 4 ทีมก่อน');s.running=false;s.phase='team';}
 function recover(s,id,correct){if(s.phase!=='team'||!s.teams.some(t=>t.id===id)||s.first[id]!==false||typeof correct!=='boolean')throw Error('ทีมนี้ไม่มีรอบช่วยแก้ หรือผลไม่ถูกต้อง');s.recovery[id]=correct;}
@@ -24,7 +27,7 @@ if(!s||s.version!==1||!Array.isArray(s.teams)||s.teams.length!==4||!Number.isInt
 if(s.questionOrder!==undefined&&(!Array.isArray(s.questionOrder)||s.questionOrder.length!==20||new Set(s.questionOrder).size!==20||s.questionOrder.some(n=>!Number.isInteger(n)||n<0||n>19)))fail();
 for(let i=0;i<4;i++){
 const t=s.teams[i];
-if(!t||t.id!=='t'+i||typeof t.name!=='string'||!Number.isSafeInteger(t.gold)||t.gold<0||!Number.isInteger(t.uses)||t.uses<0||t.uses>3||!Array.isArray(t.members)||!t.members.length||!Array.isArray(t.queue))fail();
+if(!t||t.id!=='t'+i||typeof t.name!=='string'||!Number.isSafeInteger(t.gold)||t.gold<0||!Number.isInteger(t.uses)||t.uses<0||t.uses>6||!Array.isArray(t.members)||!t.members.length||!Array.isArray(t.queue))fail();
 const ids=new Set();for(const m of t.members){if(!m||typeof m.id!=='string'||typeof m.name!=='string'||ids.has(m.id))fail();ids.add(m.id);}
 if(t.queue.some(id=>!ids.has(id))||new Set(t.queue).size!==t.queue.length||(t.last!==null&&!ids.has(t.last)))fail();
 if(s.phase!=='harbor'&&!ids.has(s.selected?.[t.id]))fail();
@@ -43,5 +46,5 @@ for(const l of r.logs){if(!l||!['steal','reward'].includes(l.kind))fail();if(l.k
 }
 return s;
 }
-const api={create,draw,available,lock,mark,help,recover,reveal,settle,next,clone,windows,MAX_ITEMS,validate};if(typeof module!=='undefined')module.exports=api;else root.TreasureEngine=api;
+const api={create,draw,available,lock,mark,help,recover,reveal,settle,next,clone,windows,MAX_ITEMS,used,remaining,validate};if(typeof module!=='undefined')module.exports=api;else root.TreasureEngine=api;
 })(globalThis);
