@@ -21,3 +21,6 @@ Separate browser autosave key `classroom-treasure-onet2568-v1`, JSON backup/impo
 `node tests/treasure-browser.cjs` (set Playwright module path for another machine)
 
 Question 3: x² = (8 + 8√2) + 4, so x≈4.828, option 1. Question 4: outer a=1/40, inner b=1/20, m≈4.142 >80b=4. Question 6 preserves worksheet numbers, including false statements 307.55 and 341.24. Solutions are independently worked, not an official answer key.
+
+## Continuation fixes
+New sessions shuffle all 20 questions once and save questionOrder; original worksheet numbers remain visible. Item windows use round numbers, independently of worksheet question numbers. Legacy sessions without questionOrder preserve their ordered questions. Restores/imports validate state before acceptance; team recovery starts with a fresh 90 seconds.
