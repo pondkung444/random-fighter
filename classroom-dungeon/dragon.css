@@ -59,3 +59,13 @@
 @media(prefers-reduced-motion:reduce){.event-card,.event-art *,.chest-button,.chest-prize{animation:none!important}}
 @media(max-width:800px){.event-card-layout{grid-template-columns:1fr}.event-art{height:190px}.event-art img{height:150px}.event-art svg{width:60%;left:0;height:100px}.event-teams{grid-template-columns:1fr 1fr}.event-card{padding:18px}.event-description{font-size:21px}.event-catalog{grid-template-columns:1fr}}
 @media(max-width:450px){.event-teams{grid-template-columns:1fr}.event-banner span{min-width:0;flex-basis:100%}.event-card h1{font-size:27px}.event-reward{font-size:18px}.event-art{height:160px}.event-art img{height:140px}}
+
+.food-growth{width:100%;padding:8px 12px;box-sizing:border-box;color:#284f51;background:#ffffffb0;border-radius:12px;font-size:14px}
+.food-growth label{display:block}.food-growth progress{display:block;width:100%;height:12px;margin:7px 0;accent-color:#5b9c6e}.food-growth b{font-size:14px;display:block}
+.food-evolutions{display:grid;gap:12px;margin:16px 0}.food-evolutions .evolution{display:flex;align-items:center;justify-content:center;gap:20px;padding:18px;border:2px solid #dbb64f;border-radius:20px;background:radial-gradient(ellipse,#fff8c9,#e5efdb);color:#514022;animation:evolve-flash 1s ease-out}
+.food-evolutions img{width:140px;height:140px;object-fit:contain;filter:drop-shadow(0 0 16px #ffe08d)}.food-evolutions h2{margin:0;font-size:28px}.food-evolutions p{margin:8px 0}
+.just-evolved .dragon-portrait{animation:evolve-flash 1.3s ease-out}
+@keyframes evolve-flash{0%{filter:brightness(1.8);transform:scale(.94)}70%{transform:scale(1.02)}100%{filter:brightness(1);transform:none}}
+.motion-off .food-evolutions *,.motion-off .just-evolved .dragon-portrait{animation:none!important}
+@media(prefers-reduced-motion:reduce){.food-evolutions *,.just-evolved .dragon-portrait{animation:none!important}}
+@media(max-width:450px){.food-evolutions .evolution{flex-direction:column;gap:6px}.food-evolutions h2{font-size:23px}}

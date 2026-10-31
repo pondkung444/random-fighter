@@ -1,21 +1,10 @@
-# Dragon Academy: automatic events
-Updated 2026-10-31. Replaces manual items; questions remain 2568 Q14–20, then 2567 Q1–20 (27 rounds).
-
-Flow: draw one representative per team → event announcement → acknowledge rules → select routes if cave → reveal question → mark all four representatives → solution → settle event → open eligible chests → next round. No team recovery round.
-
-Base reward: correct 100 food and 2 stars; incorrect zero. Event rewards are additional:
-- Rain: correct adds 100 food.
-- Raid: random disjoint pairs; only correct versus incorrect transfers up to 80 food from the loser's pre-reward balance; matching outcomes transfer nothing.
-- Storm: at least three correct grants every team 50 food.
-- Cave: choose safe or risk before question. Risk correct adds 2 stars; incorrect loses up to 50 food, clamped to balance.
-- Challenger: teams tied for lowest stars at event draw are eligible; correct adds 2 stars. Available from round 8.
-- Chest: correct teams reveal one prize each, equal chance of 50 food, 100 food or 1 star. Prizes are sampled with the event and persisted, so reload/undo cannot reroll them. Next is blocked until all eligible chests are opened.
-
-First events are rain then chest. Later events do not repeat consecutively. Raid is eligible only when every team has food. No speed scoring, negative food, item purchases or charges.
-Final school-defense meter still counts only base answer stars in the final two rounds, target 10.
-Growth remains after completed rounds 5, 10 and 15.
-
-State version 3 upgrades version 2 without discarding teams/history. An existing solo/answer/result round finishes under its old base rewards; the next draw starts events. Existing preparation screens receive an event. Export format remains dragon-session-v1.
-Event acknowledgement, routes, prizes and chest-open status persist. Undo restores the previous state.
-Motion toggle and prefers-reduced-motion disable event animations.
-Checks: node tests/dragon.test.cjs; node tests/dragon-browser.cjs.
+# Food-fed Dragon Academy
+Mังกรโตจากอาหารที่ได้รับสะสมทุกทาง: 0 / 400 / 1,000 / 1,800 → ระดับ 1–4.
+อาหารปัจจุบันใช้จัดอันดับ; อาหารเลี้ยงสะสมไม่ลดจากการฉกหรือทางเสี่ยง จึงไม่ถอยร่าง.
+ไม่มีดาว. ตอบถูก 100 อาหาร; ฝนแครอต / ทางเสี่ยง / ผู้ท้าชิงที่มีสิทธิ์ ตอบถูกได้รวม 200.
+ผู้ท้าชิงเลือกจากอาหารปัจจุบันต่ำสุดทุกทีมที่เสมอ. ฉกได้สูงสุด 80 จากยอดก่อนแจกอาหาร และผู้ฉกนับเป็นอาหารเลี้ยงสะสมด้วย.
+พายุถูกอย่างน้อย 3 ทีม ทุกทีม +50. หีบโบนัสเท่ากัน 50 / 100 / 150 อาหาร.
+ประกาศวิวัฒนาการเฉพาะทีมที่ข้ามเกณฑ์ ทั้งจากคำตอบและเปิดหีบ. แถบความคืบหน้าแสดงยอดสะสมและอาหารที่ขาด.
+ผู้ชนะคืออาหารปัจจุบันสูงสุด เสมอชนะร่วม. ภารกิจสองรอบสุดท้ายต้องตอบถูกรวม 5 จาก 8 คำตอบ.
+State v4 upgrades v2/v3, retaining rosters/history/balances. Historical extra stars convert to event food (50 per extra event star, 150 per chest star); base stars are removed. Historical stolen food is added to cumulative feeding. Conversion is idempotent.
+Tests: node tests/dragon.test.cjs; node tests/dragon-browser.cjs.
