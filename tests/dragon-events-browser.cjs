@@ -1,0 +1,18 @@
+const {chromium}=require('C:/Users/ASUS FX505/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const fs=require('fs'),path=require('path'),assert=require('assert/strict');
+(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true}),page=await browser.newPage({viewport:{width:1180,height:820}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.route('https://dungeon.test/**',async rt=>{const p=new URL(rt.request().url()).pathname,f=path.join(__dirname,'..',p.slice(1));try{await rt.fulfill({contentType:p.endsWith('.js')?'application/javascript':p.endsWith('.css')?'text/css':p.endsWith('.webp')?'image/webp':p.endsWith('.png')?'image/png':'text/html',body:fs.readFileSync(f)});}catch{await rt.fulfill({status:404,body:'missing'});}});
+await page.goto('https://dungeon.test/classroom-dungeon/dragon.html');const click=a=>page.locator('[data-a="'+a+'"]').first().click();
+await click('demo');await click('groups');await click('begin');
+for(let i=0;i<27;i++){await click('draw');assert.equal(await page.locator('[data-a=lock]').count(),0);assert.equal(await page.locator('.event-card').count(),1);assert.equal(await page.locator('.prompt').count(),0);if(i===0){await page.screenshot({path:'event-announcement-ipad.png',fullPage:true,animations:'disabled'});await page.reload();assert.equal(await page.locator('[data-a=ack]').count(),1);}
+await click('ack');if(await page.locator('[id^=route-]').count()){await page.locator('[id^=route-]').evaluateAll(xs=>xs.forEach((x,i)=>{x.value=i%2?'risk':'safe';x.dispatchEvent(new Event('change',{bubbles:true}));}));await page.reload();assert.equal(await page.locator('#route-t1').inputValue(),'risk');}
+await click('lock');assert.equal(await page.locator('.event-banner').count(),1);assert.equal(await page.locator('.solution').count(),0);assert.equal(await page.locator('[data-a=help]').count(),0);
+if(i===0){await click('eventinfo');assert.equal(await page.locator('dialog').count(),1);await page.locator('dialog form button').click();await page.screenshot({path:'event-question-ipad.png',fullPage:true,animations:'disabled'});}
+for(let j=0;j<4;j++)await page.locator('[data-a="'+(j<3?'true':'false')+'"][data-id=t'+j+']').click();
+await click('reveal');assert.equal(await page.locator('.solution').count(),1);await click('settle');const prize=await page.evaluate(()=>game.event.prizes);
+if(i===1){assert.equal(await page.locator('[data-a=next]').isDisabled(),true);await click('undo');await click('settle');assert.deepEqual(await page.evaluate(()=>game.event.prizes),prize);await page.screenshot({path:'event-chest-ipad.png',fullPage:true,animations:'disabled'});}
+while(await page.locator('[data-a=chest]').count())await click('chest');await click('next');}
+assert.equal(await page.evaluate(()=>game.phase),'finished');await page.reload();assert.equal(await page.evaluate(()=>game.phase),'finished');
+await page.evaluate(()=>{game=T.create(Array.from({length:4},(_,i)=>({name:'ทีม '+i,members:['นักเรียน']})));T.draw(game);game.event.kind='cave';render();});
+for(const [w,h] of [[1920,1080],[1180,820],[390,844]]){await page.setViewportSize({width:w,height:h});await page.screenshot({path:'event-cave-'+w+'.png',fullPage:true,animations:'disabled'});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
+assert.deepEqual(errors,[]);await browser.close();console.log('Browser: 27 rounds, event acknowledgement before questions, rule dialog, cave save/reload, chest reveal/undo, finish/reload, mobile/iPad/TV layouts passed');})().catch(e=>{console.error(e);process.exit(1)});
