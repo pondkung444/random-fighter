@@ -1,1 +1,1 @@
-require('./dragon-events-browser.cjs');
+require('./dragon-five-browser.cjs');

@@ -69,3 +69,13 @@
 .motion-off .food-evolutions *,.motion-off .just-evolved .dragon-portrait{animation:none!important}
 @media(prefers-reduced-motion:reduce){.food-evolutions *,.just-evolved .dragon-portrait{animation:none!important}}
 @media(max-width:450px){.food-evolutions .evolution{flex-direction:column;gap:6px}.food-evolutions h2{font-size:23px}}
+
+/* Five groups; legacy four-team sessions retain their original layout. */
+.dragon-lineup,.roster-groups{grid-template-columns:repeat(5,minmax(0,1fr))}
+.dragon-garden .fleet,.mark-grid,.receipts,.event-teams{grid-template-columns:repeat(var(--team-count,5),minmax(0,1fr))}
+.roster-groups article{padding:14px;border:2px solid var(--team);border-radius:14px;min-width:0;background:#fffaf0}.roster-groups input{width:100%;box-sizing:border-box}.roster-groups ul{padding-left:20px}.roster-groups p{font-weight:800}
+.roster-assignments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.roster-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px;background:#f4ecdc;border-radius:12px}.roster-row select{width:48%;min-width:0}.roster-row span{overflow-wrap:anywhere}
+.team-4 .dragon-sprite,.team-art-4{filter:hue-rotate(40deg) saturate(.9) drop-shadow(0 5px 4px #58416b30)}
+@media(min-width:801px) and (max-width:1250px){.event-teams,.mark-grid,.receipts{grid-template-columns:repeat(3,minmax(0,1fr))}.expanded .dragon-portrait{height:170px}.food-growth{padding:6px}.dragon-stats{font-size:21px!important}}
+@media(max-width:800px){.roster-groups,.event-teams,.mark-grid,.receipts{grid-template-columns:repeat(2,minmax(0,1fr))}.roster-assignments{grid-template-columns:1fr}.dragon-garden .fleet{grid-template-columns:repeat(2,minmax(0,1fr))}.dragon-lineup img{height:110px}}
+@media(max-width:450px){.roster-groups,.event-teams,.mark-grid,.receipts{grid-template-columns:1fr}.roster-row{gap:8px}.dragon-lineup{grid-template-columns:repeat(5,minmax(0,1fr));padding:4px}.dragon-lineup img{height:75px}}
