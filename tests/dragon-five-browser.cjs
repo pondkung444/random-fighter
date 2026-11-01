@@ -1,5 +1,5 @@
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),A=require('node:assert/strict');
-(async()=>{const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1180,height:820}}),errors=[],missing=[];page.on('pageerror',e=>errors.push(e.message));
+(async()=>{const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,args:['--no-sandbox','--disable-dev-shm-usage']}: {})}),page=await browser.newPage({viewport:{width:1180,height:820}}),errors=[],missing=[];page.on('pageerror',e=>errors.push(e.message));
 await page.route('https://dungeon.test/**',async rt=>{const p=new URL(rt.request().url()).pathname,f=path.join(__dirname,'..',p.slice(1));try{await rt.fulfill({contentType:p.endsWith('.js')?'application/javascript':p.endsWith('.css')?'text/css':p.endsWith('.webp')?'image/webp':p.endsWith('.png')?'image/png':'text/html',body:fs.readFileSync(f)});}catch{missing.push(p);await rt.fulfill({status:404,body:'missing'});}});
 await page.goto('https://dungeon.test/classroom-dungeon/dragon.html');
 const click=a=>page.locator('[data-a="'+a+'"]').first().click();
