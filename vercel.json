@@ -1,4 +1,17 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "pond-class.vercel.app"
+        }
+      ],
+      "destination": "https://random-fighter-git-classroom-dungeon-playable-mvp-pon-d.vercel.app/classroom-dungeon",
+      "permanent": false
+    }
+  ]
 }
