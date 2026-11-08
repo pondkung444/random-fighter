@@ -3,8 +3,8 @@
 const COUNT=50,PACK='thepmit-sme-physics50-v1';
 const events={
 rain:{icon:'🥕',title:'ฝนแครอตตก!',tag:'รอบแจกหนัก',description:'เมฆวิเศษโปรยแครอตทั่วโรงเรียน! ตัวแทนทีมใดตอบถูก รับอาหารเพิ่ม 100',reward:'ถูก: อาหาร 200 · ผิด: 0'},
-raid:{icon:'🐉',title:'มังกรจอมฉกบุกคลัง',tag:'วงฉกอาหาร',description:'5 ทีม: สุ่มเป้าหมายเป็นวง แต่ละทีมฉกทีมถัดไปได้สูงสุด 80 เมื่อตัวเองถูกและเป้าหมายผิด ทุกทีมมีเป้าหมายและผู้ไล่ฉกอย่างละ 1 ทีม',reward:'รางวัลปกติ + ฉกได้สูงสุด 80 · คิดจากอาหารก่อนแจกของข้อนี้'},
-storm:{icon:'🌩️',title:'พายุถล่มโรงเรียน',tag:'ภารกิจร่วมมือ',description:'ตอบถูกอย่างน้อย 4 จาก 5 ทีม เพื่อกางเกราะปกป้องโรงเรียนสำเร็จ ทุกทีมรับอาหารเพิ่ม 50 แม้ทีมนั้นจะตอบผิด',reward:'สำเร็จ: ทุกทีม +50 อาหาร · รางวัลคำตอบยังได้ตามปกติ'},
+raid:{icon:'🐉',title:'มังกรจอมฉกบุกคลัง',tag:'ดวลเป็นคู่',description:'สุ่มจับคู่ 2 คู่ ทีมที่ตอบถูกฉกอาหารคู่แข่งที่ตอบผิดได้สูงสุด 80 ถ้าผลเหมือนกันไม่มีการฉก',reward:'รางวัลปกติ + ฉกได้สูงสุด 80 · คิดจากอาหารก่อนแจกของข้อนี้'},
+storm:{icon:'🌩️',title:'พายุถล่มโรงเรียน',tag:'ภารกิจร่วมมือ',description:'ตอบถูกอย่างน้อย 3 จาก 4 ทีม เพื่อกางเกราะปกป้องโรงเรียนสำเร็จ ทุกทีมรับอาหารเพิ่ม 50 แม้ทีมนั้นจะตอบผิด',reward:'สำเร็จ: ทุกทีม +50 อาหาร · รางวัลคำตอบยังได้ตามปกติ'},
 cave:{icon:'💎',title:'ถ้ำอัญมณีลึกลับ',tag:'เลือกเส้นทางก่อนเห็นโจทย์',description:'แต่ละทีมเลือกทางปลอดภัยหรือทางเสี่ยงก่อนเปิดโจทย์ ทางปลอดภัยรับรางวัลปกติ ทางเสี่ยงตอบถูกได้อาหารรวม 200 แต่ตอบผิดเสียอาหารสูงสุด 50',reward:'ปลอดภัย: ถูก +100 อาหาร · เสี่ยง: ถูก +200 อาหาร หรือผิด −50 อาหาร'},
 challenger:{icon:'👑',title:'มังกรผู้ท้าชิง',tag:'โอกาสพลิกเกม',description:'ทีมที่มีอาหารปัจจุบันน้อยที่สุดก่อนเริ่มข้อนี้ หากตัวแทนตอบถูก รับอาหารรวม 200 หากอาหารเสมอกัน ทุกทีมที่มีอาหารต่ำสุดได้สิทธิ์',reward:'ทีมผู้ท้าชิงตอบถูก: อาหาร 200 · ทีมอื่นรับรางวัลปกติ'},
 chest:{icon:'🎁',title:'หีบสมบัติมังกร',tag:'ตอบถูกแล้วลุ้นต่อ',description:'ตัวแทนที่ตอบถูกจะได้เปิดหีบของทีม ลุ้นอาหารเพิ่ม 50, อาหารเพิ่ม 100 หรืออาหารเพิ่ม 150 โอกาสเท่ากัน ทุกหีบมีรางวัล',reward:'ตอบถูก: รับรางวัลปกติ แล้วเปิดหีบทีละทีม'}
@@ -16,7 +16,7 @@ function growth(t){const earned=t.earned,stage=thresholds.reduce((n,v,i)=>earned
 function growthChanges(s,before){return s.teams.filter(t=>growth(t).level>before[t.id]).map(t=>({team:t.id,from:before[t.id],to:growth(t).level}));}
 const clone=x=>JSON.parse(JSON.stringify(x));
 function shuffle(a,rng){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function create(groups){if(![4,5].includes(groups.length)||groups.some(g=>!g.members.length))throw Error('ต้องมี 4 หรือ 5 ทีมและสมาชิกอย่างน้อยทีมละหนึ่งคน');return {version:4,packId:PACK,storm:0,questionOrder:Array.from({length:COUNT},(_,i)=>i),index:0,phase:'harbor',teams:groups.map((g,i)=>({id:'t'+i,name:g.name,gold:0,earned:0,uses:0,members:g.members.map((m,j)=>({id:'t'+i+'m'+j,name:typeof m==='string'?m:m.name})),queue:[],last:null})),selected:{},orders:{},first:{},recovery:{},history:[],event:null,remaining:180,running:false,elapsed:0};}
+function create(groups){if(groups.length!==4||groups.some(g=>!g.members.length))throw Error('ต้องมี 4 ทีมและสมาชิกอย่างน้อยทีมละหนึ่งคน');return {version:4,answers:{},packId:PACK,storm:0,questionOrder:Array.from({length:COUNT},(_,i)=>i),index:0,phase:'harbor',teams:groups.map((g,i)=>({id:'t'+i,name:g.name,gold:0,earned:0,uses:0,members:g.members.map((m,j)=>({id:'t'+i+'m'+j,name:typeof m==='string'?m:m.name})),queue:[],last:null})),selected:{},orders:{},first:{},recovery:{},history:[],event:null,remaining:180,running:false,elapsed:0};}
 function chooseEvent(s,rng=Math.random){
 let kind=s.index===0?'rain':s.index===1?'chest':null;
 if(!kind){const previous=s.history.at(-1)?.event?.kind;
@@ -25,11 +25,12 @@ kind=pool[Math.floor(rng()*pool.length)];}
 const ids=shuffle(s.teams.map(t=>t.id),rng),low=Math.min(...s.teams.map(t=>t.gold));
 return {kind,mode:kind==='raid'&&ids.length===5?'ring':'pairs',pairs:kind==='raid'?(ids.length===5?ids.map((id,i)=>[id,ids[(i+1)%ids.length]]):[[ids[0],ids[1]],[ids[2],ids[3]]]):[],eligible:kind==='challenger'?s.teams.filter(t=>t.gold===low).map(t=>t.id):[],choices:{},opened:{},prizes:kind==='chest'?Object.fromEntries(s.teams.map(t=>[t.id,['food50','food100','food150'][Math.floor(rng()*3)]])):{},acknowledged:false};
 }
-function draw(s,rng=Math.random){if(s.phase!=='harbor')throw Error('สุ่มได้ก่อนเริ่มข้อเท่านั้น');for(const t of s.teams){if(!t.queue.length){t.queue=shuffle(t.members.map(m=>m.id),rng);if(t.queue.length>1&&t.queue[0]===t.last)[t.queue[0],t.queue[1]]=[t.queue[1],t.queue[0]];}s.selected[t.id]=t.queue.shift();t.last=s.selected[t.id];}s.orders={};s.first={};s.event=chooseEvent(s,rng);s.phase='plan';}
+function draw(s,rng=Math.random){if(s.phase!=='harbor')throw Error('สุ่มได้ก่อนเริ่มข้อเท่านั้น');for(const t of s.teams){if(!t.queue.length){t.queue=shuffle(t.members.map(m=>m.id),rng);if(t.queue.length>1&&t.queue[0]===t.last)[t.queue[0],t.queue[1]]=[t.queue[1],t.queue[0]];}s.selected[t.id]=t.queue.shift();t.last=s.selected[t.id];}s.orders={};s.first={};s.answers={};s.event=chooseEvent(s,rng);s.phase='plan';}
 function acknowledge(s){if(s.phase!=='plan'||!s.event)throw Error('ยังไม่มีเหตุการณ์');s.event.acknowledged=true;}
 function lock(s,choices={}){if(s.phase!=='plan'||!s.event?.acknowledged)throw Error('อ่านเหตุการณ์แล้วกดยืนยันก่อนเปิดโจทย์');if(s.event.kind==='cave'){for(const t of s.teams)if(!['safe','risk'].includes(choices[t.id]))throw Error('เลือกเส้นทางให้ครบทุกทีมก่อน');s.event.choices=clone(choices);}s.orders=Object.fromEntries(s.teams.map(t=>[t.id,{kind:'pass',cost:0}]));s.base=Object.fromEntries(s.teams.map(t=>[t.id,t.gold]));s.phase='solo';s.running=false;}
 function mark(s,id,correct){if(s.phase!=='answer'||!s.teams.some(t=>t.id===id)||typeof correct!=='boolean')throw Error('ผลคำตอบไม่ถูกต้อง');s.first[id]=correct;}
-function reveal(s){if(s.phase!=='solo')throw Error('เปิดเฉลยได้เมื่ออยู่หน้าโจทย์');s.phase='answer';s.running=false;}
+function submit(s,id,choice){if(s.phase!=='solo'||!s.teams.some(t=>t.id===id)||!['ก','ข','ค','ง'].includes(choice))throw Error('คำตอบไม่ถูกต้อง');if(s.answers[id])throw Error('ทีมนี้ส่งคำตอบแล้ว');s.answers[id]=choice;}
+function reveal(s,key){if(s.phase!=='solo'||!['ก','ข','ค','ง'].includes(key)||s.teams.some(t=>!s.answers[t.id]))throw Error('ส่งคำตอบให้ครบทั้ง 4 ทีมก่อนเปิดเฉลย');s.first=Object.fromEntries(s.teams.map(t=>[t.id,s.answers[t.id]===key]));s.phase='answer';s.running=false;}
 function settle(s,rng=Math.random){
 if(s.phase!=='answer'||s.teams.some(t=>typeof s.first[t.id]!=='boolean'))throw Error('เปิดเฉลยและตรวจถูกผิดให้ครบทุกทีมก่อนรับอาหาร');const logs=[],ev=s.event,kind=ev?.kind,before=Object.fromEntries(s.teams.map(t=>[t.id,growth(t).level]));
 const success=s.teams.filter(t=>s.first[t.id]).length>=stormRequired(s);
@@ -42,12 +43,13 @@ t.gold+=reward+bonus-penalty;t.earned+=reward+bonus;if(s.index>=COUNT-2&&correct
 logs.push({kind:'reward',team:t.id,reward,bonus,penalty});
 }
 if(ev)ev.success=success;
-const record={number:s.index+1,questionNumber:s.index+1,questionYear:2569,selected:clone(s.selected),orders:clone(s.orders),first:clone(s.first),logs,growth:growthChanges(s,before),event:clone(ev),gold:Object.fromEntries(s.teams.map(t=>[t.id,t.gold]))};s.history.push(record);s.phase='result';return record;
+const record={number:s.index+1,questionNumber:s.index+1,questionYear:2569,answers:clone(s.answers),selected:clone(s.selected),orders:clone(s.orders),first:clone(s.first),logs,growth:growthChanges(s,before),event:clone(ev),gold:Object.fromEntries(s.teams.map(t=>[t.id,t.gold]))};s.history.push(record);s.phase='result';return record;
 }
 function pending(s){return s.phase==='result'&&s.event?.kind==='chest'?s.teams.filter(t=>s.first[t.id]&&!s.event.opened[t.id]).map(t=>t.id):[];}
 function openChest(s,id){if(!pending(s).includes(id))throw Error('หีบนี้เปิดไปแล้วหรือไม่มีสิทธิ์');const t=s.teams.find(t=>t.id===id),prize=s.event.prizes[id],food=prize==='food50'?50:prize==='food100'?100:150,before=Object.fromEntries(s.teams.map(t=>[t.id,growth(t).level]));t.gold+=food;t.earned+=food;s.event.opened[id]=true;const r=s.history.at(-1);r.event=clone(s.event);r.logs.push({kind:'chest',team:id,food});r.gold[id]=t.gold;r.growth.push(...growthChanges(s,before));}
-function next(s){if(s.phase!=='result')throw Error('รับผลก่อนเดินทางต่อ');if(pending(s).length)throw Error('เปิดหีบของทีมที่ตอบถูกให้ครบก่อน');if(s.index===COUNT-1){s.phase='finished';return;}s.index++;s.phase='harbor';s.selected={};s.orders={};s.first={};s.event=null;s.remaining=180;s.running=false;}
+function next(s){if(s.phase!=='result')throw Error('รับผลก่อนเดินทางต่อ');if(pending(s).length)throw Error('เปิดหีบของทีมที่ตอบถูกให้ครบก่อน');if(s.index===COUNT-1){s.phase='finished';return;}s.index++;s.phase='harbor';s.selected={};s.orders={};s.first={};s.answers={};s.event=null;s.remaining=180;s.running=false;}
 function upgrade(s){
+if(s&&s.packId===PACK&&!s.answers){s.answers={};if(s.phase==='answer'){s.phase='solo';s.first={};}}
 if(s?.version===2&&s.packId===PACK){s.version=3;s.event=null;if(['plan','team'].includes(s.phase)){s.phase='plan';s.first={};s.event=chooseEvent(s);}}
 if(s?.version===3&&s.packId===PACK){
 const converted=Object.fromEntries(s.teams.map(t=>[t.id,0])),stolen=Object.fromEntries(s.teams.map(t=>[t.id,0]));
@@ -65,8 +67,9 @@ if(s.event?.kind==='challenger'&&['plan','solo','answer'].includes(s.phase)){con
 s.storm=Math.floor(s.storm/2);s.version=4;
 }return s;}
 function validate(s){
-const fail=()=>{throw Error('ไฟล์เซสชันไม่ถูกต้อง');};
-if(!s||s.version!==4||s.packId!==PACK||!Number.isInteger(s.index)||s.index<0||s.index>=COUNT||!['harbor','plan','solo','answer','result','finished'].includes(s.phase)||!Array.isArray(s.teams)||![4,5].includes(s.teams.length)||!Array.isArray(s.history)||s.history.length!==s.index+(['result','finished'].includes(s.phase)?1:0)||!Number.isFinite(s.remaining)||s.remaining<0||!Number.isFinite(s.elapsed)||s.elapsed<0||!Number.isInteger(s.storm)||s.storm<0||s.storm>s.teams.length*2)fail();
+const fail=()=>{throw Error('ไฟล์เซสชันไม่ถูกต้อง · โหมดนี้ใช้ 4 ทีม');};
+if(!s?.answers||Array.isArray(s.answers)||Object.entries(s.answers).some(([id,a])=>!s.teams?.some(t=>t.id===id)||!['ก','ข','ค','ง'].includes(a)))fail();
+if(!s||s.version!==4||s.packId!==PACK||!Number.isInteger(s.index)||s.index<0||s.index>=COUNT||!['harbor','plan','solo','answer','result','finished'].includes(s.phase)||!Array.isArray(s.teams)||s.teams.length!==4||!Array.isArray(s.history)||s.history.length!==s.index+(['result','finished'].includes(s.phase)?1:0)||!Number.isFinite(s.remaining)||s.remaining<0||!Number.isFinite(s.elapsed)||s.elapsed<0||!Number.isInteger(s.storm)||s.storm<0||s.storm>s.teams.length*2)fail();
 if(!Array.isArray(s.questionOrder)||s.questionOrder.length!==COUNT||s.questionOrder.some((n,i)=>n!==i))fail();
 for(let i=0;i<s.teams.length;i++){const t=s.teams[i];if(!t||t.id!=='t'+i||typeof t.name!=='string'||!Number.isSafeInteger(t.gold)||t.gold<0||!Number.isSafeInteger(t.earned)||t.earned<0||!Array.isArray(t.members)||!t.members.length||!Array.isArray(t.queue))fail();const ids=new Set();for(const m of t.members){if(!m||typeof m.id!=='string'||typeof m.name!=='string'||ids.has(m.id))fail();ids.add(m.id);}if(t.queue.some(id=>!ids.has(id))||new Set(t.queue).size!==t.queue.length||(t.last!==null&&!ids.has(t.last)))fail();if(s.phase!=='harbor'&&!ids.has(s.selected?.[t.id]))fail();if(['result','finished'].includes(s.phase)&&typeof s.first?.[t.id]!=='boolean')fail();}
 if(s.phase==='finished'&&s.index!==COUNT-1)fail();
@@ -87,5 +90,5 @@ if(ev.kind==='chest'&&['result','finished'].includes(s.phase)&&ids.some(id=>s.fi
 }
 for(let i=0;i<s.history.length;i++){const r=s.history[i];if(!r||r.number!==i+1||!Array.isArray(r.logs))fail();for(const t of s.teams)if(typeof r.first?.[t.id]!=='boolean'||!Number.isSafeInteger(r.gold?.[t.id])||r.gold[t.id]<0)fail();for(const l of r.logs)if(!l||!['reward','steal','chest'].includes(l.kind))fail();}
 return s;}
-const api={stormRequired,finalGoal,growth,thresholds,levelNames,create,draw,acknowledge,lock,mark,reveal,settle,next,clone,validate,upgrade,events,chooseEvent,pending,openChest};if(typeof module!=='undefined')module.exports=api;else root.DragonEngine=api;
+const api={stormRequired,finalGoal,growth,thresholds,levelNames,create,draw,acknowledge,lock,mark,submit,reveal,settle,next,clone,validate,upgrade,events,chooseEvent,pending,openChest};if(typeof module!=='undefined')module.exports=api;else root.DragonEngine=api;
 })(globalThis);
